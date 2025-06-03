@@ -6,30 +6,139 @@
   <title>VixStream – Streaming gratuito</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
+    /* These classes are essential for scrolling */
     .scrollbar-hide::-webkit-scrollbar { display: none; }
     .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
     .card-title { transition: opacity 0.25s ease; opacity: 0; }
     .card:hover .card-title { opacity: 1; }
+
+    /* Specific styles for small screens (mobile first) */
+    @media (max-width: 639px) { /* Corresponds to Tailwind's 'sm' breakpoint */
+      .header-mobile-layout {
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem; /* Space between title and search bar */
+        padding-top: 1rem;
+        padding-bottom: 1rem;
+      }
+      .header-mobile-layout h1 {
+        font-size: 2.25rem; /* text-4xl for small screens */
+      }
+      .header-mobile-layout .search-container-mobile {
+        width: 100%; /* Search bar takes full width */
+        max-width: 32rem; /* Max width for search bar */
+      }
+      .hero-section-mobile {
+        min-height: 280px; /* Reduced height for banner on mobile */
+      }
+      .hero-content-mobile {
+        bottom: 1rem;
+        left: 1rem;
+        right: 1rem;
+        max-width: calc(100% - 2rem); /* Ensure text doesn't overflow */
+      }
+      .hero-content-mobile h2 {
+        font-size: 2rem; /* Banner title size on mobile */
+        margin-bottom: 0.5rem;
+      }
+      .info-modal-poster-mobile {
+        width: 100%; /* Poster image full width on mobile */
+        height: auto;
+      }
+      .info-modal-content-mobile {
+        padding: 1.5rem;
+      }
+    }
+
+    /* Styles for scroll arrows */
+    .scroll-button {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background-color: rgba(0, 0, 0, 0.6);
+      color: white;
+      border: none;
+      padding: 0.5rem;
+      cursor: pointer;
+      z-index: 10;
+      opacity: 0.8;
+      transition: opacity 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 2.5rem;
+      height: 2.5rem;
+      border-radius: 50%; /* Makes buttons round */
+    }
+    .scroll-button:hover {
+      opacity: 1;
+    }
+    .scroll-button.left {
+      left: 0.5rem;
+    }
+    .scroll-button.right {
+      right: 0.5rem;
+    }
+    /* Hide arrows on small screens (touch devices) */
+    @media (max-width: 768px) {
+        .scroll-button {
+            display: none !important; /* Force disappearance even with JS display:flex */
+        }
+    }
+
+    /* Styles for the new Message Modal */
+    .message-modal-content {
+        background-color: #1a202c; /* gray-900 */
+        border-radius: 0.5rem; /* rounded-lg */
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); /* shadow-2xl */
+        max-width: 24rem; /* max-w-sm */
+        width: 100%;
+        overflow: hidden;
+        position: relative;
+        padding: 1.5rem;
+        text-align: center;
+    }
+    .message-modal-content h3 {
+        font-size: 1.5rem; /* text-2xl */
+        font-weight: bold;
+        margin-bottom: 1rem;
+        color: #e2e8f0; /* text-gray-200 */
+    }
+    .message-modal-content p {
+        color: #cbd5e0; /* text-gray-300 */
+        margin-bottom: 1.5rem;
+    }
+    .message-modal-content button {
+        background-color: #dc2626; /* bg-red-600 */
+        color: white;
+        padding: 0.5rem 1.25rem;
+        border-radius: 0.25rem; /* rounded */
+        font-weight: 600; /* font-semibold */
+        transition: background-color 0.2s;
+    }
+    .message-modal-content button:hover {
+        background-color: #ef4444; /* hover:bg-red-700 */
+    }
   </style>
 </head>
 <body class="bg-gray-950 text-white font-sans min-h-screen flex flex-col">
 
-<header class="fixed top-0 left-0 right-0 z-40 bg-gray-900/90 backdrop-blur-sm px-4 py-3 flex items-center gap-4 shadow-md">
-  <h1 class="text-3xl font-extrabold tracking-tight select-none text-red-600">VixStream</h1>
-  <div class="flex-1 relative max-w-md">
+<header class="fixed top-0 left-0 right-0 z-40 bg-gray-900/90 backdrop-blur-sm px-4 py-3 flex items-center gap-4 shadow-md header-mobile-layout">
+  <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight select-none text-red-600">VixStream</h1>
+  <div class="flex-1 relative w-full sm:max-w-md search-container-mobile">
     <input id="searchInput" type="text" placeholder="Cerca…" autocomplete="off"
       class="w-full bg-gray-800 text-white placeholder-gray-400 pl-10 pr-3 py-2 rounded focus:outline-none" />
     <svg viewBox="0 0 24 24" class="absolute left-3 top-2.5 w-5 h-5 text-gray-400 pointer-events-none" fill="currentColor" aria-hidden="true"><path d="M10 2a8 8 0 105.293 14.293l4.707 4.707 1.414-1.414-4.707-4.707A8 8 0 0010 2zm0 2a6 6 0 110 12A6 6 0 0110 4z"/></svg>
   </div>
 </header>
 
-<main class="flex-1 pt-24 pb-10 px-4 max-w-7xl mx-auto">
-  <section id="hero" class="relative rounded-lg overflow-hidden shadow-lg mb-12 min-h-[380px] hidden">
+<main class="flex-1 pt-24 pb-10 px-4 max-w-7xl mx-auto w-full">
+  <section id="hero" class="relative rounded-lg overflow-hidden shadow-lg mb-12 min-h-[300px] sm:min-h-[380px] hidden hero-section-mobile">
     <img id="heroImg" src="" alt="Banner" class="w-full h-full object-cover brightness-75" />
-    <div class="absolute bottom-8 left-6 max-w-xl">
-      <h2 id="heroTitle" class="text-4xl font-bold mb-3"></h2>
-      <p id="heroOverview" class="text-gray-200 line-clamp-3"></p>
-      <button id="heroPlay" class="mt-5 bg-indigo-600 hover:bg-indigo-700 px-6 py-2 rounded font-semibold">▶ Guarda ora</button>
+    <div class="absolute bottom-4 left-4 max-w-xl hero-content-mobile">
+      <h2 id="heroTitle" class="text-3xl sm:text-4xl font-bold mb-2 sm:mb-3"></h2>
+      <p id="heroOverview" class="text-gray-200 line-clamp-3 text-sm sm:text-base"></p>
+      <button id="heroPlay" class="mt-4 sm:mt-5 bg-indigo-600 hover:bg-indigo-700 px-5 py-2 rounded font-semibold text-sm sm:text-base">▶ Guarda ora</button>
     </div>
   </section>
 
@@ -37,7 +146,7 @@
 
   <section id="searchResults" class="space-y-8 hidden">
     <h2 class="text-2xl font-bold">Risultati</h2>
-    <div id="resultsGrid" class="grid gap-6 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6"></div>
+    <div id="resultsGrid" class="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6"></div>
   </section>
 </main>
 
@@ -45,12 +154,25 @@
   <div class="bg-gray-900 rounded-lg shadow-2xl max-w-3xl w-full overflow-hidden relative">
     <button id="closeInfo" class="absolute top-3 right-3 w-10 h-10 bg-red-600 hover:bg-red-700 rounded-full text-2xl leading-[2.2rem]" aria-label="Chiudi">&times;</button>
     <div class="md:flex">
-      <img id="infoPoster" src="" alt="Poster" class="w-full md:w-1/3 object-cover" />
-      <div class="p-6 space-y-4 flex-1">
-        <h3 id="infoTitle" class="text-3xl font-bold"></h3>
-        <p id="infoMeta" class="text-gray-400"></p>
-        <p id="infoOverview" class="text-gray-200 max-h-40 overflow-y-auto pr-2"></p>
-        <button id="playBtn" class="bg-indigo-600 hover:bg-indigo-700 px-6 py-2 rounded font-semibold">▶ Guarda ora</button>
+      <img id="infoPoster" src="" alt="Poster" class="w-full md:w-1/3 object-cover info-modal-poster-mobile" />
+      <div class="p-4 sm:p-6 space-y-4 flex-1 info-modal-content-mobile">
+        <h3 id="infoTitle" class="text-2xl sm:text-3xl font-bold"></h3>
+        <p id="infoMeta" class="text-gray-400 text-sm sm:text-base"></p>
+        <p id="infoOverview" class="text-gray-200 max-h-40 overflow-y-auto pr-2 text-sm sm:text-base"></p>
+        
+        <!-- NUOVI SELETTORI STAGIONE ED EPISODIO -->
+        <div id="tvSelectors" class="space-y-2 mt-4 hidden">
+          <div class="flex items-center gap-2">
+            <label for="seasonSelect" class="text-gray-300">Stagione:</label>
+            <select id="seasonSelect" class="bg-gray-700 text-white rounded p-1"></select>
+          </div>
+          <div class="flex items-center gap-2">
+            <label for="episodeSelect" class="text-gray-300">Episodio:</label>
+            <select id="episodeSelect" class="bg-gray-700 text-white rounded p-1"></select>
+          </div>
+        </div>
+        
+        <button id="playBtn" class="mt-4 bg-indigo-600 hover:bg-indigo-700 px-6 py-2 rounded font-semibold text-sm sm:text-base">▶ Guarda ora</button>
       </div>
     </div>
   </div>
@@ -59,7 +181,16 @@
 <div id="playerModal" class="fixed inset-0 bg-black/90 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
   <div class="relative w-full max-w-5xl aspect-video">
     <iframe id="playerFrame" class="w-full h-full rounded-lg" src="" allowfullscreen loading="lazy" title="Video Player"></iframe>
-    <button id="closePlayer" class="absolute -top-4 -right-4 w-12 h-12 bg-red-600 hover:bg-red-700 rounded-full text-3xl leading-[2.8rem]" aria-label="Chiudi">&times;</button>
+    <button id="closePlayer" class="absolute -top-4 -right-4 w-10 h-10 sm:w-12 sm:h-12 bg-red-600 hover:bg-red-700 rounded-full text-2xl sm:text-3xl leading-[2.2rem] sm:leading-[2.8rem]" aria-label="Chiudi">&times;</button>
+  </div>
+</div>
+
+<!-- MESSAGE MODAL -->
+<div id="messageModal" class="fixed inset-0 bg-black/90 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+  <div class="message-modal-content">
+    <h3 id="messageModalTitle"></h3>
+    <p id="messageModalText"></p>
+    <button id="closeMessageModal">Chiudi</button>
   </div>
 </div>
 
@@ -88,18 +219,54 @@
   const playerModal = document.getElementById("playerModal");
   const playerFrame = document.getElementById("playerFrame");
 
-  function buildPlayerSrc(item){
-    if(item.media_type === "movie" || item.type === "movie")
-      return `https://${VID_DOMAIN}/movie/${item.id}?lang=it`;
-    if(item.media_type === "tv" || item.type === "tv")
-      return `https://${VID_DOMAIN}/tv/${item.id}/1/1?lang=it`;
+  const messageModal = document.getElementById("messageModal");
+  const messageModalTitle = document.getElementById("messageModalTitle");
+  const messageModalText = document.getElementById("messageModalText");
+  const closeMessageModalBtn = document.getElementById("closeMessageModal");
+
+  // NUOVI ELEMENTI PER I SELETTORI DI STAGIONE/EPISODIO
+  const tvSelectors = document.getElementById("tvSelectors");
+  const seasonSelect = document.getElementById("seasonSelect");
+  const episodeSelect = document.getElementById("episodeSelect");
+
+  let currentTvSeriesDetails = null; // Per memorizzare i dettagli completi della serie TV
+
+  function showMessageModal(title, text) {
+    messageModalTitle.textContent = title;
+    messageModalText.textContent = text;
+    messageModal.classList.remove("hidden");
+  }
+
+  closeMessageModalBtn.onclick = () => messageModal.classList.add("hidden");
+  messageModal.addEventListener("click", e => {
+    if(e.target === messageModal) messageModal.classList.add("hidden");
+  });
+
+  function buildPlayerSrc(item, seasonNum, episodeNum){
+    if(item.media_type === "movie" || item.type === "movie") {
+      return {
+        url: `https://${VID_DOMAIN}/movie/${item.id}?lang=it`,
+        type: 'iframe'
+      };
+    }
+    if(item.media_type === "tv" || item.type === "tv") {
+      // Costruisci l'URL della serie TV con stagione ed episodio selezionati
+      if (seasonNum && episodeNum) {
+        return {
+          url: `https://${VID_DOMAIN}/tv/${item.id}/${seasonNum}/${episodeNum}?lang=it`,
+          type: 'iframe'
+        };
+      }
+      // Se stagione/episodio non sono selezionati, restituisci null o un URL di fallback
+      return null; // O potresti reindirizzare alla pagina base della serie se preferisci
+    }
     return null;
   }
 
   function createCard(item){
     if(!item.poster_path) return null;
     const card = document.createElement("div");
-    card.className = "card relative cursor-pointer w-40 flex-shrink-0 transform transition-transform hover:scale-105";
+    card.className = "card relative cursor-pointer w-32 sm:w-40 flex-shrink-0 transform transition-transform hover:scale-105";
     card.innerHTML = `
       <img src="https://image.tmdb.org/t/p/w342${item.poster_path}" alt="${item.title || item.name}" class="rounded-lg w-full h-auto" />
       <div class="card-title absolute bottom-0 left-0 right-0 bg-black/70 text-xs p-1 line-clamp-1 rounded-b-lg">${item.title || item.name}</div>`;
@@ -109,17 +276,52 @@
 
   function createCarousel(title, items){
     const section = document.createElement("section");
+    section.className = "relative"; 
+    
     const h3 = document.createElement("h3");
     h3.textContent = title;
     h3.className = "text-xl font-semibold mb-3";
+    
     const track = document.createElement("div");
-    track.className = "flex gap-4 overflow-x-auto scrollbar-hide";
+    track.className = "flex gap-3 sm:gap-4 overflow-x-auto scrollbar-hide py-2";
+
     items.forEach(it => {
       const c = createCard(it);
       if(c) track.appendChild(c);
     });
+
+    const scrollLeftBtn = document.createElement("button");
+    scrollLeftBtn.className = "scroll-button left";
+    scrollLeftBtn.innerHTML = `
+      <svg viewBox="0 0 24 24" class="w-6 h-6" fill="currentColor"><path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6z"/></svg>
+    `;
+    scrollLeftBtn.onclick = () => track.scrollBy({ left: -track.offsetWidth * 0.8, behavior: 'smooth' });
+    
+    const scrollRightBtn = document.createElement("button");
+    scrollRightBtn.className = "scroll-button right";
+    scrollRightBtn.innerHTML = `
+      <svg viewBox="0 0 24 24" class="w-6 h-6" fill="currentColor"><path d="M8.59 16.59L13.17 12l-4.58-4.59L10 6l6 6-6 6z"/></svg>
+    `;
+    scrollRightBtn.onclick = () => track.scrollBy({ left: track.offsetWidth * 0.8, behavior: 'smooth' });
+
     section.appendChild(h3);
     section.appendChild(track);
+    section.appendChild(scrollLeftBtn);
+    section.appendChild(scrollRightBtn);
+
+    const checkScrollButtons = () => {
+        scrollLeftBtn.style.display = track.scrollLeft > 0 ? 'flex' : 'none';
+        const isScrollable = track.scrollWidth > track.clientWidth;
+        const isAtEnd = track.scrollLeft + track.clientWidth >= track.scrollWidth - 1;
+        scrollRightBtn.style.display = isScrollable && !isAtEnd ? 'flex' : 'none';
+    };
+
+    track.addEventListener('scroll', checkScrollButtons);
+    const resizeObserver = new ResizeObserver(checkScrollButtons);
+    resizeObserver.observe(track);
+    
+    setTimeout(checkScrollButtons, 500); 
+
     return section;
   }
 
@@ -128,7 +330,7 @@
       const [trendRes, movieRes, tvRes] = await Promise.all([
         fetch(`https://api.themoviedb.org/3/trending/all/day?api_key=${TMDB_KEY}&language=it-IT`),
         fetch(`https://api.themoviedb.org/3/movie/popular?api_key=${TMDB_KEY}&language=it-IT`),
-        fetch(`https://api.themoviedb.org/3/tv/popular?api_key=${TMDB_KEY}&language=it-IT`)
+        fetch(`https://api.themoviedb.org/3/tv/popular?api_key=${TMDB_KEY}&language=it-IT`) 
       ]);
       const [trendData, movieData, tvData] = await Promise.all([
         trendRes.json(), movieRes.json(), tvRes.json()
@@ -148,32 +350,94 @@
 
       sectionsEl.appendChild(createCarousel("Trending Oggi", trendData.results));
       sectionsEl.appendChild(createCarousel("Film Popolari", movieData.results));
-      sectionsEl.appendChild(createCarousel("Serie TV Popolari", tvData.results));
+      sectionsEl.appendChild(createCarousel("Serie TV Popolari", tvData.results)); 
+      
     } catch (err) {
       console.error(err);
       sectionsEl.innerHTML = `<p class="text-center text-red-500">Errore nel caricamento dei contenuti</p>`;
     }
   }
 
-  function openInfo(item){
+  // MODIFIED openInfo function to handle TV series seasons/episodes
+  async function openInfo(item){
     infoPoster.src = `https://image.tmdb.org/t/p/w500${item.poster_path || item.backdrop_path}`;
     infoTitle.textContent = item.title || item.name;
     const year = (item.release_date || item.first_air_date || "").slice(0,4);
     infoMeta.textContent = `${year} • ${item.media_type === "movie" ? "Film" : "Serie TV"}`;
     infoOverview.textContent = item.overview || "";
+    
+    // Reset and hide TV selectors by default
+    tvSelectors.classList.add("hidden");
+    seasonSelect.innerHTML = '';
+    episodeSelect.innerHTML = '';
+    currentTvSeriesDetails = null; // Clear previous details
+
+    if (item.media_type === "tv") {
+      try {
+        const tvDetailsRes = await fetch(`https://api.themoviedb.org/3/tv/${item.id}?api_key=${TMDB_KEY}&language=it-IT`);
+        currentTvSeriesDetails = await tvDetailsRes.json();
+        
+        if (currentTvSeriesDetails && currentTvSeriesDetails.seasons) {
+          // Filter out "Specials" season (season_number 0) if it exists
+          const validSeasons = currentTvSeriesDetails.seasons.filter(s => s.season_number > 0 && s.episode_count > 0);
+
+          if (validSeasons.length > 0) {
+            validSeasons.forEach(season => {
+              const option = document.createElement("option");
+              option.value = season.season_number;
+              option.textContent = `Stagione ${season.season_number}`;
+              seasonSelect.appendChild(option);
+            });
+
+            tvSelectors.classList.remove("hidden"); // Show selectors
+
+            // Add event listener for season change
+            seasonSelect.onchange = () => populateEpisodes(item.id, seasonSelect.value);
+
+            // Populate episodes for the first season by default
+            populateEpisodes(item.id, seasonSelect.value);
+          } else {
+            showMessageModal("Attenzione", "Nessuna stagione o episodio disponibile per questa serie TV.");
+          }
+        } else {
+          showMessageModal("Attenzione", "Dettagli serie TV non disponibili.");
+        }
+      } catch (error) {
+        console.error("Errore nel recupero dettagli serie TV:", error);
+        showMessageModal("Errore", "Impossibile caricare i dettagli della serie TV.");
+      }
+    }
+
     playBtn.onclick = () => openPlayer(item);
     infoModal.classList.remove("hidden");
   }
 
+  // Function to populate episodes for a given season
+  async function populateEpisodes(tvId, seasonNumber) {
+    episodeSelect.innerHTML = ''; // Clear previous episodes
+    try {
+      const seasonDetailsRes = await fetch(`https://api.themoviedb.org/3/tv/${tvId}/season/${seasonNumber}?api_key=${TMDB_KEY}&language=it-IT`);
+      const seasonDetails = await seasonDetailsRes.json();
+
+      if (seasonDetails && seasonDetails.episodes) {
+        seasonDetails.episodes.forEach(episode => {
+          const option = document.createElement("option");
+          option.value = episode.episode_number;
+          option.textContent = `Episodio ${episode.episode_number} - ${episode.name}`;
+          episodeSelect.appendChild(option);
+        });
+      } else {
+        showMessageModal("Attenzione", `Nessun episodio trovato per la stagione ${seasonNumber}.`);
+      }
+    } catch (error) {
+      console.error("Errore nel recupero episodi:", error);
+      showMessageModal("Errore", `Impossibile caricare gli episodi per la stagione ${seasonNumber}.`);
+    }
+  }
+
+
   document.getElementById("closeInfo").onclick = () => infoModal.classList.add("hidden");
   infoModal.addEventListener("click", e => { if(e.target === infoModal) infoModal.classList.add("hidden"); });
-
-  function openPlayer(item){
-    const src = buildPlayerSrc(item);
-    if(!src){ alert("Tipo di media non supportato"); return; }
-    playerFrame.src = src;
-    playerModal.classList.remove("hidden");
-  }
 
   document.getElementById("closePlayer").onclick = () => {
     playerFrame.src = "";
@@ -186,6 +450,30 @@
     }
   });
 
+  // MODIFIED openPlayer function to use selected season/episode
+  function openPlayer(item){
+    let playerInfo;
+    if (item.media_type === "tv") {
+      const selectedSeason = seasonSelect.value;
+      const selectedEpisode = episodeSelect.value;
+      if (!selectedSeason || !selectedEpisode) {
+        showMessageModal("Errore", "Seleziona una stagione e un episodio per la serie TV.");
+        return;
+      }
+      playerInfo = buildPlayerSrc(item, selectedSeason, selectedEpisode);
+    } else {
+      playerInfo = buildPlayerSrc(item);
+    }
+    
+    if(!playerInfo || playerInfo.type !== 'iframe'){
+      showMessageModal("Errore", "Impossibile riprodurre questo tipo di media direttamente. Si prega di riprovare con un'altra serie o film.");
+      return;
+    }
+
+    playerFrame.src = playerInfo.url;
+    playerModal.classList.remove("hidden");
+  }
+
   async function search(query){
     if(!query) {
       searchSection.classList.add("hidden");
@@ -193,7 +481,7 @@
       return;
     }
     try {
-      const res = await fetch(`https://api.themoviedb.org/3/search/multi?api_key=${TMDB_KEY}&language=it-IT&query=${encodeURIComponent(query)}&include_adult=false`);
+      const res = await fetch(`https://api.themoviedb.org/3/search/multi?api_key=${TMDB_KEY}&language=it-IT&query=${encodeURIComponent(query)}`); // Removed include_adult=false to avoid potential issues if TMDB API changes behavior
       const data = await res.json();
       resultsGrid.innerHTML = "";
       data.results.forEach(item => {
@@ -219,8 +507,5 @@
 
   loadHome();
 </script>
-
 </body>
 </html>
-
-
