@@ -63,7 +63,7 @@
 
         .card:hover {
             transform: scale(1.05); /* Zoom leggero al passaggio del mouse */
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4); /* Ombra più pronunciata */
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.7); /* Ombra più pronunciata */
             z-index: 10; /* Per evitare che le ombre si sovrappongano alle card adiacenti in modo strano */
         }
 
@@ -209,6 +209,7 @@
             object-fit: cover;
             z-index: 0;
             filter: brightness(0.5);
+            object-position: top center;
         }
 
         .info-modal-gradient {
@@ -217,7 +218,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(to top, #1a202c 0%, rgba(26, 32, 44, 0.9) 30%, transparent 60%);
+            background: linear-gradient(to top, #1a202c 0%, rgba(26, 32, 44, 1) 35%, rgba(26,32,44, 0.5) transparent 80%);
             z-index: 1;
         }
 
@@ -258,11 +259,16 @@
                 flex-direction: column;
                 align-items: center;
                 text-align: center;
-                padding-top: 70%;
+                padding-top: 20vh;
             }
 
             .info-modal-bg-img {
-                height: 50%;
+                height: 90vh;
+                object-position: center top;
+                width: 100%;
+                min-width: 100%;
+                object-fit: cover;
+                max-width: none;
             }
 
             .info-poster {
@@ -270,7 +276,18 @@
             }
             .info-poster-mobile {
                 display: block;
-                margin-top: -60px;
+                margin-top: -0.5px;
+                width: 150px;
+                height: auto;
+                border-radius: 0.5rem:
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+                margin-bottom: 1rem;
+            }
+
+            .info-modal {
+                overflow-y: auto;
+                max-height: 100vh;
+
             }
         }
     </style>
@@ -295,18 +312,18 @@
         <section id="homepageSection" class="section active">
             <div id="hero" class="relative h-[60vh] md:h-[80vh] bg-cover bg-center flex items-end p-8 md:p-16 rounded-xl overflow-hidden mb-12 hidden">
                 <img id="heroImg" src="" alt="Hero Background" class="absolute inset-0 w-full h-full object-cover z-0">
-                <div class="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/60 to-transparent z-10"></div>
+                <div class="absolute inset-0 bg-gradient-to-t from-gray-900/80 via-gray-900/60 to-transparent z-10"></div>
                 <div class="relative z-20 text-white max-w-xl">
-                    <h1 id="heroTitle" class="text-4xl md:text-6xl font-extrabold drop-shadow-lg mb-4"></h1>
+                    <h1 id="heroTitle" class="text-4xl md:text-6xl font-extrabold drop-shadow-2xl mb-4"></h1>
                     <p id="heroOverview" class="text-base md:text-lg mb-6 line-clamp-3"></p>
-                    <button id="heroPlay" class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded-full text-lg transition-colors duration-300 flex items-center shadow-lg" aria-label="Guarda ora">
+                    <button id="heroPlay" class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded-full text-lg transition-colors duration-300 flex items-center shadow-red-600/50 shadow-xl hover:scale-[1.02] transform" aria-label="Guarda ora">
                         <svg class="w-6 h-6 mr-2" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
                         Guarda ora
                     </button>
                 </div>
             </div>
 
-            <div id="sections" class="container mx-auto px-4 space-y-12">
+            <div id="sections" class="container mx-auto px-4 space-y-20">
             </div>
         </section>
 
@@ -605,12 +622,8 @@
             img.alt = item.title || item.name;
             img.loading = 'lazy'; // Migliora le prestazioni di caricamento
 
-            const overlay = document.createElement('div');
-            overlay.className = 'card-overlay';
-            overlay.textContent = item.title || item.name;
 
             card.appendChild(img);
-            card.appendChild(overlay);
 
             card.addEventListener('click', () => {
                 showInfoModal({ ...item, media_type: itemMediaType });
