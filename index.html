@@ -17,88 +17,93 @@
         header { background: linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, transparent 100%); transition: background 0.3s; z-index: 100; }
         header.scrolled { background: #141414; }
 
-        /* FIX PER IL MODAL DI NETLIFY SU MOBILE */
+        /* Fix Netlify Identity Mobile */
         #netlify-identity-widget { z-index: 9999 !important; }
-        iframe#netlify-identity-widget {
-            height: 100% !important;
-            width: 100% !important;
-            max-height: 100vh !important;
-        }
 
-        .card { min-width: 130px; width: 130px; height: 190px; flex-shrink: 0; transition: transform 0.3s; cursor: pointer; border-radius: 4px; overflow: hidden; }
-        @media (min-width: 768px) { .card { min-width: 160px; width: 160px; height: 240px; } }
-        .card:hover { transform: scale(1.1); z-index: 10; }
+        /* Card Style - Pulito senza titoli sotto */
+        .card { 
+            min-width: 120px; width: 120px; height: 180px; 
+            flex-shrink: 0; transition: transform 0.3s ease; 
+            cursor: pointer; border-radius: 6px; overflow: hidden; 
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+        }
+        @media (min-width: 768px) { 
+            .card { min-width: 170px; width: 170px; height: 250px; } 
+        }
+        .card:hover { transform: scale(1.08); z-index: 10; }
         .card img { width: 100%; height: 100%; object-fit: cover; }
 
-        .carousel-track { display: flex; overflow-x: auto; scroll-behavior: smooth; gap: 8px; padding: 20px 0; }
-        .nav-btn { position: absolute; z-index: 40; background: rgba(0,0,0,0.5); color: white; border: none; width: 40px; height: 100%; cursor: pointer; opacity: 0; transition: opacity 0.3s; }
-        .carousel-container:hover .nav-btn { opacity: 1; }
+        .carousel-track { display: flex; overflow-x: auto; scroll-behavior: smooth; gap: 12px; padding: 20px 0; }
         
-        /* Modal Info Mobile Friendly */
-        #infoModal > div { max-width: 850px; width: 95%; max-height: 90vh; overflow-y: auto; border-radius: 8px; background: #181818; position: relative; }
+        /* Modal Style */
+        #infoModal > div { max-width: 850px; width: 95%; max-height: 90vh; overflow-y: auto; border-radius: 12px; background: #181818; position: relative; }
+        .modal-hero { position: relative; width: 100%; aspect-ratio: 16 / 9; }
+        .modal-hero img { width: 100%; height: 100%; object-fit: cover; }
+        .modal-gradient { position: absolute; inset: 0; background: linear-gradient(to top, #181818 5%, transparent 70%); }
     </style>
 </head>
 <body class="scrollbar-hide">
 
-    <header class="fixed top-0 w-full p-3 md:p-4 flex justify-between items-center transition-all">
-        <div class="flex items-center gap-4 md:gap-8">
-            <a href="#" onclick="showCategory('all')" class="text-red-600 text-2xl md:text-3xl font-black tracking-tighter">VIXSTREAM</a>
-            <nav class="hidden sm:flex gap-4 md:gap-6 text-xs md:text-sm font-medium">
+    <header class="fixed top-0 w-full p-4 md:px-12 flex justify-between items-center transition-all">
+        <div class="flex items-center gap-4 md:gap-10">
+            <a href="#" onclick="showCategory('all')" class="text-red-600 text-2xl md:text-4xl font-black tracking-tighter">VIXSTREAM</a>
+            <nav class="hidden sm:flex gap-6 text-sm font-bold">
                 <a href="#" onclick="showCategory('all')" class="hover:text-gray-400 transition">Home</a>
                 <a href="#" onclick="showCategory('tv')" class="hover:text-gray-400 transition">Serie TV</a>
                 <a href="#" onclick="showCategory('movie')" class="hover:text-gray-400 transition">Film</a>
             </nav>
         </div>
         
-        <div class="flex items-center gap-2 md:gap-6">
-            <input type="text" id="searchInput" placeholder="Cerca..." class="hidden md:block bg-black/40 border border-white/20 text-white text-sm rounded px-4 py-1.5 w-40 outline-none focus:border-red-600 transition-all">
-            <button id="authBtn" onclick="handleAuth()" class="bg-red-600 text-white text-[10px] md:text-sm px-3 md:px-5 py-1.5 rounded font-bold hover:bg-red-700 transition whitespace-nowrap">
+        <div class="flex items-center gap-3 md:gap-6">
+            <input type="text" id="searchInput" placeholder="Cerca..." class="hidden md:block bg-black/40 border border-white/20 text-white text-sm rounded px-4 py-1.5 w-44 outline-none focus:border-red-600 focus:w-60 transition-all">
+            <button id="authBtn" onclick="handleAuth()" class="bg-red-600 text-white text-[11px] md:text-sm px-4 md:px-6 py-1.5 rounded font-bold hover:bg-red-700 transition uppercase tracking-wider">
                 Accedi
             </button>
         </div>
     </header>
 
     <main>
-        <section id="hero" class="relative h-[60vh] md:h-[85vh] w-full hidden">
+        <section id="hero" class="relative h-[70vh] md:h-[85vh] w-full hidden">
             <img id="heroImg" src="" class="absolute w-full h-full object-cover">
-            <div class="absolute inset-0 bg-gradient-to-t from-[#141414] via-transparent to-black/30"></div>
-            <div class="relative z-10 h-full flex flex-col justify-end p-6 md:p-12 pb-12 md:pb-24">
-                <h1 id="heroTitle" class="text-3xl md:text-7xl font-bold mb-4"></h1>
-                <p id="heroOverview" class="max-w-xl text-sm md:text-lg mb-6 line-clamp-3 text-gray-200"></p>
-                <button id="heroPlay" class="bg-white text-black px-6 md:px-8 py-2 rounded font-bold hover:bg-white/80 transition flex items-center gap-2 w-fit text-sm md:text-base">▶ Riproduci</button>
+            <div class="absolute inset-0 bg-gradient-to-t from-[#141414] via-transparent to-black/40"></div>
+            <div class="relative z-10 h-full flex flex-col justify-end p-6 md:p-16 pb-12 md:pb-24">
+                <h1 id="heroTitle" class="text-3xl md:text-7xl font-extrabold mb-4 drop-shadow-2xl"></h1>
+                <p id="heroOverview" class="max-w-2xl text-sm md:text-lg mb-6 line-clamp-3 text-gray-100 drop-shadow-md"></p>
+                <button id="heroPlay" class="bg-white text-black px-8 py-2.5 rounded font-black hover:bg-gray-200 transition flex items-center gap-2 w-fit text-sm md:text-base shadow-xl">▶ RIPRODUCI</button>
             </div>
         </section>
-        <div id="sections" class="px-4 md:px-12 -mt-10 md:-mt-20 relative z-20 space-y-8 pb-20"></div>
+
+        <div id="sections" class="px-4 md:px-12 -mt-16 md:-mt-28 relative z-20 space-y-12 pb-20"></div>
     </main>
 
-    <div id="infoModal" class="fixed inset-0 z-[100] hidden bg-black/90 flex items-center justify-center p-2 md:p-4">
-        <div class="scrollbar-hide">
-            <button onclick="closeAllModals()" class="absolute top-4 right-4 z-[110] bg-black/50 text-white w-10 h-10 rounded-full flex items-center justify-center hover:bg-white hover:text-black transition">✕</button>
+    <div id="infoModal" class="fixed inset-0 z-[100] hidden bg-black/90 flex items-center justify-center p-2">
+        <div class="scrollbar-hide shadow-2xl">
+            <button onclick="closeAllModals()" class="absolute top-4 right-4 z-[110] bg-black/60 text-white w-10 h-10 rounded-full flex items-center justify-center hover:bg-white hover:text-black transition">✕</button>
             <div class="modal-hero">
                 <img id="infoBgImg" src="">
                 <div class="modal-gradient"></div>
                 <div class="absolute bottom-6 left-6 md:left-10">
-                    <h2 id="infoTitle" class="text-2xl md:text-4xl font-bold"></h2>
+                    <h2 id="infoTitle" class="text-3xl md:text-5xl font-bold"></h2>
                 </div>
             </div>
-            <div class="p-6 md:p-10 bg-[#181818] flex flex-col md:grid md:grid-cols-3 gap-8">
+            <div class="p-6 md:p-12 bg-[#181818] flex flex-col md:grid md:grid-cols-3 gap-10">
                 <div class="md:col-span-2">
-                    <p id="infoOverview" class="text-gray-300 text-sm md:text-base leading-relaxed mb-6"></p>
+                    <p id="infoOverview" class="text-gray-300 text-sm md:text-lg leading-relaxed mb-8"></p>
                     <div class="flex flex-wrap gap-4">
-                        <button id="playBtn" class="bg-white text-black px-8 py-2 rounded font-bold flex-grow md:flex-grow-0">▶ Riproduci</button>
-                        <button id="favBtn" class="border border-white/30 text-white px-6 py-2 rounded font-bold hover:bg-white hover:text-black transition flex-grow md:flex-grow-0">❤️ Lista</button>
+                        <button id="playBtn" class="bg-white text-black px-10 py-3 rounded font-black hover:bg-gray-200 transition flex-grow md:flex-grow-0">▶ RIPRODUCI</button>
+                        <button id="favBtn" class="border-2 border-white/40 text-white px-8 py-3 rounded font-bold hover:bg-white hover:text-black transition flex-grow md:flex-grow-0">❤️ LA MIA LISTA</button>
                     </div>
                 </div>
-                <div id="tvSelectors" class="hidden space-y-4 md:border-l md:border-white/10 md:pl-6">
-                    <div><span class="text-gray-500 text-xs font-bold uppercase">Stagione</span><select id="seasonSelect" class="w-full bg-[#2f2f2f] p-2 mt-1 rounded outline-none"></select></div>
-                    <div><span class="text-gray-500 text-xs font-bold uppercase">Episodio</span><select id="episodeSelect" class="w-full bg-[#2f2f2f] p-2 mt-1 rounded outline-none"></select></div>
+                <div id="tvSelectors" class="hidden space-y-6 md:border-l md:border-white/10 md:pl-10">
+                    <div><span class="text-gray-500 text-xs font-black uppercase tracking-widest">Stagione</span><select id="seasonSelect" class="w-full bg-[#2f2f2f] p-3 mt-2 rounded-md outline-none border border-white/10"></select></div>
+                    <div><span class="text-gray-500 text-xs font-black uppercase tracking-widest">Episodio</span><select id="episodeSelect" class="w-full bg-[#2f2f2f] p-3 mt-2 rounded-md outline-none border border-white/10"></select></div>
                 </div>
             </div>
         </div>
     </div>
 
     <div id="playerModal" class="fixed inset-0 z-[200] hidden bg-black">
-        <button onclick="closeAllModals()" class="absolute top-5 right-5 z-[210] bg-white/10 p-2 rounded-full hover:bg-red-600 transition">✕</button>
+        <button onclick="closeAllModals()" class="absolute top-6 right-6 z-[210] bg-white/10 p-3 rounded-full hover:bg-red-600 transition">✕</button>
         <iframe id="playerFrame" class="w-full h-full" allowfullscreen allow="autoplay"></iframe>
     </div>
 
@@ -114,10 +119,10 @@
             const btn = document.getElementById('authBtn');
             if (user) {
                 btn.textContent = 'LOGOUT';
-                btn.classList.replace('bg-red-600', 'bg-gray-700');
+                btn.classList.replace('bg-red-600', 'bg-gray-800');
             } else {
                 btn.textContent = 'ACCEDI';
-                btn.classList.replace('bg-gray-700', 'bg-red-600');
+                btn.classList.replace('bg-gray-800', 'bg-red-600');
             }
         }
 
@@ -143,7 +148,12 @@
                 });
                 const favs = await r.json();
                 if(favs && favs.length > 0) {
-                    const items = favs.map(f => ({ id: f.item_id, media_type: f.media_type, poster_path: f.poster_path }));
+                    const items = favs.map(f => ({ 
+                        id: f.item_id, 
+                        media_type: f.media_type, 
+                        poster_path: f.poster_path,
+                        name: "Caricato", overview: "" 
+                    }));
                     createRow("La Mia Lista", items, true);
                 }
             } catch (e) { console.error(e); }
@@ -157,22 +167,25 @@
                 headers: { Authorization: `Bearer ${user.token.access_token}` },
                 body: JSON.stringify({ action: 'add', item_id: cur.id, media_type: cur.type, poster_path: cur.poster_path })
             });
-            alert("Salvato!");
+            alert("Salvato con successo!");
             showCategory('all');
         }
 
         function createRow(title, items, prepend = false) {
             if (!items || items.length === 0) return;
             const container = document.createElement('div');
-            container.innerHTML = `<h2 class="text-lg md:text-xl font-bold mb-1 ml-2">${title}</h2><div class="carousel-container"><div class="carousel-track scrollbar-hide"></div></div>`;
+            container.innerHTML = `<h2 class="text-xl md:text-2xl font-bold mb-1 ml-2 text-white/90">${title}</h2><div class="carousel-container"><div class="carousel-track scrollbar-hide"></div></div>`;
             const track = container.querySelector('.carousel-track');
+            
             items.forEach(item => {
+                if(!item.poster_path) return;
                 const card = document.createElement('div');
                 card.className = 'card';
-                card.innerHTML = `<img src="https://image.tmdb.org/t/p/w500${item.poster_path}">`;
+                card.innerHTML = `<img src="https://image.tmdb.org/t/p/w500${item.poster_path}" loading="lazy">`;
                 card.onclick = () => showInfo(item);
                 track.appendChild(card);
             });
+            
             const target = document.getElementById('sections');
             prepend ? target.prepend(container) : target.appendChild(container);
         }
@@ -180,13 +193,17 @@
         async function showInfo(item) {
             cur = item;
             cur.type = item.media_type || (item.title ? 'movie' : 'tv');
-            if (!item.backdrop_path) {
+            
+            // Recupero dati se mancanti (dai preferiti)
+            if (!item.backdrop_path || !item.overview) {
                 const full = await call(`/${cur.type}/${item.id}`);
                 Object.assign(cur, full);
             }
+
             document.getElementById('infoTitle').textContent = cur.title || cur.name;
             document.getElementById('infoOverview').textContent = cur.overview;
             document.getElementById('infoBgImg').src = IMG + (cur.backdrop_path || cur.poster_path);
+            
             const tv = document.getElementById('tvSelectors');
             if(cur.type === 'tv') {
                 tv.classList.remove('hidden');
@@ -199,6 +216,7 @@
                 };
                 await sSel.onchange();
             } else { tv.classList.add('hidden'); }
+            
             document.getElementById('infoModal').classList.replace('hidden', 'flex');
             document.body.style.overflow = 'hidden';
             document.getElementById('favBtn').onclick = toggleFavorite;
@@ -220,11 +238,20 @@
 
         async function showCategory(type) {
             document.getElementById('sections').innerHTML = '';
-            const trend = await call(type === 'all' ? "/trending/all/week" : `/${type}/popular`);
-            initHero(trend.results[0]);
-            if(type === 'all') await loadFavorites();
-            createRow(type === 'all' ? "Più popolari" : "Popolari", trend.results);
-            if(type === 'all') createRow("Serie TV consigliate", (await call("/tv/popular")).results);
+            if (type === 'all') {
+                const trend = await call("/trending/all/week");
+                initHero(trend.results[0]);
+                await loadFavorites();
+                createRow("I Titoli del Momento", trend.results);
+                createRow("Film Popolari", (await call("/movie/popular")).results);
+                createRow("Serie TV da non perdere", (await call("/tv/popular")).results);
+            } else {
+                const res = await call(`/${type}/popular`);
+                initHero(res.results[0]);
+                createRow(type === 'movie' ? "Film Popolari" : "Serie TV Popolari", res.results);
+                const trend = await call(`/trending/${type}/week`);
+                createRow("Di tendenza questa settimana", trend.results);
+            }
         }
 
         function initHero(item) {
