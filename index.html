@@ -28,11 +28,7 @@
         #infoModal > div { max-width: 800px; width: 95%; max-height: 85vh; overflow-y: auto; border-radius: 8px; background: #181818; }
         .modal-hero { position: relative; width: 100%; aspect-ratio: 16 / 9; }
         .modal-hero img { width: 100%; height: 100%; object-fit: cover; }
-
-        /* FIX RICERCA: Spazio extra quando l'Hero è nascosto */
-        .searching #sections {
-            margin-top: 100px !important;
-        }
+        .searching #sections { margin-top: 100px !important; }
     </style>
 </head>
 <body class="scrollbar-hide">
@@ -47,11 +43,8 @@
             </nav>
         </div>
         <div class="flex items-center gap-4">
-            <input type="text" id="searchInput" placeholder="Titoli, persone, generi..." 
-                   class="bg-black/50 border border-white/20 text-white text-xs rounded px-3 py-1.5 w-32 md:w-60 outline-none focus:border-red-600 transition-all">
-            <button id="authBtn" onclick="handleAuth()" class="bg-red-600 text-white text-[10px] md:text-xs px-4 py-1.5 rounded font-black hover:bg-red-700 transition uppercase tracking-tighter">
-                Accedi
-            </button>
+            <input type="text" id="searchInput" placeholder="Cerca..." class="bg-black/50 border border-white/20 text-white text-xs rounded px-3 py-1.5 w-32 md:w-60 outline-none focus:border-red-600 transition-all">
+            <button id="authBtn" onclick="handleAuth()" class="bg-red-600 text-white text-[10px] md:text-xs px-4 py-1.5 rounded font-black hover:bg-red-700 transition uppercase tracking-tighter shadow-lg">Accedi</button>
         </div>
     </header>
 
@@ -62,10 +55,9 @@
             <div class="relative z-10 h-full flex flex-col justify-end p-6 md:p-16 pb-16 md:pb-28">
                 <h1 id="heroTitle" class="text-2xl md:text-6xl font-black mb-2 drop-shadow-2xl uppercase italic"></h1>
                 <p id="heroOverview" class="max-w-xl text-xs md:text-base mb-6 line-clamp-2 text-gray-200 font-medium"></p>
-                <button id="heroPlay" class="bg-white text-black px-6 py-2 rounded font-black hover:bg-gray-200 transition flex items-center gap-2 w-fit text-xs md:text-sm">▶ RIPRODUCI</button>
+                <button id="heroPlay" class="bg-white text-black px-6 py-2 rounded font-black hover:bg-gray-200 transition flex items-center gap-2 w-fit text-xs md:text-sm shadow-xl">▶ RIPRODUCI</button>
             </div>
         </section>
-
         <div id="sections" class="px-4 md:px-12 -mt-12 md:-mt-20 relative z-20 space-y-10 pb-20"></div>
     </main>
 
@@ -107,6 +99,38 @@
         let myFavorites = [];
 
         netlifyIdentity.init();
+
+        // --- ASCOLTO EVENTI PLAYER PER AUTOPLAY ---
+        window.addEventListener("message", (event) => {
+            // Verifichiamo che il messaggio arrivi dal player
+            if (event.data && event.data.type === "PLAYER_EVENT") {
+                const playerEvent = event.data.data.event;
+                console.log("Evento Player ricevuto:", playerEvent);
+
+                if (playerEvent === "ended" && cur && cur.type === "tv") {
+                    handleNextEpisode();
+                }
+            }
+        }, false);
+
+        function handleNextEpisode() {
+            const epSelect = document.getElementById('episodeSelect');
+            const currentEp = parseInt(epSelect.value);
+            const nextEp = currentEp + 1;
+
+            // Controlliamo se esiste l'opzione per l'episodio successivo nel menu a tendina
+            const nextOption = Array.from(epSelect.options).find(opt => opt.value == nextEp);
+
+            if (nextOption) {
+                console.log("Caricamento episodio successivo:", nextEp);
+                epSelect.value = nextEp;
+                play(); // Fa ripartire il player con il nuovo URL
+            } else {
+                console.log("Fine della stagione o episodi non disponibili.");
+                closeAllModals();
+                alert("Stagione terminata!");
+            }
+        }
 
         function updateAuthBtn() {
             const user = netlifyIdentity.currentUser();
@@ -216,14 +240,13 @@
             document.getElementById('playBtn').onclick = play;
         }
 
-        // Funzione di Ricerca con fix posizione
         document.getElementById('searchInput').oninput = async (e) => {
             const query = e.target.value;
             if(query.length > 2) {
                 const res = await call("/search/multi", { query });
                 document.getElementById('sections').innerHTML = '';
                 document.getElementById('hero').classList.add('hidden');
-                document.body.classList.add('searching'); // Attiva il margine superiore
+                document.body.classList.add('searching');
                 createRow(`Risultati per: ${query}`, res.results);
             } else if (query.length === 0) {
                 document.body.classList.remove('searching');
@@ -233,8 +256,13 @@
 
         function play() {
             let url = `https://vixsrc.to/${cur.type}/${cur.id}`;
-            if(cur.type === 'tv') url += `/${document.getElementById('seasonSelect').value}/${document.getElementById('episodeSelect').value}`;
-            document.getElementById('playerFrame').src = url + "?autoplay=true";
+            if(cur.type === 'tv') {
+                const s = document.getElementById('seasonSelect').value;
+                const e = document.getElementById('episodeSelect').value;
+                url += `/${s}/${e}`;
+            }
+            // Aggiungiamo i parametri dalla documentazione per il colore rosso VixStream
+            document.getElementById('playerFrame').src = url + "?autoplay=true&primaryColor=B20710&lang=it";
             document.getElementById('playerModal').classList.replace('hidden', 'flex');
         }
 
