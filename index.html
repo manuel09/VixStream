@@ -43,8 +43,8 @@
             </nav>
         </div>
         <div class="flex items-center gap-4">
-            <input type="text" id="searchInput" placeholder="Cerca..." class="bg-black/50 border border-white/20 text-white text-xs rounded px-3 py-1.5 w-32 md:w-60 outline-none focus:border-red-600 transition-all">
-            <button id="authBtn" onclick="handleAuth()" class="bg-red-600 text-white text-[10px] md:text-xs px-4 py-1.5 rounded font-black hover:bg-red-700 transition uppercase tracking-tighter shadow-lg">Accedi</button>
+            <input type="text" id="searchInput" placeholder="Cerca film o serie..." class="bg-black/50 border border-white/20 text-white text-xs rounded px-3 py-1.5 w-32 md:w-60 outline-none focus:border-red-600 transition-all">
+            <button id="authBtn" onclick="handleAuth()" class="bg-red-600 text-white text-[10px] md:text-xs px-4 py-1.5 rounded font-black hover:bg-red-700 transition uppercase tracking-tighter">Accedi</button>
         </div>
     </header>
 
@@ -88,7 +88,7 @@
     </div>
 
     <div id="playerModal" class="fixed inset-0 z-[200] hidden bg-black">
-        <button onclick="closeAllModals()" class="absolute top-6 right-6 z-[210] bg-white/10 p-2 rounded-full hover:bg-red-600 transition">✕</button>
+        <button onclick="closeAllModals()" class="absolute top-6 right-6 z-[210] bg-white/10 p-2 rounded-full hover:bg-red-600 transition text-white">✕ Chiudi</button>
         <iframe id="playerFrame" class="w-full h-full" allowfullscreen allow="autoplay"></iframe>
     </div>
 
@@ -100,38 +100,48 @@
 
         netlifyIdentity.init();
 
-        // --- ASCOLTO EVENTI PLAYER PER AUTOPLAY ---
+        // --- SISTEMA AUTOPLAY (FIXED) ---
         window.addEventListener("message", (event) => {
-            // Verifichiamo che il messaggio arrivi dal player
-            if (event.data && event.data.type === "PLAYER_EVENT") {
-                const playerEvent = event.data.data.event;
-                console.log("Evento Player ricevuto:", playerEvent);
+            let payload = event.data;
+            // Se il messaggio è una stringa (comune negli iframe), lo decodifichiamo
+            if (typeof payload === 'string') {
+                try { payload = JSON.parse(payload); } catch (e) { return; }
+            }
 
-                if (playerEvent === "ended" && cur && cur.type === "tv") {
+            // Verifica struttura PLAYER_EVENT
+            if (payload && payload.type === "PLAYER_EVENT") {
+                const eventType = payload.data ? payload.data.event : null;
+                console.log("Player Event:", eventType);
+
+                if (eventType === "ended") {
+                    console.log("Episodio terminato, cerco il prossimo...");
                     handleNextEpisode();
                 }
             }
         }, false);
 
         function handleNextEpisode() {
+            if (!cur || cur.type !== 'tv') return;
+
             const epSelect = document.getElementById('episodeSelect');
             const currentEp = parseInt(epSelect.value);
             const nextEp = currentEp + 1;
 
-            // Controlliamo se esiste l'opzione per l'episodio successivo nel menu a tendina
-            const nextOption = Array.from(epSelect.options).find(opt => opt.value == nextEp);
+            // Cerchiamo l'episodio successivo nelle opzioni
+            let nextOption = Array.from(epSelect.options).find(opt => parseInt(opt.value) === nextEp);
 
             if (nextOption) {
-                console.log("Caricamento episodio successivo:", nextEp);
                 epSelect.value = nextEp;
-                play(); // Fa ripartire il player con il nuovo URL
+                console.log("Avvio automatico Episodio " + nextEp);
+                // Piccolo delay per stabilità
+                setTimeout(() => { play(); }, 1500);
             } else {
-                console.log("Fine della stagione o episodi non disponibili.");
+                console.log("Nessun altro episodio in questa stagione.");
                 closeAllModals();
-                alert("Stagione terminata!");
             }
         }
 
+        // --- GESTIONE AUTH ---
         function updateAuthBtn() {
             const user = netlifyIdentity.currentUser();
             const btn = document.getElementById('authBtn');
@@ -152,6 +162,7 @@
 
         netlifyIdentity.on('close', () => document.body.classList.remove('netlify-identity-widget-open'));
 
+        // --- API & CONTENUTI ---
         async function call(path, params = {}) {
             const url = new URL(`https://api.themoviedb.org/3${path}`);
             url.searchParams.append("api_key", API_KEY);
@@ -240,6 +251,7 @@
             document.getElementById('playBtn').onclick = play;
         }
 
+        // --- RICERCA ---
         document.getElementById('searchInput').oninput = async (e) => {
             const query = e.target.value;
             if(query.length > 2) {
@@ -254,14 +266,16 @@
             }
         };
 
+        // --- FUNZIONE PLAY ---
         function play() {
+            if (!cur) return;
             let url = `https://vixsrc.to/${cur.type}/${cur.id}`;
             if(cur.type === 'tv') {
                 const s = document.getElementById('seasonSelect').value;
                 const e = document.getElementById('episodeSelect').value;
                 url += `/${s}/${e}`;
             }
-            // Aggiungiamo i parametri dalla documentazione per il colore rosso VixStream
+            // Parametri dalla documentazione: colore primario rosso, autoplay, lingua IT
             document.getElementById('playerFrame').src = url + "?autoplay=true&primaryColor=B20710&lang=it";
             document.getElementById('playerModal').classList.replace('hidden', 'flex');
         }
@@ -279,8 +293,8 @@
             const res = await call(path);
             initHero(res.results[0]);
             await loadFavorites();
-            createRow(type === 'all' ? "Tendenze" : "Popolari", res.results);
-            if(type === 'all') createRow("Serie TV Popolari", (await call("/tv/popular")).results);
+            createRow(type === 'all' ? "Tendenze Settimanali" : "Popolari", res.results);
+            if(type === 'all') createRow("Serie TV Consigliate", (await call("/tv/popular")).results);
         }
 
         function initHero(item) {
