@@ -3,1237 +3,226 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VixStream - Guarda Film e Serie TV</title>
+    <title>VixStream - Premium</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="icon" href="https://img.icons8.com/color/48/000000/netflix--v1.png" type="image/x-icon">
-
+    <script type="text/javascript" src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
     <style>
-        /* Stili globali */
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
-            background-color: #1a202c; /* Corrisponde a bg-gray-900 di Tailwind */
-            color: #e2e8f0; /* Corrisponde a text-gray-100 di Tailwind */
-            overflow-x: hidden; /* Evita scroll orizzontale non voluto */
-        }
-
-        /* Nascondi la scrollbar ma mantieni la funzionalità di scorrimento */
-        .scrollbar-hide::-webkit-scrollbar {
-            display: none;
-        }
-
-        .scrollbar-hide {
-            -ms-overflow-style: none; /* IE e Edge */
-            scrollbar-width: none; /* Firefox */
-        }
-
-        /* Header */
-        header {
-            background: rgba(26, 32, 44, 0.8); /* Sfondo semi-trasparente */
-            backdrop-filter: blur(8px); /* Effetto sfocato */
-            -webkit-backdrop-filter: blur(8px); /* Per compatibilità Safari */
-        }
-
-        .nav-link.active {
-            color: #dc2626; /* red-600 */
-            font-weight: bold;
-        }
-
-        /* Hero Section */
-        #hero {
-            min-height: 500px; /* Altezza minima per l'hero */
-        }
-
-        /* Card nei caroselli e griglie */
-        .card {
-            min-width: 120px; /* Base più piccola per schermi molto stretti */
-            width: 120px;
-            height: 180px; /* Altezza proporzionale (120 * 1.5) */
-            aspect-ratio: 2 / 3; /* Proporzioni standard di una locandina */
-            flex-shrink: 0; /* Impedisce che le card si restringano */
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            margin-right: 0.75rem; /* Spazio ridotto tra le card (12px) */
-            box-sizing: border-box; /* Essenziale per la gestione delle dimensioni */
-            position: relative; /* Necessario per il posizionamento dell'overlay */
-            overflow: hidden; /* Assicura che l'overlay non esca dai bordi */
-        }
-
-        .card:last-child {
-            margin-right: 0;
-        }
-
-        .card:hover {
-            transform: scale(1.05); /* Zoom leggero al passaggio del mouse */
-            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.7); /* Ombra più pronunciata */
-            z-index: 10; /* Per evitare che le ombre si sovrappongano alle card adiacenti in modo strano */
-        }
-
-        .card img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover; /* Assicura che l'immagine copra l'intera area */
-            border-radius: 0.5rem; /* Corrisponde a rounded-lg di Tailwind */
-        }
-
-        .card-overlay {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: linear-gradient(to top, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0));
-            color: white;
-            padding: 0.75rem;
-            font-size: 0.9rem;
-            font-weight: bold;
-            opacity: 0; /* Nascosto di default */
-            transition: opacity 0.3s ease;
-            text-align: center;
-            border-bottom-left-radius: 0.5rem;
-            border-bottom-right-radius: 0.5rem;
-        }
-
-        .card:hover .card-overlay {
-            opacity: 1; /* Mostra al passaggio del mouse */
-        }
-
-        /* Responsive per le card - Dimensioni progressive */
-        @media (min-width: 640px) { /* sm */
-            .card {
-                min-width: 140px;
-                width: 140px;
-                height: 210px;
-                margin-right: 1rem; /* Aumenta lo spazio per schermi più grandi */
-            }
-        }
-        @media (min-width: 768px) { /* md */
-            .card {
-                min-width: 160px;
-                width: 160px;
-                height: 240px;
-                margin-right: 1.25rem;
-            }
-        }
-        @media (min-width: 1024px) { /* lg */
-            .card {
-                min-width: 180px;
-                width: 180px;
-                height: 270px;
-                margin-right: 1.5rem;
-            }
-        }
-        @media (min-width: 1280px) { /* xl */
-            .card {
-                min-width: 190px;
-                width: 190px;
-                height: 285px;
-                margin-right: 1.75rem;
-            }
-        }
-
-        /* Caroselli - Essenziale per la spaziatura interna e per evitare tagli */
-        .carousel-track {
-            -webkit-overflow-scrolling: touch; /* Migliora lo scorrimento su iOS */
-            scroll-snap-type: x mandatory; /* Per uno scorrimento più "a scatto" (opzionale) */
-            padding: 0.5rem 1rem; /* Aggiunge padding interno ai lati del carosello */
-            margin-left: -1rem; /* Compensazione per il padding del contenitore principale */
-            margin-right: -1rem; /* Compensazione per il padding del contenitore principale */
-        }
-
-        .carousel-track .card {
-            scroll-snap-align: start; /* Allinea le card all'inizio dello scorrimento */
-        }
-
-        .scroll-button {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            background-color: rgba(0, 0, 0, 0.6);
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 48px;
-            height: 48px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2rem;
-            cursor: pointer;
-            z-index: 20;
-            transition: background-color 0.3s ease;
-        }
-
-        .scroll-button:hover {
-            background-color: rgba(0, 0, 0, 0.8);
-        }
-
-        .scroll-button.left {
-            left: 10px;
-        }
-
-        .scroll-button.right {
-            right: 10px;
-        }
-
-        /* Assicurati che il contenitore delle sezioni abbia un padding laterale appropriato */
-        #sections,
-        #movieCarousels,
-        #tvShowCarousels,
-        #searchResults {
-            padding-left: 1rem; /* 16px */
-            padding-right: 1rem; /* 16px */
-        }
-
-        /* Per la griglia dei risultati di ricerca, il gap è gestito da Tailwind, ma un controllo non fa male */
-        #resultsGrid,
-        #movieGenresGrid,
-        #tvShowGenresGrid {
-            gap: 1.25rem;
-        }
-
-        /* Modal Info */
-        .info-modal-container {
-            max-width: 960px;
-            width: 90%;
-            height: 90vh;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .info-modal-bg-img {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            z-index: 0;
-            filter: brightness(0.5);
-            object-position: top center;
-        }
-
-        .info-modal-gradient {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(to top, #1a202c 0%, rgba(26, 32, 44, 1) 35%, rgba(26,32,44, 0.5) transparent 80%);
-            z-index: 1;
-        }
-
-        .info-modal-content-container {
-            position: relative;
-            z-index: 10;
-            padding-top: 10%;
-            flex-grow: 1;
-            overflow-y: auto;
-            scrollbar-width: none;
-            -ms-overflow-style: none;
-        }
-
-        .info-modal-content-container::-webkit-scrollbar {
-            display: none;
-        }
-
-        .info-poster {
-            width: 250px;
-            height: auto;
-            border-radius: 0.5rem;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.6);
-            margin-top: -30px;
-            flex-shrink: 0;
-        }
-
-        .info-poster-mobile {
-            width: 150px;
-            height: auto;
-            border-radius: 0.5rem;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
-            margin-bottom: 1rem;
-            margin-top: -50px;
-        }
-
-        @media (max-width: 767px) {
-            .info-modal-content-container {
-                flex-direction: column;
-                align-items: center;
-                text-align: center;
-                padding-top: 20vh;
-            }
-
-            .info-modal-bg-img {
-                height: 90vh;
-                object-position: center top;
-                width: 100%;
-                min-width: 100%;
-                object-fit: cover;
-                max-width: none;
-            }
-
-            .info-poster {
-                display: none;
-            }
-            .info-poster-mobile {
-                display: block;
-                margin-top: -0.5px;
-                width: 150px;
-                height: auto;
-                border-radius: 0.5rem:
-                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
-                margin-bottom: 1rem;
-            }
-
-            .info-modal {
-                overflow-y: auto;
-                max-height: 100vh;
-
-            }
-        }
+        body { background-color: #141414; color: #fff; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; overflow-x: hidden; }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        header { background: linear-gradient(to bottom, rgba(0,0,0,0.8) 10%, transparent); transition: background 0.3s; }
+        header.scrolled { background: #141414; }
+        .card { min-width: 160px; width: 160px; height: 240px; flex-shrink: 0; transition: transform 0.3s; cursor: pointer; border-radius: 4px; overflow: hidden; }
+        .card:hover { transform: scale(1.1); z-index: 10; }
+        .card img { width: 100%; height: 100%; object-fit: cover; }
+        .carousel-container { position: relative; display: flex; align-items: center; }
+        .carousel-track { display: flex; overflow-x: auto; scroll-behavior: smooth; gap: 8px; padding: 20px 0; }
+        .nav-btn { position: absolute; z-index: 40; background: rgba(0,0,0,0.5); color: white; border: none; width: 45px; height: 100%; cursor: pointer; opacity: 0; transition: opacity 0.3s; }
+        .carousel-container:hover .nav-btn { opacity: 1; }
+        .prev-btn { left: 0; } .next-btn { right: 0; }
+        #infoModal > div { max-width: 850px; width: 95%; border-radius: 8px; overflow: hidden; background: #181818; position: relative; }
+        .modal-hero { position: relative; width: 100%; aspect-ratio: 16 / 9; }
+        .modal-hero img { width: 100%; height: 100%; object-fit: cover; }
+        .modal-gradient { position: absolute; inset: 0; background: linear-gradient(to top, #181818 5%, transparent 50%); }
     </style>
 </head>
-<body class="bg-gray-900 text-gray-100 font-sans scrollbar-hide">
-    <header class="fixed top-0 left-0 w-full z-50 bg-gradient-to-b from-gray-900 to-transparent p-4 flex items-center justify-between backdrop-blur-sm">
-        <div class="flex items-center">
-            <a href="#" id="homeLink" class="text-red-600 text-4xl font-extrabold mr-8 hover:text-red-700 transition-colors">VixStream</a>
-            <nav class="hidden md:flex space-x-6 text-lg">
-                <a href="#" id="moviesLink" class="nav-link text-gray-300 hover:text-white transition-colors">Film</a>
-                <a href="#" id="tvShowsLink" class="nav-link text-gray-300 hover:text-white transition-colors">Serie TV</a>
+<body class="scrollbar-hide">
+
+    <header class="fixed top-0 w-full z-50 p-4 flex justify-between items-center">
+        <div class="flex items-center gap-8">
+            <a href="#" onclick="showCategory('all')" class="text-red-600 text-3xl font-black tracking-tighter">VIXSTREAM</a>
+            <nav class="hidden md:flex gap-4 text-sm font-light">
+                <a href="#" onclick="showCategory('all')" class="hover:text-gray-300">Home</a>
+                <a href="#" onclick="showCategory('tv')" class="hover:text-gray-300">Serie TV</a>
+                <a href="#" onclick="showCategory('movie')" class="hover:text-gray-300">Film</a>
             </nav>
         </div>
-        <div class="relative">
-            <input type="text" id="searchInput" placeholder="Cerca film o serie TV..."
-                           class="bg-gray-800 text-gray-100 rounded-full py-2 pl-4 pr-10 focus:outline-none focus:ring-2 focus:ring-red-600 transition-all duration-300 w-48 md:w-64">
-            <svg class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+        <div class="flex items-center gap-4">
+            <input type="text" id="searchInput" placeholder="Cerca..." class="bg-black/50 border border-white/20 text-white text-sm rounded px-4 py-1.5 w-48 outline-none">
+            <div data-netlify-identity-menu></div>
         </div>
     </header>
 
-    <main class="pt-24 pb-8 min-h-screen">
-        <section id="homepageSection" class="section active">
-            <div id="hero" class="relative h-[60vh] md:h-[80vh] bg-cover bg-center flex items-end p-8 md:p-16 rounded-xl overflow-hidden mb-12 hidden">
-                <img id="heroImg" src="" alt="Hero Background" class="absolute inset-0 w-full h-full object-cover z-0">
-                <div class="absolute inset-0 bg-gradient-to-t from-gray-900/80 via-gray-900/60 to-transparent z-10"></div>
-                <div class="relative z-20 text-white max-w-xl">
-                    <h1 id="heroTitle" class="text-4xl md:text-6xl font-extrabold drop-shadow-2xl mb-4"></h1>
-                    <p id="heroOverview" class="text-base md:text-lg mb-6 line-clamp-3"></p>
-                    <button id="heroPlay" class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded-full text-lg transition-colors duration-300 flex items-center shadow-red-600/50 shadow-xl hover:scale-[1.02] transform" aria-label="Guarda ora">
-                        <svg class="w-6 h-6 mr-2" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                        Guarda ora
-                    </button>
-                </div>
-            </div>
-
-            <div id="sections" class="container mx-auto px-4 space-y-20">
+    <main>
+        <section id="hero" class="relative h-[85vh] w-full hidden">
+            <img id="heroImg" src="" class="absolute w-full h-full object-cover">
+            <div class="absolute inset-0 bg-gradient-to-t from-[#141414] via-transparent to-black/30"></div>
+            <div class="relative z-10 h-full flex flex-col justify-end p-12 pb-24">
+                <h1 id="heroTitle" class="text-5xl md:text-7xl font-bold mb-4"></h1>
+                <p id="heroOverview" class="max-w-xl text-lg mb-6 line-clamp-3"></p>
+                <button id="heroPlay" class="bg-white text-black px-8 py-2 rounded font-bold hover:bg-white/80 transition flex items-center gap-2 w-fit"> Riproduci</button>
             </div>
         </section>
 
-        <section id="moviesSection" class="section hidden">
-            <div class="container mx-auto px-4">
-                <h2 class="text-4xl font-extrabold text-white mb-8">Film</h2>
-                <div id="movieGenresGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 mb-12">
-                </div>
-                <div id="movieCarousels" class="space-y-12">
-                </div>
-            </div>
-        </section>
-
-        <section id="tvShowsSection" class="section hidden">
-            <div class="container mx-auto px-4">
-                <h2 class="text-4xl font-extrabold text-white mb-8">Serie TV</h2>
-                <div id="tvShowGenresGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 mb-12">
-                </div>
-                <div id="tvShowCarousels" class="space-y-12">
-                </div>
-            </div>
-        </section>
-
-        <section id="searchResults" class="section hidden">
-            <div class="container mx-auto px-4">
-                <h2 class="text-4xl font-extrabold text-white mb-8">Risultati di Ricerca</h2>
-                <div id="resultsGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
-                </div>
-                <div class="flex justify-center mt-12">
-                    <button id="loadMoreResults" class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded-full text-lg transition-colors duration-300 shadow-lg hidden">
-                        Carica Altri
-                    </button>
-                </div>
-            </div>
-        </section>
+        <div id="sections" class="px-12 -mt-20 relative z-20 space-y-8 pb-20"></div>
     </main>
 
-    <div id="modalBackdrop" class="fixed inset-0 bg-black bg-opacity-75 z-[90] hidden" aria-hidden="true"></div>
-
-    <div id="infoModal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4">
-        <div class="info-modal-container bg-gray-800 rounded-lg shadow-2xl relative overflow-hidden transform scale-95 md:scale-100 transition-all duration-300 w-full max-w-4xl max-h-[90vh] overflow-y-auto scrollbar-hide">
-            <img id="infoBgImg" src="" alt="Background Image" class="info-modal-bg-img">
-            <div class="info-modal-gradient"></div>
-
-            <button id="closeInfo" class="absolute top-4 right-4 bg-gray-700 hover:bg-gray-600 text-white rounded-full p-2 z-20 transition-colors" aria-label="Chiudi informazioni">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-            </button>
-
-            <div class="relative z-10 info-modal-content-container p-6 md:p-10 flex flex-col md:flex-row items-center md:items-start gap-6">
-                <img id="infoPoster" src="" alt="Poster" class="info-poster hidden md:block">
-                <img id="infoPosterMobile" src="" alt="Poster" class="info-poster-mobile block md:hidden w-40 h-auto rounded-lg shadow-lg">
-
-                <div class="flex-1 text-white">
-                    <h2 id="infoTitle" class="text-3xl md:text-4xl font-bold mb-3 drop-shadow-lg text-center md:text-left"></h2>
-                    <p id="infoMeta" class="text-gray-300 text-sm md:text-base mb-4 text-center md:text-left"></p>
-                    <p id="infoOverview" class="text-gray-200 text-base md:text-lg mb-6 line-clamp-5"></p>
-
-                    <p id="infoOverview" class="text-gray-200 text-base md:text-lg mb-6 line-clamp-5"></p>
-
-<div id="tvSelectors" class="mb-6 hidden">
-    <div class="flex flex-col sm:flex-row gap-4">
+    <div id="infoModal" class="fixed inset-0 z-[100] hidden bg-black/70 flex items-center justify-center p-4">
         <div>
-            <label for="seasonSelect" class="block text-gray-300 text-sm font-semibold mb-2">Stagione:</label>
-            <select id="seasonSelect" class="bg-gray-700 text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-600 transition-colors w-full"></select>
-        </div>
-        <div>
-            <label for="episodeSelect" class="block text-gray-300 text-sm font-semibold mb-2">Episodio:</label>
-            <select id="episodeSelect" class="bg-gray-700 text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-600 transition-colors w-full" disabled></select>
-        </div>
-    </div>
-</div>
-
-<div class="flex justify-center md:justify-start">
-    <button id="playBtn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded-full text-lg transition-colors duration-300 flex items-center shadow-lg" aria-label="Riproduci">
-        <svg class="w-6 h-6 mr-2" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-        Riproduci
-    </button>
-</div>
-</div>
-
+            <button onclick="closeAllModals()" class="absolute top-4 right-4 z-[110] bg-[#181818] text-white w-8 h-8 rounded-full flex items-center justify-center">✕</button>
+            <div class="modal-hero">
+                <img id="infoBgImg" src="">
+                <div class="modal-gradient"></div>
+                <div class="absolute bottom-6 left-10 right-10">
+                    <h2 id="infoTitle" class="text-4xl font-bold mb-2"></h2>
+                </div>
+            </div>
+            <div class="p-10 bg-[#181818] grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="col-span-2">
+                    <p id="infoOverview" class="text-gray-300 leading-relaxed mb-6"></p>
+                    <div class="flex gap-4">
+                        <button id="playBtn" class="bg-white text-black px-10 py-2 rounded font-bold">▶ Riproduci</button>
+                        <button id="favBtn" class="border border-white/30 text-white px-6 py-2 rounded font-bold hover:bg-white hover:text-black transition">❤️ Preferiti</button>
+                    </div>
+                </div>
+                <div id="tvSelectors" class="hidden space-y-4 border-l border-white/10 pl-6">
+                    <div><span class="text-gray-500 text-sm">Stagione</span><select id="seasonSelect" class="w-full bg-[#2f2f2f] p-2 mt-1 rounded outline-none"></select></div>
+                    <div><span class="text-gray-500 text-sm">Episodio</span><select id="episodeSelect" class="w-full bg-[#2f2f2f] p-2 mt-1 rounded outline-none"></select></div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div id="playerModal" class="fixed inset-0 z-[110] hidden items-center justify-center p-4 bg-black bg-opacity-95">
-        <div class="relative w-full h-full max-w-7xl max-h-[90vh]">
-            <button id="closePlayer" class="absolute -top-10 right-0 bg-gray-700 hover:bg-gray-600 text-white rounded-full p-2 z-20 transition-colors" aria-label="Chiudi riproduttore">
-                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-            </button>
-            <iframe id="playerFrame" class="w-full h-full rounded-lg shadow-2xl" frameborder="0" allowfullscreen></iframe>
-        </div>
+    <div id="playerModal" class="fixed inset-0 z-[200] hidden bg-black">
+        <button onclick="closeAllModals()" class="absolute top-5 right-5 z-[210] bg-white/10 p-2 rounded-full hover:bg-red-600">✕</button>
+        <iframe id="playerFrame" class="w-full h-full" allowfullscreen allow="autoplay"></iframe>
     </div>
 
-    <div id="messageModal" class="fixed inset-0 z-[120] hidden items-center justify-center p-4">
-        <div class="bg-gray-800 rounded-lg shadow-2xl p-6 text-center max-w-sm w-full relative">
-            <h3 id="messageModalTitle" class="text-2xl font-bold text-white mb-4"></h3>
-            <p id="messageModalText" class="text-gray-300 mb-6"></p>
-            <button id="closeMessageModal" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-full transition-colors duration-300">
-                OK
-            </button>
-        </div>
-    </div>
+    <script>
+        const API_KEY = "7b5fcf48f24a334bb09f87ce20e5f2ce";
+        const IMG = "https://image.tmdb.org/t/p/original";
+        let cur = null;
+        let epsCount = 0;
 
-   <script>
-        // --- CONFIGURAZIONE GLOBALE ---
-        // !!! IMPORTANTE: SOSTITUISCI QUESTO CON LA TUA CHIAVE REALE DI TMDB! !!!
-        const TMDB_KEY = "7b5fcf48f24a334bb09f87ce20e5f2ce";
-        const TMDB_API_BASE_URL = "https://api.themoviedb.org/3";
-        const TMDB_IMAGE_BASE_URL = "https://image.tmdb.org/t/p/";
-        const VID_DOMAIN = "vixsrc.to"; // Dominio per lo streaming
-
-        // --- RIFERIMENTI AGLI ELEMENTI DOM ---
-        const homeLink = document.getElementById("homeLink");
-        const moviesLink = document.getElementById("moviesLink");
-        const tvShowsLink = document.getElementById("tvShowsLink");
-        const navLinks = document.querySelectorAll(".nav-link");
-
-        const homepageSection = document.getElementById("homepageSection");
-        const moviesSection = document.getElementById("moviesSection");
-        const tvShowsSection = document.getElementById("tvShowsSection");
-        const searchSection = document.getElementById("searchResults");
-        const sectionsEl = document.getElementById("sections"); // Contenitore per i caroselli nella homepage
-
-        const hero = document.getElementById("hero");
-        const heroImg = document.getElementById("heroImg");
-        const heroTitle = document.getElementById("heroTitle");
-        const heroOverview = document.getElementById("heroOverview");
-        const heroPlay = document.getElementById("heroPlay");
-
-        const movieCarouselsContainer = document.getElementById("movieCarousels");
-        const movieGenresGrid = document.getElementById("movieGenresGrid");
-        const tvShowCarouselsContainer = document.getElementById("tvShowCarousels");
-        const tvShowGenresGrid = document.getElementById("tvShowGenresGrid");
-
-        const searchInput = document.getElementById("searchInput");
-        const resultsGrid = document.getElementById("resultsGrid");
-        const loadMoreResultsBtn = document.getElementById("loadMoreResults");
-
-        const modalBackdrop = document.getElementById("modalBackdrop");
-        const infoModal = document.getElementById("infoModal");
-        const infoBgImg = document.getElementById("infoBgImg");
-        const infoPoster = document.getElementById("infoPoster");
-        const infoPosterMobile = document.getElementById("infoPosterMobile");
-        const infoTitle = document.getElementById("infoTitle");
-        const infoMeta = document.getElementById("infoMeta");
-        const infoOverview = document.getElementById("infoOverview");
-        const playBtn = document.getElementById("playBtn");
-        const closeInfoBtn = document.getElementById("closeInfo");
-
-        const playerModal = document.getElementById("playerModal");
-        const playerFrame = document.getElementById("playerFrame");
-        const closePlayerBtn = document.getElementById("closePlayer");
-
-        const messageModal = document.getElementById("messageModal");
-        const messageModalTitle = document.getElementById("messageModalTitle");
-        const messageModalText = document.getElementById("messageModalText");
-        const closeMessageModalBtn = document.getElementById("closeMessageModal");
-
-        const tvSelectors = document.getElementById("tvSelectors");
-        const seasonSelect = document.getElementById("seasonSelect");
-        const episodeSelect = document.getElementById("episodeSelect");
-
-        // --- VARIABILI DI STATO GLOBALE ---
-        let currentTvSeriesDetails = null; // Dettagli completi della serie TV attualmente visualizzata nel modal
-        let heroItem = null;
-        let currentSearchQuery = '';
-        let currentSearchPage = 1;
-        let totalSearchPages = 1;
-        let searchTimeout;
-
-        // --- FUNZIONI DI UTILITÀ PER I MODAL ---
-
-        /**
-         * Mostra un modal (player, info, message) e il suo sfondo.
-         * Impedisce lo scorrimento del body.
-         */
-        function openModal(modalElement) {
-            modalBackdrop.classList.remove('hidden');
-            modalElement.classList.remove('hidden');
-            modalElement.classList.add('flex'); // Assicurati che sia flex per centrare
-            document.body.style.overflow = 'hidden'; // Impedisce lo scorrimento del body
-            console.log(`DEBUG VixStream: Modal aperto: ${modalElement.id}`);
+        async function call(path, params = {}) {
+            const url = new URL(`https://api.themoviedb.org/3${path}`);
+            url.searchParams.append("api_key", API_KEY);
+            url.searchParams.append("language", "it-IT");
+            for (let k in params) url.searchParams.append(k, params[k]);
+            const r = await fetch(url); return r.json();
         }
 
-        /**
-         * Nasconde tutti i modal e il suo sfondo, ripristinando lo scorrimento del body.
-         */
-        function closeAllModals() {
-            [infoModal, playerModal, messageModal].forEach(modal => {
-                modal.classList.add('hidden');
-                modal.classList.remove('flex');
-            });
-            modalBackdrop.classList.add('hidden');
-            document.body.style.overflow = ''; // Ripristina lo scorrimento del body
-            playerFrame.src = ''; // Pulisce il playerframe per interrompere la riproduzione
-            console.log("DEBUG VixStream: Tutti i modal chiusi.");
-        }
-
-        /**
-         * Mostra un modal di messaggio con un titolo e un testo.
-         */
-        function showMessageModal(title, text) {
-            messageModalTitle.textContent = title;
-            messageModalText.textContent = text;
-            openModal(messageModal);
-            console.warn("DEBUG VixStream: Messaggio Modale Mostrato:", title, text);
-        }
-
-        /**
-         * Pulisce la griglia dei risultati di ricerca.
-         */
-        function clearSearchResults() {
-            resultsGrid.innerHTML = '';
-            loadMoreResultsBtn.classList.add('hidden');
-            currentSearchPage = 1;
-            totalSearchPages = 1;
-            console.log("DEBUG VixStream: Risultati di ricerca puliti.");
-        }
-
-        /**
-         * Funzione per nascondere tutte le sezioni e mostrare quella desiderata.
-         */
-        function showSection(sectionToShow, activeLink = null) {
-            // Nascondi tutte le sezioni principali
-            homepageSection.classList.add("hidden");
-            moviesSection.classList.add("hidden");
-            tvShowsSection.classList.add("hidden");
-            searchSection.classList.add("hidden");
-
-            // Mostra la sezione desiderata
-            sectionToShow.classList.remove("hidden");
-
-            // Rimuovi la classe 'active' da tutti i link di navigazione
-            navLinks.forEach(link => link.classList.remove("active"));
-            // Aggiungi la classe 'active' al link di navigazione specificato, se fornito
-            if (activeLink) {
-                activeLink.classList.add("active");
-            }
-            console.log("DEBUG VixStream: Sezione mostrata:", sectionToShow.id);
-            // Scrolla in cima alla sezione
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-        /**
-         * Costruisce l'URL per l'iframe del player di vixsrc.to.
-         */
-        function buildPlayerSrc(item, seasonNum = null, episodeNum = null) {
-            let url = '';
-
-            if (item.media_type === 'movie') {
-                url = `https://${VID_DOMAIN}/movie/${item.id}?&lang=it`;
-            } else if (item.media_type === 'tv') {
-                if (seasonNum === null || episodeNum === null) {
-                    // Questa è l'unica condizione in cui dovresti vedere l'errore se non selezioni
-                    showMessageModal("Errore", "Per le serie TV devi selezionare stagione ed episodio.");
-                    console.error("DEBUG VixStream: Stagione o episodio mancanti per serie TV.");
-                    return null;
-                }
-                url = `https://${VID_DOMAIN}/tv/${item.id}/${seasonNum}/${episodeNum}?&lang=it`;
-            } else {
-                showMessageModal("Errore", "Tipo di contenuto non supportato per la riproduzione.");
-                console.error("DEBUG VixStream: Tipo di contenuto sconosciuto per la riproduzione:", item.media_type);
-                return null;
-            }
-            return { url, type: 'iframe' };
-        }
-
-        /**
-         * Funzione per creare una card (miniatura) per film/serie TV.
-         */
-        function createCard(item) {
-            // Salta gli elementi senza un'immagine poster o senza un titolo/nome
-            if (!item.poster_path && !item.backdrop_path || (!item.title && !item.name)) return null;
-
-            // Determina il media_type in modo più robusto
-            let itemMediaType = item.media_type;
-            if (!itemMediaType) {
-                if (item.title) {
-                    itemMediaType = 'movie';
-                } else if (item.name) {
-                    itemMediaType = 'tv';
-                } else {
-                    console.warn("DEBUG VixStream: Impossibile determinare media_type per l'elemento:", item);
-                    return null;
-                }
-            }
-
-            const card = document.createElement('div');
-            card.className = 'card relative rounded-lg overflow-hidden shadow-lg cursor-pointer';
-            card.dataset.id = item.id;
-            card.dataset.mediaType = itemMediaType;
-
-            const img = document.createElement('img');
-            img.src = `${TMDB_IMAGE_BASE_URL}w500${item.poster_path || item.backdrop_path}`; // Usa backdrop se poster non disponibile
-            img.alt = item.title || item.name;
-            img.loading = 'lazy'; // Migliora le prestazioni di caricamento
-
-
-            card.appendChild(img);
-
-            card.addEventListener('click', () => {
-                showInfoModal({ ...item, media_type: itemMediaType });
-            });
-
-            return card;
-        }
-
-        /**
-         * Funzione generica per fare richieste all'API di TMDb.
-         */
-        async function fetchData(path, params = {}) {
-            const urlParams = new URLSearchParams({
-                api_key: TMDB_KEY,
-                language: 'it-IT', // Per ottenere i dettagli in italiano
-                ...params
-            });
-            const url = `${TMDB_API_BASE_URL}${path}?${urlParams.toString()}`;
-
-            console.log(`DEBUG VixStream: Fetching: ${url}`);
+        // --- GESTIONE PREFERITI ---
+        async function loadFavorites() {
+            const user = netlifyIdentity.currentUser();
+            if (!user) return;
             try {
-                const response = await fetch(url);
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    console.error("DEBUG VixStream: Errore API:", response.status, errorData);
-
-                    if (response.status === 401) {
-                        showMessageModal("Errore Chiave API", "La tua chiave TMDB API non è valida o non è stata configurata correttamente. Controlla il codice.");
-                    } else {
-                        showMessageModal("Errore di Rete", `Impossibile caricare i dati: ${errorData.status_message || 'Errore sconosciuto'}`);
-                    }
-                    throw new Error(`TMDb API error: ${response.status} - ${errorData.status_message || 'Errore sconosciuto'}`);
+                const r = await fetch('/.netlify/functions/manage-favorites', {
+                    headers: { Authorization: `Bearer ${user.token.access_token}` }
+                });
+                const favs = await r.json();
+                if(favs.length > 0) {
+                    // Creiamo gli oggetti corretti per le card
+                    const items = favs.map(f => ({
+                        id: f.item_id,
+                        media_type: f.media_type,
+                        poster_path: f.poster_path,
+                        title: "Preferito" // Semplificazione
+                    }));
+                    createRow("La Mia Lista", items, true); // Inserisci in cima
                 }
-                return await response.json();
-            } catch (error) {
-                console.error("DEBUG VixStream: Errore fetch:", error);
-                if (!error.message.includes("401")) {
-                    // Evita di mostrare un doppio modal
-                }
-                throw error;
-            }
+            } catch (e) { console.error("Errore caricamento preferiti", e); }
         }
 
-        // --- FUNZIONI DI POPOLAMENTO E LAYOUT ---
+        async function toggleFavorite() {
+            const user = netlifyIdentity.currentUser();
+            if (!user) return netlifyIdentity.open();
 
-        /**
-         * Popola la sezione Hero con un elemento casuale di tendenza (film o serie TV).
-         */
-        async function populateHeroSection() {
-            try {
-                const data = await fetchData("/trending/all/week");
-                if (data.results && data.results.length > 0) {
-                    // Filtra per avere solo film o TV con backdrop e poster
-                    const playableItems = data.results.filter(item =>
-                        (item.media_type === 'movie' || item.media_type === 'tv') && item.backdrop_path && item.poster_path
-                    );
-
-                    if (playableItems.length === 0) {
-                        hero.classList.add('hidden');
-                        return;
-                    }
-
-                    // Scegli un elemento casuale e popolalo
-                    heroItem = playableItems[Math.floor(Math.random() * playableItems.length)];
-
-                    heroImg.src = `${TMDB_IMAGE_BASE_URL}original${heroItem.backdrop_path}`;
-                    heroTitle.textContent = heroItem.title || heroItem.name;
-                    heroOverview.textContent = heroItem.overview || 'Nessuna descrizione disponibile.';
-
-                    // Imposta l'azione di riproduzione per l'Hero
-                    heroPlay.onclick = () => showInfoModal(heroItem);
-
-                    hero.classList.remove('hidden');
-                    console.log("DEBUG VixStream: Hero popolato con:", heroItem.media_type, heroItem.id);
-                } else {
-                    hero.classList.add('hidden');
-                }
-            } catch (error) {
-                console.error("DEBUG VixStream: Errore nel popolare l'Hero:", error);
-                hero.classList.add('hidden');
-            }
+            await fetch('/.netlify/functions/manage-favorites', {
+                method: 'POST',
+                headers: { Authorization: `Bearer ${user.token.access_token}` },
+                body: JSON.stringify({
+                    action: 'add',
+                    item_id: cur.id,
+                    media_type: cur.type,
+                    poster_path: cur.poster_path
+                })
+            });
+            alert("Salvato!");
+            location.reload(); // Ricarica per aggiornare "La Mia Lista"
         }
 
-        /**
-         * Crea e popola un carosello di elementi.
-         */
-        function createCarousel(title, items, container) {
+        function createRow(title, items, prepend = false) {
             if (!items || items.length === 0) return;
-
-            const sectionDiv = document.createElement('div');
-            sectionDiv.className = 'mb-12 relative group';
-
-            const titleH2 = document.createElement('h2');
-            titleH2.className = 'text-2xl font-bold mb-4 px-4 md:px-0';
-            titleH2.textContent = title;
-            sectionDiv.appendChild(titleH2);
-
-            const carouselWrapper = document.createElement('div');
-            carouselWrapper.className = 'relative';
-
-            const track = document.createElement('div');
-            track.className = 'carousel-track flex overflow-x-scroll scrollbar-hide snap-x snap-mandatory pb-2';
-            track.id = `track-${container.id}-${title.replace(/\s/g, '-')}`;
-
+            const container = document.createElement('div');
+            container.innerHTML = `<h2 class="text-xl font-bold mb-1">${title}</h2><div class="carousel-container"><button class="nav-btn prev-btn">❮</button><div class="carousel-track scrollbar-hide"></div><button class="nav-btn next-btn">❯</button></div>`;
+            const track = container.querySelector('.carousel-track');
             items.forEach(item => {
-                const card = createCard(item);
-                if (card) {
-                    track.appendChild(card);
-                }
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `<img src="https://image.tmdb.org/t/p/w500${item.poster_path}">`;
+                card.onclick = () => showInfo(item);
+                track.appendChild(card);
             });
+            container.querySelector('.prev-btn').onclick = () => track.scrollBy({left: -600, behavior:'smooth'});
+            container.querySelector('.next-btn').onclick = () => track.scrollBy({left: 600, behavior:'smooth'});
 
-            // Pulsanti di scorrimento
-            const scrollLeftBtn = document.createElement('button');
-            scrollLeftBtn.className = 'scroll-button left hidden md:flex opacity-0 group-hover:opacity-100 transition-opacity duration-300';
-            scrollLeftBtn.innerHTML = '&#10094;';
-            scrollLeftBtn.onclick = () => scrollTrack(track, -1);
-
-            const scrollRightBtn = document.createElement('button');
-            scrollRightBtn.className = 'scroll-button right hidden md:flex opacity-0 group-hover:opacity-100 transition-opacity duration-300';
-            scrollRightBtn.innerHTML = '&#10095;';
-            scrollRightBtn.onclick = () => scrollTrack(track, 1);
-
-            carouselWrapper.appendChild(track);
-            carouselWrapper.appendChild(scrollLeftBtn);
-            carouselWrapper.appendChild(scrollRightBtn);
-
-            sectionDiv.appendChild(carouselWrapper);
-            container.appendChild(sectionDiv);
+            const target = document.getElementById('sections');
+            prepend ? target.prepend(container) : target.appendChild(container);
         }
 
-        /**
-         * Logica di scorrimento per i caroselli.
-         */
-        function scrollTrack(track, direction) {
-            // Calcola la larghezza di una card (inclusa la margin-right)
-            const firstCard = track.querySelector('.card');
-            if (!firstCard) return;
+        async function showInfo(item) {
+            cur = item;
+            cur.type = item.media_type || (item.title ? 'movie' : 'tv');
+            document.getElementById('infoTitle').textContent = item.title || item.name || "Titolo";
+            document.getElementById('infoOverview').textContent = item.overview || "";
+            document.getElementById('infoBgImg').src = IMG + (item.backdrop_path || item.poster_path);
 
-            const cardWidth = firstCard.offsetWidth;
-            // Ottieni il margin-right (di solito è 0.75rem / 1rem / 1.25rem, ecc.)
-            const style = window.getComputedStyle(firstCard);
-            const marginRight = parseFloat(style.marginRight);
+            if(cur.type === 'tv') {
+                document.getElementById('tvSelectors').classList.remove('hidden');
+                const data = await call(`/tv/${item.id}`);
+                const sSel = document.getElementById('seasonSelect');
+                sSel.innerHTML = data.seasons.filter(s => s.season_number > 0).map(s => `<option value="${s.season_number}">S${s.season_number}</option>`).join('');
+                sSel.onchange = async () => {
+                    const sData = await call(`/tv/${item.id}/season/${sSel.value}`);
+                    document.getElementById('episodeSelect').innerHTML = sData.episodes.map(e => `<option value="${e.episode_number}">Ep. ${e.episode_number}</option>`).join('');
+                };
+                await sSel.onchange();
+            } else { document.getElementById('tvSelectors').classList.add('hidden'); }
 
-            const scrollDistance = (cardWidth + marginRight) * 3 * direction; // Scorri 3 card alla volta
-
-            track.scrollBy({
-                left: scrollDistance,
-                behavior: 'smooth'
-            });
+            document.getElementById('infoModal').classList.replace('hidden', 'flex');
+            document.getElementById('favBtn').onclick = toggleFavorite;
+            document.getElementById('playBtn').onclick = play;
         }
 
-        /**
-         * Popola la homepage con caroselli dinamici.
-         */
-        async function populateHomepageCarousels() {
-            sectionsEl.innerHTML = '';
-
-            const carouselConfigs = [
-                { title: "Di Tendenza Ora", path: "/trending/all/day" },
-                { title: "Film Popolari", path: "/movie/popular" },
-                { title: "Serie TV Popolari", path: "/tv/popular" },
-                { title: "Uscite Recenti (Film)", path: "/movie/now_playing" },
-                { title: "Serie TV In Onda", path: "/tv/on_the_air" }
-            ];
-
-            for (const config of carouselConfigs) {
-                try {
-                    const data = await fetchData(config.path, { page: 1 });
-                    if (data.results) {
-                        createCarousel(config.title, data.results, sectionsEl);
-                    }
-                } catch (error) {
-                    console.error(`DEBUG VixStream: Errore nel caricamento del carosello: ${config.title}`, error);
-                }
-            }
-            console.log("DEBUG VixStream: Caroselli homepage popolati.");
+        function play() {
+            let url = `https://vixsrc.to/${cur.type}/${cur.id}`;
+            if(cur.type === 'tv') url += `/${document.getElementById('seasonSelect').value}/${document.getElementById('episodeSelect').value}`;
+            document.getElementById('playerFrame').src = url + "?autoplay=true";
+            document.getElementById('playerModal').classList.replace('hidden', 'flex');
         }
 
-        /**
-         * Popola la sezione Film con caroselli per genere.
-         */
-        async function populateMovieSection() {
-            movieCarouselsContainer.innerHTML = '';
-            movieGenresGrid.innerHTML = '';
-
-            try {
-                const genresData = await fetchData("/genre/movie/list");
-                if (!genresData.genres) return;
-
-                // Opzione per un carosello di film più votati
-                const topRatedMovies = await fetchData("/movie/top_rated");
-                createCarousel("Film con il Voto più Alto", topRatedMovies.results, movieCarouselsContainer);
-
-                // Caroselli per generi specifici (primi 4-5 generi)
-                const genresToFetch = genresData.genres.slice(0, 5);
-
-                for (const genre of genresToFetch) {
-                    const data = await fetchData("/discover/movie", { with_genres: genre.id, sort_by: 'popularity.desc' });
-                    if (data.results) {
-                        createCarousel(`Film - ${genre.name}`, data.results, movieCarouselsContainer);
-                    }
-                }
-                console.log("DEBUG VixStream: Sezione Film popolata.");
-
-            } catch (error) {
-                console.error("DEBUG VixStream: Errore nel popolare la sezione Film:", error);
-            }
+        function closeAllModals() {
+            document.querySelectorAll('#infoModal, #playerModal').forEach(m => m.classList.replace('flex', 'hidden'));
+            document.getElementById('playerFrame').src = "";
         }
 
-        /**
-         * Popola la sezione Serie TV con caroselli per genere.
-         */
-        async function populateTvShowSection() {
-            tvShowCarouselsContainer.innerHTML = '';
-            tvShowGenresGrid.innerHTML = '';
-
-            try {
-                const genresData = await fetchData("/genre/tv/list");
-                if (!genresData.genres) return;
-
-                // Opzione per un carosello di serie TV più votate
-                const topRatedTv = await fetchData("/tv/top_rated");
-                createCarousel("Serie TV con il Voto più Alto", topRatedTv.results, tvShowCarouselsContainer);
-
-                // Caroselli per generi specifici (primi 4-5 generi)
-                const genresToFetch = genresData.genres.slice(0, 5);
-
-                for (const genre of genresToFetch) {
-                    const data = await fetchData("/discover/tv", { with_genres: genre.id, sort_by: 'popularity.desc' });
-                    if (data.results) {
-                        createCarousel(`Serie TV - ${genre.name}`, data.results, tvShowCarouselsContainer);
-                    }
-                }
-                console.log("DEBUG VixStream: Sezione Serie TV popolata.");
-
-            } catch (error) {
-                console.error("DEBUG VixStream: Errore nel popolare la sezione Serie TV:", error);
-            }
-        }
-
-        /**
-         * Esegue la ricerca su TMDb.
-         */
-        async function performSearch(query, page = 1) {
-            if (query.trim() === "") {
-                clearSearchResults();
-                return;
-            }
-
-            try {
-                const data = await fetchData("/search/multi", { query: query, page: page });
-                currentSearchQuery = query;
-                currentSearchPage = page;
-                totalSearchPages = data.total_pages;
-
-                if (page === 1) {
-                    resultsGrid.innerHTML = '';
-                }
-
-                if (data.results && data.results.length > 0) {
-                    data.results
-                        .filter(item => item.media_type !== 'person') // Filtra le persone
-                        .forEach(item => {
-                            const card = createCard(item);
-                            if (card) {
-                                resultsGrid.appendChild(card);
-                            }
-                        });
-                } else if (page === 1) {
-                    resultsGrid.innerHTML = '<p class="text-xl text-gray-400">Nessun risultato trovato per la tua ricerca.</p>';
-                }
-
-                // Gestione del pulsante Carica Altri
-                if (currentSearchPage < totalSearchPages) {
-                    loadMoreResultsBtn.classList.remove('hidden');
-                } else {
-                    loadMoreResultsBtn.classList.add('hidden');
-                }
-
-                showSection(searchSection);
-                console.log(`DEBUG VixStream: Ricerca per "${query}" completata. Pagina ${page} di ${totalSearchPages}.`);
-
-            } catch (error) {
-                console.error("DEBUG VixStream: Errore nella ricerca:", error);
-                if (page === 1) {
-                    resultsGrid.innerHTML = '<p class="text-xl text-red-500">Si è verificato un errore durante la ricerca.</p>';
-                }
-                loadMoreResultsBtn.classList.add('hidden');
-            }
-        }
-
-        // --- FUNZIONI SERIE TV (CRITICHE) ---
-
-        /**
-         * Mostra il modal di informazione con i dettagli dell'elemento.
-         */
-        async function showInfoModal(item) {
-            if (!item || !item.id || !item.media_type) return;
-
-            // 1. *** RESET COMPLETO DELLO STATO TV E VISUALIZZAZIONE ***
-            currentTvSeriesDetails = null;
-            seasonSelect.innerHTML = '';
-            episodeSelect.innerHTML = '';
-            tvSelectors.style.display = 'none'; // Nascondi di default
-
-            infoModal.dataset.currentItem = JSON.stringify(item);
-
-            const mediaTypePath = item.media_type === 'movie' ? 'movie' : 'tv';
-            let fullDetails = item;
-
-            try {
-                // Tenta il fetch dei dettagli completi
-                const detailedData = await fetchData(`/${mediaTypePath}/${item.id}`);
-
-                // Unisci i dati iniziali con i dati completi
-                fullDetails = { ...item, ...detailedData };
-
-                infoModal.dataset.currentItem = JSON.stringify(fullDetails);
-                currentTvSeriesDetails = fullDetails;
-
-            } catch (error) {
-                // Se il fetch fallisce, usiamo solo i dati 'item' che abbiamo
-                console.warn("DEBUG VixStream: Fetch dei dettagli completo fallito. Uso i dati parziali:", error);
-                fullDetails = item;
-            }
-
-            // 2. Popola i campi (usa fullDetails, che ora è garantito che esista)
-            const title = fullDetails.title || fullDetails.name || 'Titolo Sconosciuto';
-            const overview = fullDetails.overview || fullDetails.tagline || 'Nessuna descrizione disponibile.';
-            const releaseDate = fullDetails.release_date || fullDetails.first_air_date || '';
-            const rating = fullDetails.vote_average ? `${fullDetails.vote_average.toFixed(1)}/10` : 'N/D';
-            const year = releaseDate ? new Date(releaseDate).getFullYear() : 'N/D';
-            const runtime = fullDetails.runtime || (fullDetails.episode_run_time && fullDetails.episode_run_time.length > 0 ? fullDetails.episode_run_time[0] : null) || null;
-            const runtimeText = runtime ? `${runtime} min` : 'N/D';
-            const genres = fullDetails.genres ? fullDetails.genres.map(g => g.name).join(', ') : 'Generi sconosciuti';
-
-            infoTitle.textContent = title;
-            infoOverview.textContent = overview;
-            infoMeta.textContent = `${year} | ${genres} | ⭐ ${rating} | 🕐 ${runtimeText}`;
-
-            const backdropPath = fullDetails.backdrop_path || fullDetails.poster_path;
-            const posterPath = fullDetails.poster_path || fullDetails.backdrop_path;
-
-            if (backdropPath) {
-                infoBgImg.src = `${TMDB_IMAGE_BASE_URL}w1280${backdropPath}`;
-            }
-            if (posterPath) {
-                infoPoster.src = `${TMDB_IMAGE_BASE_URL}w500${posterPath}`;
-                infoPosterMobile.src = `${TMDB_IMAGE_BASE_URL}w500${posterPath}`;
-            }
-
-            // 3. Logica specifica per Serie TV: DEVE ESSERE CHIAMATA ORA
-            if (fullDetails.media_type === 'tv') {
-                 // Passa l'oggetto dati anche se è parziale, la funzione di debug gestirà l'errore 'seasons'
-                 setupTvShowSelectors(fullDetails);
+        async function showCategory(type) {
+            document.getElementById('sections').innerHTML = '';
+            if (type === 'all') {
+                const trend = await call("/trending/all/week");
+                initHero(trend.results[0]);
+                await loadFavorites(); // Carica i preferiti solo in home
+                createRow("Film Popolari", (await call("/movie/popular")).results);
+                createRow("Serie TV Popolari", (await call("/tv/popular")).results);
             } else {
-                updatePlayerFrameSource(fullDetails.id, null, null);
-            }
-
-            // 4. Visualizza il modal
-            openModal(infoModal);
-        }
-
-        /**
-         * Popola il selettore delle stagioni e innesca il caricamento degli episodi.
-         */
-        function setupTvShowSelectors(tvDetails) {
-            seasonSelect.innerHTML = '';
-            episodeSelect.innerHTML = '';
-
-            // --- DEBUG ESTREMO ---
-            if (!tvDetails || !tvDetails.seasons) {
-                console.error("DEBUG CRITICO: Oggetto TV non valido o manca l'array 'seasons'.", tvDetails);
-                tvSelectors.style.display = 'block'; // Assicuriamoci che l'utente veda i selettori vuoti
-
-                // Aggiungiamo un'opzione di ERRORE per l'utente
-                const errorOption = document.createElement('option');
-                errorOption.textContent = "Errore: Dati Stagioni Non Trovati";
-                seasonSelect.appendChild(errorOption);
-
-                return;
-            }
-            // --- FINE DEBUG ESTREMO ---
-
-            // Filtro minimo: includi solo stagioni con numero maggiore di 0.
-            const validSeasons = tvDetails.seasons
-                .filter(s => s.season_number > 0)
-                .sort((a, b) => a.season_number - b.season_number);
-
-            if (validSeasons.length === 0) {
-                tvSelectors.style.display = 'none';
-                console.log("DEBUG VixStream: Nessuna stagione regolare disponibile per questa serie (S>0).");
-                return;
-            }
-
-            validSeasons.forEach(season => {
-                const year = season.air_date ? new Date(season.air_date).getFullYear() : 'N/D';
-                const option = document.createElement('option');
-                option.value = season.season_number;
-                option.textContent = `Stagione ${season.season_number} (${year})`;
-                seasonSelect.appendChild(option);
-            });
-
-            // MOSTRA I SELETTORI
-            tvSelectors.style.display = 'flex';
-
-            const initialSeasonNumber = validSeasons[validSeasons.length - 1].season_number;
-            seasonSelect.value = initialSeasonNumber;
-
-            fetchEpisodesForSeason(tvDetails.id, initialSeasonNumber);
-            console.log("DEBUG VixStream: Selettori TV impostati sulla Stagione:", initialSeasonNumber);
-        }
-
-        /**
-         * Recupera gli episodi per una data stagione e popola il selettore degli episodi.
-         * DEVE ESSERE PRESENTE NEL TUO SCRIPT
-         */
-        async function fetchEpisodesForSeason(tvId, seasonNumber) {
-            episodeSelect.innerHTML = '';
-            episodeSelect.disabled = true;
-
-            try {
-                // Fetch dei dettagli della stagione
-                const seasonDetails = await fetchData(`/tv/${tvId}/season/${seasonNumber}`);
-
-                if (seasonDetails.episodes && seasonDetails.episodes.length > 0) {
-                    seasonDetails.episodes.forEach(episode => {
-                        const option = document.createElement('option');
-                        option.value = episode.episode_number;
-                        const episodeTitle = episode.name && episode.name !== `Episodio ${episode.episode_number}` ? ` - ${episode.name}` : '';
-                        option.textContent = `E${String(episode.episode_number).padStart(2, '0')}${episodeTitle}`;
-                        episodeSelect.appendChild(option);
-                    });
-
-                    episodeSelect.disabled = false;
-                    // Aggiorna l'URL del pulsante di riproduzione con il primo episodio di default
-                    updatePlayerFrameSource(tvId, seasonNumber, seasonDetails.episodes[0].episode_number);
-                    console.log(`DEBUG VixStream: Caricati ${seasonDetails.episodes.length} episodi per S${seasonNumber}.`);
-
-                } else {
-                    const defaultOption = document.createElement('option');
-                    defaultOption.textContent = 'Nessun Episodio Trovato';
-                    defaultOption.value = '';
-                    episodeSelect.appendChild(defaultOption);
-                    episodeSelect.disabled = true;
-                    console.log(`DEBUG VixStream: Nessun episodio trovato per S${seasonNumber}.`);
-                    // Disattiva il pulsante di riproduzione per le serie TV senza episodi validi
-                    playBtn.dataset.playerUrl = null;
-                }
-            } catch (error) {
-                console.error(`DEBUG VixStream: Errore nel caricamento degli episodi per S${seasonNumber}:`, error);
-                episodeSelect.disabled = true;
-                const defaultOption = document.createElement('option');
-                defaultOption.textContent = 'Errore di Caricamento';
-                defaultOption.value = '';
-                episodeSelect.appendChild(defaultOption);
-                playBtn.dataset.playerUrl = null;
+                const res = await call(`/${type}/popular`);
+                initHero(res.results[0]);
+                createRow(type === 'movie' ? "Film" : "Serie TV", res.results);
             }
         }
 
-        /**
-         * Aggiorna i dati del pulsante di riproduzione.
-         */
-        function updatePlayerFrameSource(id, seasonNum = null, episodeNum = null) {
-            const tempItem = { id: id, media_type: seasonNum ? 'tv' : 'movie' };
-            const playerInfo = buildPlayerSrc(tempItem, seasonNum, episodeNum);
-
-            // Aggiorna i dati sul pulsante Play per l'azione successiva
-            if (playerInfo) {
-                playBtn.dataset.playerUrl = playerInfo.url;
-                playBtn.dataset.mediaType = tempItem.media_type;
-                if (seasonNum) {
-                    playBtn.dataset.season = seasonNum;
-                    playBtn.dataset.episode = episodeNum;
-                } else {
-                    delete playBtn.dataset.season;
-                    delete playBtn.dataset.episode;
-                }
-            } else {
-                // Se buildPlayerSrc ritorna null (es. mancano stagione/episodio), disattiva il pulsante Play
-                delete playBtn.dataset.playerUrl;
-                delete playBtn.dataset.mediaType;
-            }
+        function initHero(item) {
+            document.getElementById('hero').classList.remove('hidden');
+            document.getElementById('heroImg').src = IMG + (item.backdrop_path || item.poster_path);
+            document.getElementById('heroTitle').textContent = item.title || item.name;
+            document.getElementById('heroOverview').textContent = item.overview;
+            document.getElementById('heroPlay').onclick = () => showInfo(item);
         }
 
-        // --- LISTENER EVENTI ---
-
-        // Inizializzazione
-        window.onload = () => {
-            populateHeroSection();
-            populateHomepageCarousels();
-            // Assicurati che l'home link sia attivo all'avvio
-            moviesLink.classList.remove("active");
-            tvShowsLink.classList.remove("active");
-        };
-
-        // Navigazione
-        homeLink.addEventListener('click', (e) => {
-            e.preventDefault();
-            showSection(homepageSection);
-        });
-
-        moviesLink.addEventListener('click', (e) => {
-            e.preventDefault();
-            populateMovieSection();
-            showSection(moviesSection, moviesLink);
-        });
-
-        tvShowsLink.addEventListener('click', (e) => {
-            e.preventDefault();
-            populateTvShowSection();
-            showSection(tvShowsSection, tvShowsLink);
-        });
-
-        // Ricerca con debounce
-        searchInput.addEventListener('input', () => {
-            clearTimeout(searchTimeout);
-            const query = searchInput.value.trim();
-
-            if (query.length > 2) {
-                searchTimeout = setTimeout(() => {
-                    performSearch(query, 1);
-                }, 500); // Ritardo di 500ms
-            } else if (query.length === 0 && !searchSection.classList.contains('hidden')) {
-                showSection(homepageSection); // Torna alla home se la ricerca è vuota
-                clearSearchResults(); // Pulisce i vecchi risultati
-            }
-        });
-
-        // Carica Altri Risultati di Ricerca
-        loadMoreResultsBtn.addEventListener('click', () => {
-            if (currentSearchPage < totalSearchPages) {
-                performSearch(currentSearchQuery, currentSearchPage + 1);
-            }
-        });
-
-
-        // Chiusura Modal Info
-        closeInfoBtn.addEventListener('click', closeAllModals);
-        modalBackdrop.addEventListener('click', (e) => {
-            // Chiude se si clicca sul backdrop E non c'è il player aperto
-            if (e.target === modalBackdrop && playerModal.classList.contains('hidden')) {
-                closeAllModals();
-            }
-        });
-
-        // Chiusura Modal Player e Message
-        closePlayerBtn.addEventListener('click', closeAllModals);
-        closeMessageModalBtn.addEventListener('click', () => {
-             // Chiude solo il message modal
-            messageModal.classList.add('hidden');
-            messageModal.classList.remove('flex');
-            // Ripristina lo scroll del body solo se tutti gli altri modal sono chiusi
-            if (infoModal.classList.contains('hidden') && playerModal.classList.contains('hidden')) {
-                modalBackdrop.classList.add('hidden');
-                document.body.style.overflow = '';
-            }
-        });
-
-        // Listener per il cambio di Stagione (nel Modal Info)
-        seasonSelect.addEventListener('change', () => {
-            const currentItem = JSON.parse(infoModal.dataset.currentItem || '{}');
-            const seasonNum = parseInt(seasonSelect.value);
-
-            if (currentItem && currentItem.media_type === 'tv' && !isNaN(seasonNum)) {
-                fetchEpisodesForSeason(currentItem.id, seasonNum);
-            }
-        });
-
-        // Listener per il cambio di Episodio (nel Modal Info)
-        episodeSelect.addEventListener('change', () => {
-            const currentItem = JSON.parse(infoModal.dataset.currentItem || '{}');
-            const seasonNum = parseInt(seasonSelect.value);
-            const episodeNum = parseInt(episodeSelect.value);
-
-            if (currentItem && currentItem.media_type === 'tv' && !isNaN(seasonNum) && !isNaN(episodeNum)) {
-                updatePlayerFrameSource(currentItem.id, seasonNum, episodeNum);
-            }
-        });
-
-
-        // Listener per il pulsante Riproduci
-        playBtn.addEventListener('click', () => {
-            const currentItem = JSON.parse(infoModal.dataset.currentItem || '{}');
-            let playerInfo = null;
-
-            if (currentItem.media_type === 'movie') {
-                playerInfo = buildPlayerSrc(currentItem);
-            } else if (currentItem.media_type === 'tv') {
-                const seasonNum = parseInt(seasonSelect.value);
-                const episodeNum = parseInt(episodeSelect.value);
-
-                // Chiama buildPlayerSrc con i valori selezionati
-                playerInfo = buildPlayerSrc(currentItem, seasonNum, episodeNum);
-            }
-
-            if (playerInfo && playerInfo.url) {
-                playerFrame.src = playerInfo.url;
-                infoModal.classList.add('hidden'); // Chiude il modal info
-                openModal(playerModal); // Apre il modal player (backdrop rimane)
-            } else {
-                // Se manca l'URL, mostra un avviso
-                if(currentItem.media_type === 'tv') {
-                    showMessageModal("Attenzione", "Seleziona una stagione e un episodio validi per iniziare la riproduzione.");
-                } else {
-                    showMessageModal("Attenzione", "Impossibile trovare la sorgente di riproduzione per questo contenuto.");
-                }
-            }
-        });
-
+        // Init
+        netlifyIdentity.on('login', () => location.reload());
+        netlifyIdentity.on('logout', () => location.reload());
+        showCategory('all');
     </script>
 </body>
 </html>
