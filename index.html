@@ -10,10 +10,22 @@
     <style>
         body { background-color: #141414; color: #fff; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; overflow-x: hidden; }
         .scrollbar-hide::-webkit-scrollbar { display: none; }
-        header { background: linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, transparent 100%); transition: background 0.3s; z-index: 100; }
+        
+        header { background: linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, transparent 100%); transition: opacity 0.3s, background 0.3s; z-index: 100; }
         header.scrolled { background: #141414; }
 
-        /* Card ridimensionate per evitare ingombro eccessivo */
+        /* FIX LOGO/ACCEDI SOPRA IL MODULO DI LOGIN */
+        /* Quando Netlify Identity è aperto, nascondiamo l'header per evitare sovrapposizioni */
+        body.netlify-identity-widget-open header {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* Forza il widget di Identity ad essere sopra a tutto e centrato */
+        #netlify-identity-widget {
+            z-index: 99999 !important;
+        }
+
         .card { 
             min-width: 110px; width: 110px; height: 165px; 
             flex-shrink: 0; transition: transform 0.3s ease; 
@@ -27,7 +39,6 @@
 
         .carousel-track { display: flex; overflow-x: auto; scroll-behavior: smooth; gap: 10px; padding: 15px 0; }
         
-        /* Modal Style */
         #infoModal > div { max-width: 800px; width: 95%; max-height: 85vh; overflow-y: auto; border-radius: 8px; background: #181818; }
         .modal-hero { position: relative; width: 100%; aspect-ratio: 16 / 9; }
         .modal-hero img { width: 100%; height: 100%; object-fit: cover; }
@@ -35,7 +46,7 @@
 </head>
 <body class="scrollbar-hide">
 
-    <header class="fixed top-0 w-full p-4 md:px-12 flex justify-between items-center transition-all">
+    <header id="mainHeader" class="fixed top-0 w-full p-4 md:px-12 flex justify-between items-center transition-all">
         <div class="flex items-center gap-4 md:gap-10">
             <a href="#" onclick="showCategory('all')" class="text-red-600 text-2xl md:text-3xl font-black tracking-tighter">VIXSTREAM</a>
             <nav class="hidden sm:flex gap-6 text-xs font-bold uppercase tracking-widest">
@@ -66,7 +77,7 @@
     </main>
 
     <div id="infoModal" class="fixed inset-0 z-[100] hidden bg-black/90 flex items-center justify-center p-2">
-        <div class="scrollbar-hide">
+        <div class="scrollbar-hide relative">
             <button onclick="closeAllModals()" class="absolute top-4 right-4 z-[110] bg-black/60 text-white w-10 h-10 rounded-full flex items-center justify-center hover:bg-white hover:text-black transition">✕</button>
             <div class="modal-hero">
                 <img id="infoBgImg" src="">
@@ -101,6 +112,7 @@
         const IMG = "https://image.tmdb.org/t/p/original";
         let cur = null;
 
+        // Inizializza Identity
         netlifyIdentity.init();
 
         function updateAuthBtn() {
@@ -117,8 +129,19 @@
 
         function handleAuth() {
             const user = netlifyIdentity.currentUser();
-            user ? netlifyIdentity.logout() : netlifyIdentity.open();
+            if (user) {
+                netlifyIdentity.logout();
+            } else {
+                // Aggiungiamo una classe al body per nascondere l'header quando si apre il widget
+                document.body.classList.add('netlify-identity-widget-open');
+                netlifyIdentity.open();
+            }
         }
+
+        // Se l'utente chiude il widget cliccando sulla X o fuori, ripristiniamo l'header
+        netlifyIdentity.on('close', () => {
+            document.body.classList.remove('netlify-identity-widget-open');
+        });
 
         async function call(path, params = {}) {
             const url = new URL(`https://api.themoviedb.org/3${path}`);
@@ -231,7 +254,13 @@
             document.getElementById('heroPlay').onclick = () => showInfo(item);
         }
 
-        netlifyIdentity.on('login', () => { updateAuthBtn(); showCategory('all'); netlifyIdentity.close(); });
+        netlifyIdentity.on('login', () => { 
+            document.body.classList.remove('netlify-identity-widget-open');
+            updateAuthBtn(); 
+            showCategory('all'); 
+            netlifyIdentity.close(); 
+        });
+
         netlifyIdentity.on('logout', () => { updateAuthBtn(); location.reload(); });
         window.addEventListener('scroll', () => { document.querySelector('header').classList.toggle('scrolled', window.scrollY > 50); });
 
