@@ -10,33 +10,19 @@
     <style>
         body { background-color: #141414; color: #fff; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; overflow-x: hidden; }
         .scrollbar-hide::-webkit-scrollbar { display: none; }
-        
-        header { background: linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, transparent 100%); transition: opacity 0.3s, background 0.3s; z-index: 100; }
+        header { background: linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, transparent 100%); transition: all 0.3s; z-index: 100; }
         header.scrolled { background: #141414; }
-
-        /* FIX LOGO/ACCEDI SOPRA IL MODULO DI LOGIN */
-        /* Quando Netlify Identity è aperto, nascondiamo l'header per evitare sovrapposizioni */
-        body.netlify-identity-widget-open header {
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        /* Forza il widget di Identity ad essere sopra a tutto e centrato */
-        #netlify-identity-widget {
-            z-index: 99999 !important;
-        }
+        body.netlify-identity-widget-open header { opacity: 0; pointer-events: none; }
+        #netlify-identity-widget { z-index: 99999 !important; }
 
         .card { 
             min-width: 110px; width: 110px; height: 165px; 
             flex-shrink: 0; transition: transform 0.3s ease; 
             cursor: pointer; border-radius: 4px; overflow: hidden;
         }
-        @media (min-width: 768px) { 
-            .card { min-width: 150px; width: 150px; height: 225px; } 
-        }
+        @media (min-width: 768px) { .card { min-width: 150px; width: 150px; height: 225px; } }
         .card:hover { transform: scale(1.05); z-index: 10; }
         .card img { width: 100%; height: 100%; object-fit: cover; }
-
         .carousel-track { display: flex; overflow-x: auto; scroll-behavior: smooth; gap: 10px; padding: 15px 0; }
         
         #infoModal > div { max-width: 800px; width: 95%; max-height: 85vh; overflow-y: auto; border-radius: 8px; background: #181818; }
@@ -49,14 +35,16 @@
     <header id="mainHeader" class="fixed top-0 w-full p-4 md:px-12 flex justify-between items-center transition-all">
         <div class="flex items-center gap-4 md:gap-10">
             <a href="#" onclick="showCategory('all')" class="text-red-600 text-2xl md:text-3xl font-black tracking-tighter">VIXSTREAM</a>
-            <nav class="hidden sm:flex gap-6 text-xs font-bold uppercase tracking-widest">
-                <a href="#" onclick="showCategory('all')" class="hover:text-gray-400 transition text-white">Home</a>
-                <a href="#" onclick="showCategory('tv')" class="hover:text-gray-400 transition text-white/70">Serie TV</a>
-                <a href="#" onclick="showCategory('movie')" class="hover:text-gray-400 transition text-white/70">Film</a>
+            <nav class="hidden lg:flex gap-6 text-xs font-bold uppercase tracking-widest">
+                <a href="#" onclick="showCategory('all')" class="hover:text-white transition text-white">Home</a>
+                <a href="#" onclick="showCategory('tv')" class="hover:text-white transition text-white/70">Serie TV</a>
+                <a href="#" onclick="showCategory('movie')" class="hover:text-white transition text-white/70">Film</a>
             </nav>
         </div>
         <div class="flex items-center gap-4">
-            <button id="authBtn" onclick="handleAuth()" class="bg-red-600 text-white text-[10px] md:text-xs px-4 py-1.5 rounded font-black hover:bg-red-700 transition uppercase tracking-tighter shadow-lg">
+            <input type="text" id="searchInput" placeholder="Titoli, persone, generi..." 
+                   class="bg-black/50 border border-white/20 text-white text-xs rounded px-3 py-1.5 w-32 md:w-60 outline-none focus:border-red-600 transition-all">
+            <button id="authBtn" onclick="handleAuth()" class="bg-red-600 text-white text-[10px] md:text-xs px-4 py-1.5 rounded font-black hover:bg-red-700 transition uppercase tracking-tighter">
                 Accedi
             </button>
         </div>
@@ -68,8 +56,8 @@
             <div class="absolute inset-0 bg-gradient-to-t from-[#141414] via-transparent to-black/20"></div>
             <div class="relative z-10 h-full flex flex-col justify-end p-6 md:p-16 pb-16 md:pb-28">
                 <h1 id="heroTitle" class="text-2xl md:text-6xl font-black mb-2 drop-shadow-2xl uppercase italic"></h1>
-                <p id="heroOverview" class="max-w-xl text-xs md:text-base mb-6 line-clamp-2 text-gray-200 drop-shadow-md font-medium"></p>
-                <button id="heroPlay" class="bg-white text-black px-6 py-2 rounded font-black hover:bg-gray-200 transition flex items-center gap-2 w-fit text-xs md:text-sm shadow-xl">▶ RIPRODUCI</button>
+                <p id="heroOverview" class="max-w-xl text-xs md:text-base mb-6 line-clamp-2 text-gray-200 font-medium"></p>
+                <button id="heroPlay" class="bg-white text-black px-6 py-2 rounded font-black hover:bg-gray-200 transition flex items-center gap-2 w-fit text-xs md:text-sm">▶ RIPRODUCI</button>
             </div>
         </section>
 
@@ -91,7 +79,7 @@
                     <p id="infoOverview" class="text-gray-300 text-sm md:text-base leading-relaxed mb-6"></p>
                     <div class="flex gap-4">
                         <button id="playBtn" class="bg-white text-black px-8 py-2 rounded font-black text-sm flex-grow md:flex-grow-0">▶ RIPRODUCI</button>
-                        <button id="favBtn" class="border border-white/40 text-white px-6 py-2 rounded font-bold text-sm hover:bg-white hover:text-black transition flex-grow md:flex-grow-0">❤️ LA MIA LISTA</button>
+                        <button id="favBtn" class="px-6 py-2 rounded font-bold text-sm transition flex-grow md:flex-grow-0 border border-white/40">❤️ LA MIA LISTA</button>
                     </div>
                 </div>
                 <div id="tvSelectors" class="hidden space-y-4 md:border-l md:border-white/10 md:pl-6">
@@ -111,8 +99,8 @@
         const API_KEY = "7b5fcf48f24a334bb09f87ce20e5f2ce";
         const IMG = "https://image.tmdb.org/t/p/original";
         let cur = null;
+        let myFavorites = [];
 
-        // Inizializza Identity
         netlifyIdentity.init();
 
         function updateAuthBtn() {
@@ -129,19 +117,11 @@
 
         function handleAuth() {
             const user = netlifyIdentity.currentUser();
-            if (user) {
-                netlifyIdentity.logout();
-            } else {
-                // Aggiungiamo una classe al body per nascondere l'header quando si apre il widget
-                document.body.classList.add('netlify-identity-widget-open');
-                netlifyIdentity.open();
-            }
+            if (user) { netlifyIdentity.logout(); } 
+            else { document.body.classList.add('netlify-identity-widget-open'); netlifyIdentity.open(); }
         }
 
-        // Se l'utente chiude il widget cliccando sulla X o fuori, ripristiniamo l'header
-        netlifyIdentity.on('close', () => {
-            document.body.classList.remove('netlify-identity-widget-open');
-        });
+        netlifyIdentity.on('close', () => document.body.classList.remove('netlify-identity-widget-open'));
 
         async function call(path, params = {}) {
             const url = new URL(`https://api.themoviedb.org/3${path}`);
@@ -158,9 +138,9 @@
                 const r = await fetch('/.netlify/functions/manage-favorites', {
                     headers: { Authorization: `Bearer ${user.token.access_token}` }
                 });
-                const favs = await r.json();
-                if(favs && favs.length > 0) {
-                    const items = favs.map(f => ({ id: f.item_id, media_type: f.media_type, poster_path: f.poster_path }));
+                myFavorites = await r.json() || [];
+                if(myFavorites.length > 0) {
+                    const items = myFavorites.map(f => ({ id: f.item_id, media_type: f.media_type, poster_path: f.poster_path }));
                     createRow("La Mia Lista", items, true);
                 }
             } catch (e) { console.error(e); }
@@ -169,19 +149,26 @@
         async function toggleFavorite() {
             const user = netlifyIdentity.currentUser();
             if (!user) { netlifyIdentity.open(); return; }
+            
+            const isFav = myFavorites.some(f => f.item_id == cur.id);
+            const action = isFav ? 'remove' : 'add';
+
             await fetch('/.netlify/functions/manage-favorites', {
                 method: 'POST',
                 headers: { Authorization: `Bearer ${user.token.access_token}` },
-                body: JSON.stringify({ action: 'add', item_id: cur.id, media_type: cur.type, poster_path: cur.poster_path })
+                body: JSON.stringify({ action, item_id: cur.id, media_type: cur.type, poster_path: cur.poster_path })
             });
-            alert("Aggiunto!");
+
+            // Aggiorna interfaccia
             showCategory('all');
+            closeAllModals();
         }
 
         function createRow(title, items, prepend = false) {
             if (!items || items.length === 0) return;
             const container = document.createElement('div');
-            container.innerHTML = `<h2 class="text-base md:text-lg font-black mb-1 ml-2 text-white/80 uppercase tracking-tighter italic">${title}</h2><div class="carousel-container"><div class="carousel-track scrollbar-hide"></div></div>`;
+            container.className = "row-container";
+            container.innerHTML = `<h2 class="text-base md:text-lg font-black mb-1 ml-2 text-white/80 uppercase italic">${title}</h2><div class="carousel-container"><div class="carousel-track scrollbar-hide"></div></div>`;
             const track = container.querySelector('.carousel-track');
             items.forEach(item => {
                 if(!item.poster_path) return;
@@ -205,6 +192,16 @@
             document.getElementById('infoTitle').textContent = cur.title || cur.name;
             document.getElementById('infoOverview').textContent = cur.overview;
             document.getElementById('infoBgImg').src = IMG + (cur.backdrop_path || cur.poster_path);
+            
+            // Gestione Pulsante Preferiti Bianco/Trasparente
+            const favBtn = document.getElementById('favBtn');
+            const isFav = myFavorites.some(f => f.item_id == cur.id);
+            if(isFav) {
+                favBtn.className = "px-6 py-2 rounded font-black text-sm flex-grow md:flex-grow-0 bg-white text-black border-white";
+            } else {
+                favBtn.className = "px-6 py-2 rounded font-bold text-sm flex-grow md:flex-grow-0 bg-transparent text-white border border-white/40";
+            }
+
             const tv = document.getElementById('tvSelectors');
             if(cur.type === 'tv') {
                 tv.classList.remove('hidden');
@@ -217,11 +214,25 @@
                 };
                 await sSel.onchange();
             } else { tv.classList.add('hidden'); }
+            
             document.getElementById('infoModal').classList.replace('hidden', 'flex');
             document.body.style.overflow = 'hidden';
-            document.getElementById('favBtn').onclick = toggleFavorite;
+            favBtn.onclick = toggleFavorite;
             document.getElementById('playBtn').onclick = play;
         }
+
+        // Funzione di Ricerca
+        document.getElementById('searchInput').oninput = async (e) => {
+            const query = e.target.value;
+            if(query.length > 2) {
+                const res = await call("/search/multi", { query });
+                document.getElementById('sections').innerHTML = '';
+                document.getElementById('hero').classList.add('hidden');
+                createRow(`Risultati per: ${query}`, res.results);
+            } else if (query.length === 0) {
+                showCategory('all');
+            }
+        };
 
         function play() {
             let url = `https://vixsrc.to/${cur.type}/${cur.id}`;
@@ -241,9 +252,9 @@
             const path = type === 'all' ? "/trending/all/week" : `/${type}/popular`;
             const res = await call(path);
             initHero(res.results[0]);
-            if(type === 'all') await loadFavorites();
-            createRow(type === 'all' ? "Tendenze Settimanali" : "Popolari", res.results);
-            if(type === 'all') createRow("Serie TV Consigliate", (await call("/tv/popular")).results);
+            await loadFavorites();
+            createRow(type === 'all' ? "Tendenze" : "Popolari", res.results);
+            if(type === 'all') createRow("Serie TV Popolari", (await call("/tv/popular")).results);
         }
 
         function initHero(item) {
