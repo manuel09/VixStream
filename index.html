@@ -28,6 +28,11 @@
         #infoModal > div { max-width: 800px; width: 95%; max-height: 85vh; overflow-y: auto; border-radius: 8px; background: #181818; }
         .modal-hero { position: relative; width: 100%; aspect-ratio: 16 / 9; }
         .modal-hero img { width: 100%; height: 100%; object-fit: cover; }
+
+        /* FIX RICERCA: Spazio extra quando l'Hero è nascosto */
+        .searching #sections {
+            margin-top: 100px !important;
+        }
     </style>
 </head>
 <body class="scrollbar-hide">
@@ -149,17 +154,13 @@
         async function toggleFavorite() {
             const user = netlifyIdentity.currentUser();
             if (!user) { netlifyIdentity.open(); return; }
-            
             const isFav = myFavorites.some(f => f.item_id == cur.id);
             const action = isFav ? 'remove' : 'add';
-
             await fetch('/.netlify/functions/manage-favorites', {
                 method: 'POST',
                 headers: { Authorization: `Bearer ${user.token.access_token}` },
                 body: JSON.stringify({ action, item_id: cur.id, media_type: cur.type, poster_path: cur.poster_path })
             });
-
-            // Aggiorna interfaccia
             showCategory('all');
             closeAllModals();
         }
@@ -167,7 +168,6 @@
         function createRow(title, items, prepend = false) {
             if (!items || items.length === 0) return;
             const container = document.createElement('div');
-            container.className = "row-container";
             container.innerHTML = `<h2 class="text-base md:text-lg font-black mb-1 ml-2 text-white/80 uppercase italic">${title}</h2><div class="carousel-container"><div class="carousel-track scrollbar-hide"></div></div>`;
             const track = container.querySelector('.carousel-track');
             items.forEach(item => {
@@ -193,14 +193,9 @@
             document.getElementById('infoOverview').textContent = cur.overview;
             document.getElementById('infoBgImg').src = IMG + (cur.backdrop_path || cur.poster_path);
             
-            // Gestione Pulsante Preferiti Bianco/Trasparente
             const favBtn = document.getElementById('favBtn');
             const isFav = myFavorites.some(f => f.item_id == cur.id);
-            if(isFav) {
-                favBtn.className = "px-6 py-2 rounded font-black text-sm flex-grow md:flex-grow-0 bg-white text-black border-white";
-            } else {
-                favBtn.className = "px-6 py-2 rounded font-bold text-sm flex-grow md:flex-grow-0 bg-transparent text-white border border-white/40";
-            }
+            favBtn.className = isFav ? "px-6 py-2 rounded font-black text-sm flex-grow md:flex-grow-0 bg-white text-black border-white" : "px-6 py-2 rounded font-bold text-sm flex-grow md:flex-grow-0 bg-transparent text-white border border-white/40";
 
             const tv = document.getElementById('tvSelectors');
             if(cur.type === 'tv') {
@@ -221,15 +216,17 @@
             document.getElementById('playBtn').onclick = play;
         }
 
-        // Funzione di Ricerca
+        // Funzione di Ricerca con fix posizione
         document.getElementById('searchInput').oninput = async (e) => {
             const query = e.target.value;
             if(query.length > 2) {
                 const res = await call("/search/multi", { query });
                 document.getElementById('sections').innerHTML = '';
                 document.getElementById('hero').classList.add('hidden');
+                document.body.classList.add('searching'); // Attiva il margine superiore
                 createRow(`Risultati per: ${query}`, res.results);
             } else if (query.length === 0) {
+                document.body.classList.remove('searching');
                 showCategory('all');
             }
         };
@@ -248,6 +245,7 @@
         }
 
         async function showCategory(type) {
+            document.body.classList.remove('searching');
             document.getElementById('sections').innerHTML = '';
             const path = type === 'all' ? "/trending/all/week" : `/${type}/popular`;
             const res = await call(path);
@@ -267,9 +265,7 @@
 
         netlifyIdentity.on('login', () => { 
             document.body.classList.remove('netlify-identity-widget-open');
-            updateAuthBtn(); 
-            showCategory('all'); 
-            netlifyIdentity.close(); 
+            updateAuthBtn(); showCategory('all'); netlifyIdentity.close(); 
         });
 
         netlifyIdentity.on('logout', () => { updateAuthBtn(); location.reload(); });
