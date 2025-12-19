@@ -1,0 +1,11 @@
+{
+  "name": "vixstream",
+  "version": "1.0.0",
+  "description": "Streaming App",
+  "main": "index.html",
+  "dependencies": {
+    "@netlify/neon": "^0.1.0"
+  },
+  "author": "",
+  "license": "ISC"
+}
