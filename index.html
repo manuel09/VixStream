@@ -36,14 +36,14 @@
     <header id="mainHeader" class="fixed top-0 w-full p-4 md:px-12 flex justify-between items-center transition-all">
         <div class="flex items-center gap-4 md:gap-10">
             <a href="#" onclick="showCategory('all')" class="text-red-600 text-2xl md:text-3xl font-black tracking-tighter">VIXSTREAM</a>
-            <nav class="hidden lg:flex gap-6 text-xs font-bold uppercase tracking-widest">
-                <a href="#" onclick="showCategory('all')" class="hover:text-white transition text-white">Home</a>
-                <a href="#" onclick="showCategory('tv')" class="hover:text-white transition text-white/70">Serie TV</a>
-                <a href="#" onclick="showCategory('movie')" class="hover:text-white transition text-white/70">Film</a>
+            <nav class="hidden lg:flex gap-6 text-xs font-bold uppercase tracking-widest text-white/70">
+                <a href="#" id="nav-all" onclick="showCategory('all')" class="hover:text-white transition">Home</a>
+                <a href="#" id="nav-tv" onclick="showCategory('tv')" class="hover:text-white transition">Serie TV</a>
+                <a href="#" id="nav-movie" onclick="showCategory('movie')" class="hover:text-white transition">Film</a>
             </nav>
         </div>
         <div class="flex items-center gap-4">
-            <input type="text" id="searchInput" placeholder="Cerca film o serie..." class="bg-black/50 border border-white/20 text-white text-xs rounded px-3 py-1.5 w-32 md:w-60 outline-none focus:border-red-600 transition-all">
+            <input type="text" id="searchInput" placeholder="Cerca..." class="bg-black/50 border border-white/20 text-white text-xs rounded px-3 py-1.5 w-32 md:w-60 outline-none focus:border-red-600 transition-all">
             <button id="authBtn" onclick="handleAuth()" class="bg-red-600 text-white text-[10px] md:text-xs px-4 py-1.5 rounded font-black hover:bg-red-700 transition uppercase tracking-tighter">Accedi</button>
         </div>
     </header>
@@ -100,69 +100,40 @@
 
         netlifyIdentity.init();
 
-        // --- SISTEMA AUTOPLAY (FIXED) ---
+        // Autoplay Logic
         window.addEventListener("message", (event) => {
             let payload = event.data;
-            // Se il messaggio è una stringa (comune negli iframe), lo decodifichiamo
-            if (typeof payload === 'string') {
-                try { payload = JSON.parse(payload); } catch (e) { return; }
-            }
-
-            // Verifica struttura PLAYER_EVENT
-            if (payload && payload.type === "PLAYER_EVENT") {
-                const eventType = payload.data ? payload.data.event : null;
-                console.log("Player Event:", eventType);
-
-                if (eventType === "ended") {
-                    console.log("Episodio terminato, cerco il prossimo...");
-                    handleNextEpisode();
-                }
+            if (typeof payload === 'string') { try { payload = JSON.parse(payload); } catch (e) { return; } }
+            if (payload && payload.type === "PLAYER_EVENT" && payload.data?.event === "ended") {
+                handleNextEpisode();
             }
         }, false);
 
         function handleNextEpisode() {
             if (!cur || cur.type !== 'tv') return;
-
             const epSelect = document.getElementById('episodeSelect');
-            const currentEp = parseInt(epSelect.value);
-            const nextEp = currentEp + 1;
-
-            // Cerchiamo l'episodio successivo nelle opzioni
-            let nextOption = Array.from(epSelect.options).find(opt => parseInt(opt.value) === nextEp);
-
+            const nextEp = parseInt(epSelect.value) + 1;
+            const nextOption = Array.from(epSelect.options).find(opt => parseInt(opt.value) === nextEp);
             if (nextOption) {
                 epSelect.value = nextEp;
-                console.log("Avvio automatico Episodio " + nextEp);
-                // Piccolo delay per stabilità
                 setTimeout(() => { play(); }, 1500);
-            } else {
-                console.log("Nessun altro episodio in questa stagione.");
-                closeAllModals();
-            }
+            } else { closeAllModals(); }
         }
 
-        // --- GESTIONE AUTH ---
+        // Auth
         function updateAuthBtn() {
             const user = netlifyIdentity.currentUser();
             const btn = document.getElementById('authBtn');
-            if (user) {
-                btn.textContent = 'LOGOUT';
-                btn.classList.replace('bg-red-600', 'bg-gray-800');
-            } else {
-                btn.textContent = 'ACCEDI';
-                btn.classList.replace('bg-gray-800', 'bg-red-600');
-            }
+            btn.textContent = user ? 'LOGOUT' : 'ACCEDI';
+            btn.className = user ? 'bg-gray-800 text-white text-[10px] md:text-xs px-4 py-1.5 rounded font-black hover:bg-gray-700 transition uppercase tracking-tighter' : 'bg-red-600 text-white text-[10px] md:text-xs px-4 py-1.5 rounded font-black hover:bg-red-700 transition uppercase tracking-tighter';
         }
 
         function handleAuth() {
             const user = netlifyIdentity.currentUser();
-            if (user) { netlifyIdentity.logout(); } 
-            else { document.body.classList.add('netlify-identity-widget-open'); netlifyIdentity.open(); }
+            if (user) { netlifyIdentity.logout(); } else { netlifyIdentity.open(); }
         }
 
-        netlifyIdentity.on('close', () => document.body.classList.remove('netlify-identity-widget-open'));
-
-        // --- API & CONTENUTI ---
+        // API
         async function call(path, params = {}) {
             const url = new URL(`https://api.themoviedb.org/3${path}`);
             url.searchParams.append("api_key", API_KEY);
@@ -183,20 +154,19 @@
                     const items = myFavorites.map(f => ({ id: f.item_id, media_type: f.media_type, poster_path: f.poster_path }));
                     createRow("La Mia Lista", items, true);
                 }
-            } catch (e) { console.error(e); }
+            } catch (e) {}
         }
 
         async function toggleFavorite() {
             const user = netlifyIdentity.currentUser();
             if (!user) { netlifyIdentity.open(); return; }
             const isFav = myFavorites.some(f => f.item_id == cur.id);
-            const action = isFav ? 'remove' : 'add';
             await fetch('/.netlify/functions/manage-favorites', {
                 method: 'POST',
                 headers: { Authorization: `Bearer ${user.token.access_token}` },
-                body: JSON.stringify({ action, item_id: cur.id, media_type: cur.type, poster_path: cur.poster_path })
+                body: JSON.stringify({ action: isFav ? 'remove' : 'add', item_id: cur.id, media_type: cur.type, poster_path: cur.poster_path })
             });
-            showCategory('all');
+            showCategory(window.currentCategory || 'all');
             closeAllModals();
         }
 
@@ -230,17 +200,17 @@
             
             const favBtn = document.getElementById('favBtn');
             const isFav = myFavorites.some(f => f.item_id == cur.id);
-            favBtn.className = isFav ? "px-6 py-2 rounded font-black text-sm flex-grow md:flex-grow-0 bg-white text-black border-white" : "px-6 py-2 rounded font-bold text-sm flex-grow md:flex-grow-0 bg-transparent text-white border border-white/40";
+            favBtn.className = isFav ? "bg-white text-black px-6 py-2 rounded font-black text-sm flex-grow md:flex-grow-0" : "bg-transparent text-white border border-white/40 px-6 py-2 rounded font-bold text-sm flex-grow md:flex-grow-0";
 
             const tv = document.getElementById('tvSelectors');
             if(cur.type === 'tv') {
                 tv.classList.remove('hidden');
                 const data = await call(`/tv/${cur.id}`);
                 const sSel = document.getElementById('seasonSelect');
-                sSel.innerHTML = data.seasons.filter(s => s.season_number > 0).map(s => `<option value="${s.season_number}">S${s.season_number}</option>`).join('');
+                sSel.innerHTML = data.seasons.filter(s => s.season_number > 0).map(s => `<option value="${s.season_number}">Stagione ${s.season_number}</option>`).join('');
                 sSel.onchange = async () => {
                     const sData = await call(`/tv/${cur.id}/season/${sSel.value}`);
-                    document.getElementById('episodeSelect').innerHTML = sData.episodes.map(e => `<option value="${e.episode_number}">Ep. ${e.episode_number}</option>`).join('');
+                    document.getElementById('episodeSelect').innerHTML = sData.episodes.map(e => `<option value="${e.episode_number}">Episodio ${e.episode_number}</option>`).join('');
                 };
                 await sSel.onchange();
             } else { tv.classList.add('hidden'); }
@@ -251,50 +221,41 @@
             document.getElementById('playBtn').onclick = play;
         }
 
-        // --- RICERCA ---
-        document.getElementById('searchInput').oninput = async (e) => {
-            const query = e.target.value;
-            if(query.length > 2) {
-                const res = await call("/search/multi", { query });
-                document.getElementById('sections').innerHTML = '';
-                document.getElementById('hero').classList.add('hidden');
-                document.body.classList.add('searching');
-                createRow(`Risultati per: ${query}`, res.results);
-            } else if (query.length === 0) {
-                document.body.classList.remove('searching');
-                showCategory('all');
-            }
-        };
-
-        // --- FUNZIONE PLAY ---
-        function play() {
-            if (!cur) return;
-            let url = `https://vixsrc.to/${cur.type}/${cur.id}`;
-            if(cur.type === 'tv') {
-                const s = document.getElementById('seasonSelect').value;
-                const e = document.getElementById('episodeSelect').value;
-                url += `/${s}/${e}`;
-            }
-            // Parametri dalla documentazione: colore primario rosso, autoplay, lingua IT
-            document.getElementById('playerFrame').src = url + "?autoplay=true&primaryColor=B20710&lang=it";
-            document.getElementById('playerModal').classList.replace('hidden', 'flex');
-        }
-
-        function closeAllModals() {
-            document.querySelectorAll('#infoModal, #playerModal').forEach(m => m.classList.replace('flex', 'hidden'));
-            document.getElementById('playerFrame').src = "";
-            document.body.style.overflow = '';
-        }
-
+        // --- CAROSELLI MULTIPLI ---
         async function showCategory(type) {
+            window.currentCategory = type;
             document.body.classList.remove('searching');
             document.getElementById('sections').innerHTML = '';
-            const path = type === 'all' ? "/trending/all/week" : `/${type}/popular`;
-            const res = await call(path);
-            initHero(res.results[0]);
-            await loadFavorites();
-            createRow(type === 'all' ? "Tendenze Settimanali" : "Popolari", res.results);
-            if(type === 'all') createRow("Serie TV Consigliate", (await call("/tv/popular")).results);
+            
+            // UI Active State
+            document.querySelectorAll('nav a').forEach(a => a.classList.replace('text-white', 'text-white/70'));
+            document.getElementById(`nav-${type}`).classList.replace('text-white/70', 'text-white');
+
+            if (type === 'all') {
+                const res = await call("/trending/all/week");
+                initHero(res.results[0]);
+                await loadFavorites();
+                createRow("Tendenze della settimana", res.results);
+                createRow("Film Popolari", (await call("/movie/popular")).results);
+                createRow("Serie TV Popolari", (await call("/tv/popular")).results);
+                createRow("I più votati di sempre", (await call("/movie/top_rated")).results);
+            } 
+            else if (type === 'movie') {
+                const res = await call("/movie/popular");
+                initHero(res.results[0]);
+                createRow("Film Popolari", res.results);
+                createRow("In Arrivo al cinema", (await call("/movie/upcoming")).results);
+                createRow("I più votati", (await call("/movie/top_rated")).results);
+                createRow("Azione & Avventura", (await call("/discover/movie", { with_genres: 28 })).results);
+            } 
+            else if (type === 'tv') {
+                const res = await call("/tv/popular");
+                initHero(res.results[0]);
+                createRow("Serie TV Popolari", res.results);
+                createRow("In onda oggi", (await call("/tv/airing_today")).results);
+                createRow("Serie TV Più Votate", (await call("/tv/top_rated")).results);
+                createRow("Documentari", (await call("/discover/tv", { with_genres: 99 })).results);
+            }
         }
 
         function initHero(item) {
@@ -305,11 +266,33 @@
             document.getElementById('heroPlay').onclick = () => showInfo(item);
         }
 
-        netlifyIdentity.on('login', () => { 
-            document.body.classList.remove('netlify-identity-widget-open');
-            updateAuthBtn(); showCategory('all'); netlifyIdentity.close(); 
-        });
+        document.getElementById('searchInput').oninput = async (e) => {
+            const query = e.target.value;
+            if(query.length > 2) {
+                const res = await call("/search/multi", { query });
+                document.getElementById('sections').innerHTML = '';
+                document.getElementById('hero').classList.add('hidden');
+                document.body.classList.add('searching');
+                createRow(`Risultati per: ${query}`, res.results);
+            } else if (query.length === 0) {
+                showCategory(window.currentCategory || 'all');
+            }
+        };
 
+        function play() {
+            let url = `https://vixsrc.to/${cur.type}/${cur.id}`;
+            if(cur.type === 'tv') url += `/${document.getElementById('seasonSelect').value}/${document.getElementById('episodeSelect').value}`;
+            document.getElementById('playerFrame').src = url + "?autoplay=true&primaryColor=B20710&lang=it";
+            document.getElementById('playerModal').classList.replace('hidden', 'flex');
+        }
+
+        function closeAllModals() {
+            document.querySelectorAll('#infoModal, #playerModal').forEach(m => m.classList.replace('flex', 'hidden'));
+            document.getElementById('playerFrame').src = "";
+            document.body.style.overflow = '';
+        }
+
+        netlifyIdentity.on('login', () => { updateAuthBtn(); showCategory('all'); netlifyIdentity.close(); });
         netlifyIdentity.on('logout', () => { updateAuthBtn(); location.reload(); });
         window.addEventListener('scroll', () => { document.querySelector('header').classList.toggle('scrolled', window.scrollY > 50); });
 
