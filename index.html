@@ -12,36 +12,21 @@
         .scrollbar-hide::-webkit-scrollbar { display: none; }
         header { background: linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, transparent 100%); transition: all 0.3s; z-index: 100; }
         header.scrolled { background: #141414; }
-        
-        .row-container { position: relative; }
+        .row-container { position: relative; margin-bottom: 2rem; }
         .carousel-container { position: relative; display: flex; align-items: center; }
         .carousel-track { display: flex; overflow-x: auto; scroll-behavior: smooth; gap: 10px; padding: 15px 0; width: 100%; }
-        
-        .nav-arrow {
-            position: absolute; top: 0; bottom: 0; width: 45px;
-            background: rgba(0,0,0,0.6); color: white; border: none;
-            display: flex; align-items: center; justify-content: center;
-            cursor: pointer; z-index: 40; opacity: 0; transition: opacity 0.3s;
-            font-size: 24px;
-        }
+        .nav-arrow { position: absolute; top: 0; bottom: 0; width: 45px; background: rgba(0,0,0,0.6); color: white; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 40; opacity: 0; transition: opacity 0.3s; font-size: 24px; }
         .row-container:hover .nav-arrow { opacity: 1; }
         .arrow-left { left: 0; border-radius: 0 4px 4px 0; }
         .arrow-right { right: 0; border-radius: 4px 0 0 4px; }
         @media (max-width: 768px) { .nav-arrow { display: none; } }
-
-        .card { 
-            min-width: 110px; width: 110px; height: 165px; 
-            flex-shrink: 0; transition: transform 0.3s ease; 
-            cursor: pointer; border-radius: 4px; overflow: hidden;
-        }
+        .card { min-width: 110px; width: 110px; height: 165px; flex-shrink: 0; transition: transform 0.3s ease; cursor: pointer; border-radius: 4px; overflow: hidden; }
         @media (min-width: 768px) { .card { min-width: 150px; width: 150px; height: 225px; } }
         .card:hover { transform: scale(1.05); z-index: 10; }
         .card img { width: 100%; height: 100%; object-fit: cover; }
-        
         #infoModal > div { max-width: 800px; width: 95%; max-height: 85vh; overflow-y: auto; border-radius: 8px; background: #181818; }
         .modal-hero { position: relative; width: 100%; aspect-ratio: 16 / 9; }
         .modal-hero img { width: 100%; height: 100%; object-fit: cover; }
-        .searching #sections { margin-top: 100px !important; }
         #netlify-identity-widget { z-index: 99999 !important; }
     </style>
 </head>
@@ -57,8 +42,8 @@
             </nav>
         </div>
         <div class="flex items-center gap-3">
-            <input type="text" id="searchInput" placeholder="Cerca..." class="bg-black/50 border border-white/20 text-white text-[10px] md:text-xs rounded px-2 md:px-3 py-1.5 w-24 md:w-60 outline-none focus:border-red-600 transition-all">
-            <button id="authBtn" onclick="handleAuth()" class="bg-red-600 text-white text-[10px] md:text-xs px-3 md:px-4 py-1.5 rounded font-black uppercase tracking-tighter whitespace-nowrap">Accedi</button>
+            <input type="text" id="searchInput" placeholder="Cerca..." class="bg-black/50 border border-white/20 text-white text-[10px] md:text-xs rounded px-2 md:px-3 py-1.5 w-24 md:w-60 outline-none focus:border-red-600">
+            <button id="authBtn" onclick="handleAuth()" class="bg-red-600 text-white text-[10px] md:text-xs px-3 md:px-4 py-1.5 rounded font-black uppercase tracking-tighter">Accedi</button>
         </div>
     </header>
 
@@ -67,17 +52,17 @@
             <img id="heroImg" src="" class="absolute w-full h-full object-cover">
             <div class="absolute inset-0 bg-gradient-to-t from-[#141414] via-transparent to-black/20"></div>
             <div class="relative z-10 h-full flex flex-col justify-end p-6 md:p-16 pb-16 md:pb-28">
-                <h1 id="heroTitle" class="text-2xl md:text-6xl font-black mb-2 drop-shadow-2xl uppercase italic"></h1>
-                <p id="heroOverview" class="max-w-xl text-xs md:text-base mb-6 line-clamp-2 text-gray-200 font-medium"></p>
-                <button id="heroPlay" class="bg-white text-black px-6 py-2 rounded font-black hover:bg-gray-200 transition text-xs md:text-sm shadow-xl">▶ RIPRODUCI</button>
+                <h1 id="heroTitle" class="text-2xl md:text-6xl font-black mb-2 italic"></h1>
+                <p id="heroOverview" class="max-w-xl text-xs md:text-base mb-6 line-clamp-2 text-gray-200"></p>
+                <button id="heroPlay" class="bg-white text-black px-6 py-2 rounded font-black hover:bg-gray-200 transition text-xs md:text-sm w-fit">▶ RIPRODUCI</button>
             </div>
         </section>
-        <div id="sections" class="px-4 md:px-12 -mt-12 md:-mt-20 relative z-20 space-y-10 pb-20"></div>
+        <div id="sections" class="px-4 md:px-12 -mt-12 md:-mt-20 relative z-20 space-y-4 pb-20"></div>
     </main>
 
     <div id="infoModal" class="fixed inset-0 z-[100] hidden bg-black/90 flex items-center justify-center p-2">
         <div class="scrollbar-hide relative">
-            <button onclick="closeAllModals()" class="absolute top-4 right-4 z-[110] bg-black/60 text-white w-10 h-10 rounded-full flex items-center justify-center hover:bg-white transition">✕</button>
+            <button onclick="closeAllModals()" class="absolute top-4 right-4 z-[110] bg-black/60 text-white w-10 h-10 rounded-full flex items-center justify-center">✕</button>
             <div class="modal-hero">
                 <img id="infoBgImg" src="">
                 <div class="absolute bottom-6 left-6 md:left-10 z-20"><h2 id="infoTitle" class="text-2xl md:text-4xl font-black italic uppercase"></h2></div>
@@ -92,15 +77,15 @@
                     </div>
                 </div>
                 <div id="tvSelectors" class="hidden space-y-4 md:border-l md:border-white/10 md:pl-6">
-                    <select id="seasonSelect" class="w-full bg-[#2f2f2f] p-2 rounded text-sm outline-none border border-white/5"></select>
-                    <select id="episodeSelect" class="w-full bg-[#2f2f2f] p-2 rounded text-sm outline-none border border-white/5"></select>
+                    <select id="seasonSelect" class="w-full bg-[#2f2f2f] p-2 rounded text-sm text-white outline-none border border-white/5"></select>
+                    <select id="episodeSelect" class="w-full bg-[#2f2f2f] p-2 rounded text-sm text-white outline-none border border-white/5"></select>
                 </div>
             </div>
         </div>
     </div>
 
     <div id="playerModal" class="fixed inset-0 z-[200] hidden bg-black">
-        <button onclick="closeAllModals()" class="absolute top-6 right-6 z-[210] bg-white/10 p-2 rounded-full hover:bg-red-600 transition text-white">✕ Chiudi</button>
+        <button onclick="closeAllModals()" class="absolute top-6 right-6 z-[210] bg-white/10 p-2 rounded-full text-white">✕ Chiudi</button>
         <iframe id="playerFrame" class="w-full h-full" allowfullscreen allow="autoplay"></iframe>
     </div>
 
@@ -114,32 +99,16 @@
             const u = netlifyIdentity.currentUser();
             const b = document.getElementById('authBtn');
             b.textContent = u ? 'LOGOUT' : 'ACCEDI';
-            b.className = u ? 'bg-gray-800 text-white text-[10px] md:text-xs px-4 py-1.5 rounded font-black uppercase' : 'bg-red-600 text-white text-[10px] md:text-xs px-4 py-1.5 rounded font-black uppercase';
+            b.className = u ? 'bg-gray-800 text-white text-[10px] md:text-xs px-4 py-1.5 rounded font-black' : 'bg-red-600 text-white text-[10px] md:text-xs px-4 py-1.5 rounded font-black';
         }
-
         function handleAuth() {
             const u = netlifyIdentity.currentUser();
             u ? netlifyIdentity.logout() : netlifyIdentity.open();
         }
+        netlifyIdentity.on('login', () => location.reload());
+        netlifyIdentity.on('logout', () => location.reload());
 
-        netlifyIdentity.on('login', () => { updateAuthBtn(); showCategory('all'); netlifyIdentity.close(); });
-        netlifyIdentity.on('logout', () => { updateAuthBtn(); location.reload(); });
-
-        // Autoplay
-        window.addEventListener("message", (e) => {
-            let p = e.data; if(typeof p === 'string'){try{p=JSON.parse(p)}catch(err){return}}
-            if(p.type === "PLAYER_EVENT" && p.data?.event === "ended") handleNextEpisode();
-        });
-
-        function handleNextEpisode() {
-            if(!cur || cur.type !== 'tv') return;
-            const s = document.getElementById('episodeSelect');
-            const n = parseInt(s.value) + 1;
-            if(Array.from(s.options).find(o => parseInt(o.value) === n)) {
-                s.value = n; setTimeout(() => play(), 1500);
-            } else closeAllModals();
-        }
-
+        // API
         async function call(path, params = {}) {
             const url = new URL(`https://api.themoviedb.org/3${path}`);
             url.searchParams.append("api_key", API_KEY);
@@ -148,12 +117,19 @@
             const r = await fetch(url); return r.json();
         }
 
-        function createRow(title, items, prepend = false) {
+        // Creazione Riga
+        function createRow(title, items) {
             if (!items || items.length === 0) return;
-            const row = document.createElement('div');
-            row.className = "row-container";
-            row.innerHTML = `<h2 class="text-base md:text-lg font-black mb-1 ml-2 text-white/80 uppercase italic">${title}</h2><div class="carousel-container"><button class="nav-arrow arrow-left">❮</button><div class="carousel-track scrollbar-hide"></div><button class="nav-arrow arrow-right">❯</button></div>`;
-            const track = row.querySelector('.carousel-track');
+            const div = document.createElement('div');
+            div.className = "row-container";
+            div.innerHTML = `
+                <h2 class="text-base md:text-lg font-black mb-1 ml-2 text-white/80 uppercase italic">${title}</h2>
+                <div class="carousel-container">
+                    <button class="nav-arrow arrow-left">❮</button>
+                    <div class="carousel-track scrollbar-hide"></div>
+                    <button class="nav-arrow arrow-right">❯</button>
+                </div>`;
+            const track = div.querySelector('.carousel-track');
             items.forEach(item => {
                 if(!item.poster_path) return;
                 const card = document.createElement('div');
@@ -162,57 +138,69 @@
                 card.onclick = () => showInfo(item);
                 track.appendChild(card);
             });
-            row.querySelector('.arrow-left').onclick = () => track.scrollLeft -= 400;
-            row.querySelector('.arrow-right').onclick = () => track.scrollLeft += 400;
-            const target = document.getElementById('sections');
-            prepend ? target.prepend(row) : target.appendChild(row);
+            div.querySelector('.arrow-left').onclick = () => track.scrollLeft -= 500;
+            div.querySelector('.arrow-right').onclick = () => track.scrollLeft += 500;
+            document.getElementById('sections').appendChild(div);
         }
 
+        // Navigazione Categorie
         async function showCategory(type) {
             window.currentCategory = type;
-            document.getElementById('sections').innerHTML = '';
-            document.querySelectorAll('nav a').forEach(a => { a.classList.remove('text-white'); a.classList.add('text-white/70'); });
+            const container = document.getElementById('sections');
+            container.innerHTML = ''; // PULIZIA TOTALE
+            
+            document.querySelectorAll('nav a').forEach(a => a.className = "hover:text-white transition text-white/70");
             const active = document.getElementById(`nav-${type}`);
-            if(active) { active.classList.replace('text-white/70', 'text-white'); }
+            if(active) active.className = "hover:text-white transition text-white";
 
             if (type === 'all') {
-                const res = await call("/trending/all/week");
-                initHero(res.results[0]);
-                await loadFavorites(); // Carica la lista solo qui
-                createRow("Tendenze della settimana", res.results);
+                const trending = await call("/trending/all/week");
+                initHero(trending.results[0]);
+                // Carichiamo la lista preferiti solo in Home
+                const u = netlifyIdentity.currentUser();
+                if(u) {
+                    const r = await fetch('/.netlify/functions/manage-favorites', { headers: { Authorization: `Bearer ${u.token.access_token}` } });
+                    myFavorites = await r.json() || [];
+                    if(myFavorites.length > 0) createRow("La Mia Lista", myFavorites.map(f => ({ id: f.item_id, media_type: f.media_type, poster_path: f.poster_path })));
+                }
+                createRow("Tendenze della settimana", trending.results);
                 createRow("Film Popolari", (await call("/movie/popular")).results);
                 createRow("Serie TV Popolari", (await call("/tv/popular")).results);
             } else if (type === 'movie') {
-                const res = await call("/movie/popular"); initHero(res.results[0]);
-                createRow("Popolari", res.results);
+                const res = await call("/movie/popular");
+                initHero(res.results[0]);
+                createRow("Film Popolari", res.results);
                 createRow("In Arrivo", (await call("/movie/upcoming")).results);
                 createRow("I più votati", (await call("/movie/top_rated")).results);
             } else if (type === 'tv') {
-                const res = await call("/tv/popular"); initHero(res.results[0]);
-                createRow("Popolari", res.results);
+                const res = await call("/tv/popular");
+                initHero(res.results[0]);
+                createRow("Serie TV Popolari", res.results);
                 createRow("In onda oggi", (await call("/tv/airing_today")).results);
                 createRow("Serie Più Votate", (await call("/tv/top_rated")).results);
             }
         }
 
+        // Info Modal (FIXATO BUG SERIE TV)
         async function showInfo(item) {
             cur = { ...item };
             cur.type = item.media_type || (item.title ? 'movie' : 'tv');
 
-            // FETCH DATI COMPLETI PRIMA DI DISEGNARE
-            const fullData = await call(`/${cur.type}/${item.id}`);
-            Object.assign(cur, fullData);
+            // Carichiamo i dati completi subito
+            const full = await call(`/${cur.type}/${item.id}`);
+            Object.assign(cur, full);
 
             document.getElementById('infoTitle').textContent = cur.title || cur.name;
             document.getElementById('infoOverview').textContent = cur.overview;
             document.getElementById('infoBgImg').src = IMG + (cur.backdrop_path || cur.poster_path);
             
-            const fb = document.getElementById('favBtn');
             const isF = myFavorites.some(f => f.item_id == cur.id);
-            fb.className = isF ? "bg-white text-black px-6 py-2 rounded font-black text-sm" : "bg-transparent text-white border border-white/40 px-6 py-2 rounded font-bold text-sm";
+            document.getElementById('favBtn').className = isF ? "bg-white text-black px-6 py-2 rounded font-black text-sm" : "bg-transparent text-white border border-white/40 px-6 py-2 rounded font-bold text-sm";
+            document.getElementById('favBtn').onclick = toggleFavorite;
+            document.getElementById('playBtn').onclick = play;
 
             const tvS = document.getElementById('tvSelectors');
-            if(cur.type === 'tv' && cur.seasons) {
+            if(cur.type === 'tv') {
                 tvS.classList.remove('hidden');
                 const s = document.getElementById('seasonSelect');
                 s.innerHTML = cur.seasons.filter(x => x.season_number > 0).map(x => `<option value="${x.season_number}">Stagione ${x.season_number}</option>`).join('');
@@ -225,40 +213,17 @@
             
             document.getElementById('infoModal').classList.replace('hidden', 'flex');
             document.body.style.overflow = 'hidden';
-            fb.onclick = toggleFavorite;
-            document.getElementById('playBtn').onclick = play;
-        }
-
-        async function loadFavorites() {
-            const u = netlifyIdentity.currentUser(); if(!u) return;
-            try {
-                const r = await fetch('/.netlify/functions/manage-favorites', { headers: { Authorization: `Bearer ${u.token.access_token}` } });
-                myFavorites = await r.json() || [];
-                // Evitiamo duplicati: cerchiamo se esiste già una riga "La Mia Lista"
-                if(myFavorites.length > 0) {
-                    createRow("La Mia Lista", myFavorites.map(f => ({ id: f.item_id, media_type: f.media_type, poster_path: f.poster_path })), true);
-                }
-            } catch(e){}
         }
 
         async function toggleFavorite() {
-            const u = netlifyIdentity.currentUser(); if(!u){ netlifyIdentity.open(); return; }
+            const u = netlifyIdentity.currentUser(); if(!u) return netlifyIdentity.open();
             const isF = myFavorites.some(f => f.item_id == cur.id);
             await fetch('/.netlify/functions/manage-favorites', {
                 method: 'POST', headers: { Authorization: `Bearer ${u.token.access_token}` },
                 body: JSON.stringify({ action: isF?'remove':'add', item_id: cur.id, media_type: cur.type, poster_path: cur.poster_path })
             });
-            showCategory(window.currentCategory || 'all'); closeAllModals();
+            location.reload(); // Refresh per aggiornare la lista
         }
-
-        document.getElementById('searchInput').oninput = async (e) => {
-            const q = e.target.value;
-            if(q.length > 2) {
-                const res = await call("/search/multi", { query: q });
-                document.getElementById('sections').innerHTML = ''; document.getElementById('hero').classList.add('hidden');
-                createRow(`Risultati per: ${q}`, res.results);
-            } else if (q.length === 0) showCategory(window.currentCategory || 'all');
-        };
 
         function play() {
             let u = `https://vixsrc.to/${cur.type}/${cur.id}`;
@@ -269,7 +234,8 @@
 
         function closeAllModals() {
             document.querySelectorAll('#infoModal, #playerModal').forEach(m => m.classList.replace('flex', 'hidden'));
-            document.getElementById('playerFrame').src = ""; document.body.style.overflow = '';
+            document.getElementById('playerFrame').src = "";
+            document.body.style.overflow = '';
         }
 
         function initHero(item) {
@@ -280,8 +246,32 @@
             document.getElementById('heroPlay').onclick = () => showInfo(item);
         }
 
+        document.getElementById('searchInput').oninput = async (e) => {
+            const q = e.target.value;
+            if(q.length > 2) {
+                const res = await call("/search/multi", { query: q });
+                document.getElementById('sections').innerHTML = '';
+                document.getElementById('hero').classList.add('hidden');
+                createRow(`Risultati per: ${q}`, res.results);
+            } else if (q.length === 0) showCategory(window.currentCategory || 'all');
+        };
+
         window.addEventListener('scroll', () => document.querySelector('header').classList.toggle('scrolled', window.scrollY > 50));
+        
+        // Autoplay Logic
+        window.addEventListener("message", (e) => {
+            let p = e.data; if(typeof p === 'string'){try{p=JSON.parse(p)}catch(err){return}}
+            if(p.type === "PLAYER_EVENT" && p.data?.event === "ended") {
+                const s = document.getElementById('episodeSelect');
+                const next = parseInt(s.value) + 1;
+                if(Array.from(s.options).find(o => parseInt(o.value) === next)) {
+                    s.value = next; setTimeout(play, 1000);
+                }
+            }
+        });
+
         netlifyIdentity.init();
+        updateAuthBtn();
         showCategory('all');
     </script>
 </body>
