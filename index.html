@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>VixStream - Premium</title>
+    <link rel="icon" type="image/png" href="https://upload.wikimedia.org/wikipedia/commons/0/08/Netflix_2015_logo.svg">
     <script src="https://cdn.tailwindcss.com"></script>
     <script type="text/javascript" src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
     <style>
@@ -108,7 +109,6 @@
             u ? netlifyIdentity.logout() : netlifyIdentity.open();
         }
 
-        // --- FIX REFRESH: Rimosso location.reload() al login ---
         netlifyIdentity.on('login', () => { updateAuthBtn(); showCategory('all'); netlifyIdentity.close(); });
         netlifyIdentity.on('logout', () => { location.reload(); });
 
@@ -123,8 +123,6 @@
         function createRow(title, items) {
             if (!items || items.length === 0) return;
             const container = document.getElementById('sections');
-            
-            // Anti-Duplicato: se esiste già una riga con questo titolo, esci.
             if (Array.from(container.querySelectorAll('h2')).some(h => h.innerText === title)) return;
 
             const div = document.createElement('div');
@@ -184,17 +182,20 @@
                     if(trending) createRow("Tendenze della settimana", trending.results);
                     const popM = await call("/movie/popular"); createRow("Film Popolari", popM.results);
                     const popT = await call("/tv/popular"); createRow("Serie TV Popolari", popT.results);
-                } else {
-                    const res = await call(`/${type}/popular`);
+                } else if (type === 'movie') {
+                    const res = await call("/movie/popular");
                     if(res) initHero(res.results[0]);
-                    createRow(type === 'movie' ? "Film Popolari" : "Serie TV Popolari", res.results);
-                    if(type === 'movie') {
-                        createRow("In Arrivo", (await call("/movie/upcoming")).results);
-                        createRow("I più votati", (await call("/movie/top_rated")).results);
-                    } else {
-                        createRow("In onda oggi", (await call("/tv/airing_today")).results);
-                        createRow("Serie Più Votate", (await call("/tv/top_rated")).results);
-                    }
+                    createRow("Film Popolari", res.results);
+                    // NUOVA SEZIONE: AZIONE AL POSTO DI "IN ARRIVO"
+                    const actionMovies = await call("/discover/movie", { with_genres: 28 });
+                    createRow("Film d'Azione", actionMovies.results);
+                    createRow("I più votati", (await call("/movie/top_rated")).results);
+                } else if (type === 'tv') {
+                    const res = await call("/tv/popular");
+                    if(res) initHero(res.results[0]);
+                    createRow("Serie TV Popolari", res.results);
+                    createRow("In onda oggi", (await call("/tv/airing_today")).results);
+                    createRow("Serie Più Votate", (await call("/tv/top_rated")).results);
                 }
             } finally {
                 isFetching = false;
@@ -216,7 +217,6 @@
             document.getElementById('favBtn').className = isF ? "bg-white text-black px-6 py-2 rounded font-black text-sm" : "bg-transparent text-white border border-white/40 px-6 py-2 rounded font-bold text-sm hover:bg-white/10";
             
             const tvS = document.getElementById('tvSelectors');
-            // FIX SERIE TV: Se ha stagioni, mostra sempre i menu stagioni/episodi
             if(cur.seasons && cur.seasons.length > 0) {
                 cur.type = 'tv';
                 tvS.classList.remove('hidden');
