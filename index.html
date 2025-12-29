@@ -44,7 +44,6 @@
         .modal-hero img { width: 100%; height: 100%; object-fit: cover; }
         .searching #sections { margin-top: 100px !important; }
         
-        /* Fix per widget Netlify su mobile */
         #netlify-identity-widget { z-index: 99999 !important; }
     </style>
 </head>
@@ -54,9 +53,9 @@
         <div class="flex items-center gap-4 md:gap-10">
             <a href="#" onclick="showCategory('all')" class="text-red-600 text-2xl md:text-3xl font-black tracking-tighter">VIXSTREAM</a>
             <nav class="flex gap-4 md:gap-6 text-[10px] md:text-xs font-bold uppercase tracking-widest">
-                <a href="#" id="nav-all" onclick="showCategory('all')" class="hover:text-white transition text-white">Home</a>
-                <a href="#" id="nav-tv" onclick="showCategory('tv')" class="hover:text-white transition text-white/70">Serie TV</a>
-                <a href="#" id="nav-movie" onclick="showCategory('movie')" class="hover:text-white transition text-white/70">Film</a>
+                <a href="#" id="nav-all" onclick="showCategory('all')" class="hover:text-white transition">Home</a>
+                <a href="#" id="nav-tv" onclick="showCategory('tv')" class="hover:text-white transition">Serie TV</a>
+                <a href="#" id="nav-movie" onclick="showCategory('movie')" class="hover:text-white transition">Film</a>
             </nav>
         </div>
         <div class="flex items-center gap-3">
@@ -114,7 +113,7 @@
         const IMG = "https://image.tmdb.org/t/p/original";
         let cur = null, myFavorites = [];
 
-        // --- SISTEMA AUTENTICAZIONE (FIXED) ---
+        // --- SISTEMA AUTENTICAZIONE ---
         function updateAuthBtn() {
             const user = netlifyIdentity.currentUser();
             const btn = document.getElementById('authBtn');
@@ -129,11 +128,8 @@
 
         function handleAuth() {
             const user = netlifyIdentity.currentUser();
-            if (user) {
-                netlifyIdentity.logout();
-            } else {
-                netlifyIdentity.open();
-            }
+            if (user) netlifyIdentity.logout();
+            else netlifyIdentity.open();
         }
 
         netlifyIdentity.on('login', () => { updateAuthBtn(); showCategory('all'); netlifyIdentity.close(); });
@@ -196,9 +192,9 @@
             window.currentCategory = type;
             document.body.classList.remove('searching');
             document.getElementById('sections').innerHTML = '';
-            document.querySelectorAll('nav a').forEach(a => a.classList.replace('text-white', 'text-white/70'));
+            document.querySelectorAll('nav a').forEach(a => a.classList.add('text-white/70'));
             const active = document.getElementById(`nav-${type}`);
-            if(active) active.classList.replace('text-white/70', 'text-white');
+            if(active) { active.classList.remove('text-white/70'); active.classList.add('text-white'); }
 
             if (type === 'all') {
                 const res = await call("/trending/all/week");
@@ -219,9 +215,15 @@
             }
         }
 
+        // --- FIX BUG SERIE TV / PREFERITI ---
         async function showInfo(item) {
-            cur = item; cur.type = item.media_type || (item.title ? 'movie' : 'tv');
-            if(!item.backdrop_path) Object.assign(cur, await call(`/${cur.type}/${item.id}`));
+            cur = { ...item };
+            cur.type = item.media_type || (item.title ? 'movie' : 'tv');
+
+            // Carica sempre i dati completi (stagioni/episodi) prima di mostrare il modal
+            const fullData = await call(`/${cur.type}/${item.id}`);
+            Object.assign(cur, fullData);
+
             document.getElementById('infoTitle').textContent = cur.title || cur.name;
             document.getElementById('infoOverview').textContent = cur.overview;
             document.getElementById('infoBgImg').src = IMG + (cur.backdrop_path || cur.poster_path);
@@ -233,9 +235,8 @@
             const tv = document.getElementById('tvSelectors');
             if(cur.type === 'tv') {
                 tv.classList.remove('hidden');
-                const data = await call(`/tv/${cur.id}`);
                 const s = document.getElementById('seasonSelect');
-                s.innerHTML = data.seasons.filter(x => x.season_number > 0).map(x => `<option value="${x.season_number}">Stagione ${x.season_number}</option>`).join('');
+                s.innerHTML = cur.seasons.filter(x => x.season_number > 0).map(x => `<option value="${x.season_number}">Stagione ${x.season_number}</option>`).join('');
                 s.onchange = async () => {
                     const sd = await call(`/tv/${cur.id}/season/${s.value}`);
                     document.getElementById('episodeSelect').innerHTML = sd.episodes.map(e => `<option value="${e.episode_number}">Episodio ${e.episode_number}</option>`).join('');
@@ -299,7 +300,6 @@
 
         window.addEventListener('scroll', () => document.querySelector('header').classList.toggle('scrolled', window.scrollY > 50));
         
-        // Inizializzazione
         netlifyIdentity.init();
         showCategory('all');
     </script>
