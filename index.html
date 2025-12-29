@@ -27,6 +27,8 @@
         #infoModal > div { max-width: 850px; width: 95%; max-height: 90vh; overflow-y: auto; border-radius: 8px; background: #181818; }
         .modal-hero { position: relative; width: 100%; aspect-ratio: 16 / 9; }
         .modal-hero img { width: 100%; height: 100%; object-fit: cover; }
+        /* Fix per la ricerca: aggiunge spazio in alto se l'Hero è nascosto */
+        .search-mode { padding-top: 100px !important; margin-top: 0 !important; }
     </style>
 </head>
 <body class="scrollbar-hide">
@@ -154,6 +156,7 @@
             
             window.currentCategory = type;
             const container = document.getElementById('sections');
+            container.classList.remove('search-mode'); // Reset padding ricerca
             container.innerHTML = ''; 
             
             document.querySelectorAll('.nav-link').forEach(a => {
@@ -186,7 +189,6 @@
                     const res = await call("/movie/popular");
                     if(res) initHero(res.results[0]);
                     createRow("Film Popolari", res.results);
-                    // NUOVA SEZIONE: AZIONE AL POSTO DI "IN ARRIVO"
                     const actionMovies = await call("/discover/movie", { with_genres: 28 });
                     createRow("Film d'Azione", actionMovies.results);
                     createRow("I più votati", (await call("/movie/top_rated")).results);
@@ -273,12 +275,17 @@
 
         document.getElementById('searchInput').oninput = async (e) => {
             const q = e.target.value;
+            const container = document.getElementById('sections');
             if(q.length > 2) {
                 const res = await call("/search/multi", { query: q });
-                document.getElementById('sections').innerHTML = '';
+                container.innerHTML = '';
+                container.classList.add('search-mode'); // FIX: Aggiunge spazio sotto il logo
                 document.getElementById('hero').classList.add('hidden');
                 createRow(`Risultati per: ${q}`, res.results);
-            } else if (q.length === 0) showCategory(window.currentCategory || 'all');
+            } else if (q.length === 0) {
+                container.classList.remove('search-mode');
+                showCategory(window.currentCategory || 'all');
+            }
         };
 
         window.addEventListener('scroll', () => document.querySelector('header').classList.toggle('scrolled', window.scrollY > 50));
