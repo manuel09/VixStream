@@ -43,7 +43,7 @@
         </div>
         <div class="flex items-center gap-3">
             <input type="text" id="searchInput" placeholder="Cerca..." class="bg-black/50 border border-white/20 text-white text-[10px] md:text-xs rounded px-2 md:px-3 py-1.5 w-24 md:w-60 outline-none focus:border-red-600">
-            <button id="authBtn" onclick="handleAuth()" class="bg-red-600 text-white text-[10px] md:text-xs px-3 md:px-4 py-1.5 rounded font-black uppercase tracking-tighter">Accedi</button>
+            <button id="authBtn" onclick="handleAuth()" class="bg-red-600 text-white text-[10px] md:text-xs px-3 md:px-4 py-1.5 rounded font-black uppercase">Accedi</button>
         </div>
     </header>
 
@@ -54,7 +54,7 @@
             <div class="relative z-10 h-full flex flex-col justify-end p-6 md:p-16 pb-16 md:pb-28">
                 <h1 id="heroTitle" class="text-2xl md:text-6xl font-black mb-2 italic"></h1>
                 <p id="heroOverview" class="max-w-xl text-xs md:text-base mb-6 line-clamp-2 text-gray-200"></p>
-                <button id="heroPlay" class="bg-white text-black px-6 py-2 rounded font-black hover:bg-gray-200 transition text-xs md:text-sm w-fit">▶ RIPRODUCI</button>
+                <button id="heroPlay" class="bg-white text-black px-6 py-2 rounded font-black hover:bg-gray-200 text-xs md:text-sm w-fit">▶ RIPRODUCI</button>
             </div>
         </section>
         <div id="sections" class="px-4 md:px-12 -mt-12 md:-mt-20 relative z-20 space-y-4 pb-20"></div>
@@ -105,10 +105,11 @@
             const u = netlifyIdentity.currentUser();
             u ? netlifyIdentity.logout() : netlifyIdentity.open();
         }
-        netlifyIdentity.on('login', () => location.reload());
-        netlifyIdentity.on('logout', () => location.reload());
 
-        // API
+        // --- FIX LOOP: Rimosso reload al login se non necessario ---
+        netlifyIdentity.on('login', () => { updateAuthBtn(); showCategory('all'); netlifyIdentity.close(); });
+        netlifyIdentity.on('logout', () => { location.reload(); });
+
         async function call(path, params = {}) {
             const url = new URL(`https://api.themoviedb.org/3${path}`);
             url.searchParams.append("api_key", API_KEY);
@@ -117,18 +118,11 @@
             const r = await fetch(url); return r.json();
         }
 
-        // Creazione Riga
         function createRow(title, items) {
             if (!items || items.length === 0) return;
             const div = document.createElement('div');
             div.className = "row-container";
-            div.innerHTML = `
-                <h2 class="text-base md:text-lg font-black mb-1 ml-2 text-white/80 uppercase italic">${title}</h2>
-                <div class="carousel-container">
-                    <button class="nav-arrow arrow-left">❮</button>
-                    <div class="carousel-track scrollbar-hide"></div>
-                    <button class="nav-arrow arrow-right">❯</button>
-                </div>`;
+            div.innerHTML = `<h2 class="text-base md:text-lg font-black mb-1 ml-2 text-white/80 uppercase italic">${title}</h2><div class="carousel-container"><button class="nav-arrow arrow-left">❮</button><div class="carousel-track scrollbar-hide"></div><button class="nav-arrow arrow-right">❯</button></div>`;
             const track = div.querySelector('.carousel-track');
             items.forEach(item => {
                 if(!item.poster_path) return;
@@ -143,11 +137,10 @@
             document.getElementById('sections').appendChild(div);
         }
 
-        // Navigazione Categorie
         async function showCategory(type) {
             window.currentCategory = type;
             const container = document.getElementById('sections');
-            container.innerHTML = ''; // PULIZIA TOTALE
+            container.innerHTML = ''; 
             
             document.querySelectorAll('nav a').forEach(a => a.className = "hover:text-white transition text-white/70");
             const active = document.getElementById(`nav-${type}`);
@@ -156,37 +149,34 @@
             if (type === 'all') {
                 const trending = await call("/trending/all/week");
                 initHero(trending.results[0]);
-                // Carichiamo la lista preferiti solo in Home
                 const u = netlifyIdentity.currentUser();
                 if(u) {
-                    const r = await fetch('/.netlify/functions/manage-favorites', { headers: { Authorization: `Bearer ${u.token.access_token}` } });
-                    myFavorites = await r.json() || [];
-                    if(myFavorites.length > 0) createRow("La Mia Lista", myFavorites.map(f => ({ id: f.item_id, media_type: f.media_type, poster_path: f.poster_path })));
+                    try {
+                        const r = await fetch('/.netlify/functions/manage-favorites', { headers: { Authorization: `Bearer ${u.token.access_token}` } });
+                        myFavorites = await r.json() || [];
+                        if(myFavorites.length > 0) createRow("La Mia Lista", myFavorites.map(f => ({ id: f.item_id, media_type: f.media_type, poster_path: f.poster_path })));
+                    } catch(e) {}
                 }
                 createRow("Tendenze della settimana", trending.results);
                 createRow("Film Popolari", (await call("/movie/popular")).results);
                 createRow("Serie TV Popolari", (await call("/tv/popular")).results);
-            } else if (type === 'movie') {
-                const res = await call("/movie/popular");
+            } else {
+                const res = await call(`/${type}/popular`);
                 initHero(res.results[0]);
-                createRow("Film Popolari", res.results);
-                createRow("In Arrivo", (await call("/movie/upcoming")).results);
-                createRow("I più votati", (await call("/movie/top_rated")).results);
-            } else if (type === 'tv') {
-                const res = await call("/tv/popular");
-                initHero(res.results[0]);
-                createRow("Serie TV Popolari", res.results);
-                createRow("In onda oggi", (await call("/tv/airing_today")).results);
-                createRow("Serie Più Votate", (await call("/tv/top_rated")).results);
+                createRow("Popolari", res.results);
+                if(type === 'movie') {
+                    createRow("In Arrivo", (await call("/movie/upcoming")).results);
+                    createRow("I più votati", (await call("/movie/top_rated")).results);
+                } else {
+                    createRow("In onda oggi", (await call("/tv/airing_today")).results);
+                    createRow("Serie Più Votate", (await call("/tv/top_rated")).results);
+                }
             }
         }
 
-        // Info Modal (FIXATO BUG SERIE TV)
         async function showInfo(item) {
             cur = { ...item };
             cur.type = item.media_type || (item.title ? 'movie' : 'tv');
-
-            // Carichiamo i dati completi subito
             const full = await call(`/${cur.type}/${item.id}`);
             Object.assign(cur, full);
 
@@ -200,7 +190,7 @@
             document.getElementById('playBtn').onclick = play;
 
             const tvS = document.getElementById('tvSelectors');
-            if(cur.type === 'tv') {
+            if(cur.type === 'tv' && cur.seasons) {
                 tvS.classList.remove('hidden');
                 const s = document.getElementById('seasonSelect');
                 s.innerHTML = cur.seasons.filter(x => x.season_number > 0).map(x => `<option value="${x.season_number}">Stagione ${x.season_number}</option>`).join('');
@@ -222,7 +212,8 @@
                 method: 'POST', headers: { Authorization: `Bearer ${u.token.access_token}` },
                 body: JSON.stringify({ action: isF?'remove':'add', item_id: cur.id, media_type: cur.type, poster_path: cur.poster_path })
             });
-            location.reload(); // Refresh per aggiornare la lista
+            showCategory(window.currentCategory || 'all');
+            closeAllModals();
         }
 
         function play() {
@@ -258,18 +249,6 @@
 
         window.addEventListener('scroll', () => document.querySelector('header').classList.toggle('scrolled', window.scrollY > 50));
         
-        // Autoplay Logic
-        window.addEventListener("message", (e) => {
-            let p = e.data; if(typeof p === 'string'){try{p=JSON.parse(p)}catch(err){return}}
-            if(p.type === "PLAYER_EVENT" && p.data?.event === "ended") {
-                const s = document.getElementById('episodeSelect');
-                const next = parseInt(s.value) + 1;
-                if(Array.from(s.options).find(o => parseInt(o.value) === next)) {
-                    s.value = next; setTimeout(play, 1000);
-                }
-            }
-        });
-
         netlifyIdentity.init();
         updateAuthBtn();
         showCategory('all');
