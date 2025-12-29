@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>VixStream - Premium</title>
-    <link rel="icon" type="image/png" href="https://upload.wikimedia.org/wikipedia/commons/0/08/Netflix_2015_logo.svg">
     <script src="https://cdn.tailwindcss.com"></script>
     <script type="text/javascript" src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
     <style>
@@ -42,7 +41,7 @@
         </div>
         <div class="flex items-center gap-3">
             <input type="text" id="searchInput" placeholder="Cerca..." class="bg-black/50 border border-white/20 text-white text-[10px] md:text-xs rounded px-2 md:px-3 py-1.5 w-24 md:w-60 outline-none focus:border-red-600">
-            <button id="authBtn" onclick="handleAuth()" class="bg-red-600 text-white text-[10px] md:text-xs px-3 md:px-4 py-1.5 rounded font-black uppercase">Accedi</button>
+            <button id="authBtn" onclick="handleAuth()" class="bg-red-600 text-white text-[10px] md:text-xs px-3 md:px-4 py-1.5 rounded font-black uppercase tracking-tighter shadow-lg">Accedi</button>
         </div>
     </header>
 
@@ -51,58 +50,66 @@
             <img id="heroImg" src="" class="absolute w-full h-full object-cover">
             <div class="absolute inset-0 bg-gradient-to-t from-[#141414] via-transparent to-black/30"></div>
             <div class="relative z-10 h-full flex flex-col justify-end p-6 md:p-16 pb-20 md:pb-32">
-                <h1 id="heroTitle" class="text-3xl md:text-6xl font-black mb-3 italic uppercase"></h1>
-                <p id="heroOverview" class="max-w-2xl text-xs md:text-base mb-6 line-clamp-3 text-gray-200"></p>
-                <button id="heroPlay" class="bg-white text-black px-8 py-2.5 rounded font-black hover:bg-gray-200 transition text-xs md:text-sm w-fit">▶ RIPRODUCI</button>
+                <h1 id="heroTitle" class="text-3xl md:text-6xl font-black mb-3 italic uppercase drop-shadow-lg"></h1>
+                <p id="heroOverview" class="max-w-2xl text-xs md:text-base mb-6 line-clamp-3 text-gray-200 font-medium"></p>
+                <button id="heroPlay" class="bg-white text-black px-8 py-2.5 rounded font-black hover:bg-gray-200 transition text-xs md:text-sm w-fit shadow-xl">▶ RIPRODUCI</button>
             </div>
         </section>
         <div id="sections" class="px-4 md:px-12 -mt-16 md:-mt-24 relative z-20 space-y-8 pb-20"></div>
     </main>
 
     <div id="infoModal" class="fixed inset-0 z-[100] hidden bg-black/90 flex items-center justify-center p-2">
-        <div class="scrollbar-hide relative">
-            <button onclick="closeAllModals()" class="absolute top-4 right-4 z-[110] bg-black/60 text-white w-10 h-10 rounded-full flex items-center justify-center">✕</button>
+        <div class="scrollbar-hide relative shadow-2xl">
+            <button onclick="closeAllModals()" class="absolute top-4 right-4 z-[110] bg-black/60 text-white w-10 h-10 rounded-full flex items-center justify-center hover:bg-white/20 transition">✕</button>
             <div class="modal-hero">
                 <img id="infoBgImg" src="">
                 <div class="absolute bottom-6 left-6 md:left-10 z-20"><h2 id="infoTitle" class="text-2xl md:text-4xl font-black italic uppercase"></h2></div>
                 <div class="absolute inset-0 bg-gradient-to-t from-[#181818] to-transparent"></div>
             </div>
-            <div class="p-6 md:p-10 bg-[#181818] flex flex-col md:grid md:grid-cols-3 gap-8">
+            <div class="p-6 md:p-10 bg-[#181818] flex flex-col md:grid md:grid-cols-3 gap-8 border-t border-white/5">
                 <div class="md:col-span-2">
-                    <p id="infoOverview" class="text-gray-300 text-sm md:text-base leading-relaxed mb-6"></p>
+                    <p id="infoOverview" class="text-gray-300 text-sm md:text-base leading-relaxed mb-6 font-medium"></p>
                     <div class="flex gap-4">
-                        <button id="playBtn" class="bg-white text-black px-8 py-2 rounded font-black text-sm">▶ RIPRODUCI</button>
-                        <button id="favBtn" class="px-6 py-2 rounded font-bold text-sm transition border border-white/40">❤️ LISTA</button>
+                        <button id="playBtn" class="bg-white text-black px-8 py-2 rounded font-black text-sm shadow-lg hover:bg-gray-200 transition">▶ RIPRODUCI</button>
+                        <button id="favBtn" class="px-6 py-2 rounded font-bold text-sm transition border border-white/40 hover:bg-white/10">❤️ LISTA</button>
                     </div>
                 </div>
                 <div id="tvSelectors" class="hidden space-y-4 md:border-l md:border-white/10 md:pl-6">
-                    <select id="seasonSelect" class="w-full bg-[#2f2f2f] p-3 rounded text-sm text-white outline-none border border-white/5"></select>
-                    <select id="episodeSelect" class="w-full bg-[#2f2f2f] p-3 rounded text-sm text-white outline-none border border-white/5"></select>
+                    <div class="space-y-1">
+                        <label class="text-[10px] uppercase font-black text-white/40 tracking-widest">Stagione</label>
+                        <select id="seasonSelect" class="w-full bg-[#2f2f2f] p-3 rounded text-sm text-white outline-none border border-white/5"></select>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[10px] uppercase font-black text-white/40 tracking-widest">Episodio</label>
+                        <select id="episodeSelect" class="w-full bg-[#2f2f2f] p-3 rounded text-sm text-white outline-none border border-white/5"></select>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
     <div id="playerModal" class="fixed inset-0 z-[200] hidden bg-black">
-        <button onclick="closeAllModals()" class="absolute top-6 right-6 z-[210] bg-white/10 px-4 py-2 rounded-full text-white font-bold">✕ Chiudi</button>
+        <button onclick="closeAllModals()" class="absolute top-6 right-6 z-[210] bg-white/10 px-4 py-2 rounded-full text-white font-bold hover:bg-red-600 transition">✕ Chiudi</button>
         <iframe id="playerFrame" class="w-full h-full" allowfullscreen allow="autoplay"></iframe>
     </div>
 
     <script>
         const API_KEY = "7b5fcf48f24a334bb09f87ce20e5f2ce";
         const IMG = "https://image.tmdb.org/t/p/original";
-        let cur = null, myFavorites = [], isPageLoading = false;
+        let cur = null, myFavorites = [], isFetching = false;
 
         function updateAuthBtn() {
             const u = netlifyIdentity.currentUser();
-            const b = document.getElementById('authBtn');
-            b.textContent = u ? 'LOGOUT' : 'ACCEDI';
+            document.getElementById('authBtn').textContent = u ? 'LOGOUT' : 'ACCEDI';
         }
+
         function handleAuth() {
             const u = netlifyIdentity.currentUser();
             u ? netlifyIdentity.logout() : netlifyIdentity.open();
         }
-        netlifyIdentity.on('login', () => { location.reload(); });
+
+        // --- FIX REFRESH: Rimosso location.reload() al login ---
+        netlifyIdentity.on('login', () => { updateAuthBtn(); showCategory('all'); netlifyIdentity.close(); });
         netlifyIdentity.on('logout', () => { location.reload(); });
 
         async function call(path, params = {}) {
@@ -117,8 +124,8 @@
             if (!items || items.length === 0) return;
             const container = document.getElementById('sections');
             
-            // Controllo anti-duplicato per titolo
-            if (Array.from(container.querySelectorAll('h2')).some(h => h.textContent === title)) return;
+            // Anti-Duplicato: se esiste già una riga con questo titolo, esci.
+            if (Array.from(container.querySelectorAll('h2')).some(h => h.innerText === title)) return;
 
             const div = document.createElement('div');
             div.className = "row-container";
@@ -144,16 +151,22 @@
         }
 
         async function showCategory(type) {
-            if(isPageLoading) return;
-            isPageLoading = true;
+            if(isFetching) return;
+            isFetching = true;
             
             window.currentCategory = type;
             const container = document.getElementById('sections');
             container.innerHTML = ''; 
             
-            document.querySelectorAll('.nav-link').forEach(a => a.classList.replace('text-white', 'text-white/70'));
+            document.querySelectorAll('.nav-link').forEach(a => {
+                a.classList.remove('text-white');
+                a.classList.add('text-white/70');
+            });
             const active = document.getElementById(`nav-${type}`);
-            if(active) active.classList.replace('text-white/70', 'text-white');
+            if(active) {
+                active.classList.remove('text-white/70');
+                active.classList.add('text-white');
+            }
 
             try {
                 if (type === 'all') {
@@ -162,9 +175,11 @@
                     
                     const u = netlifyIdentity.currentUser();
                     if(u) {
-                        const r = await fetch('/.netlify/functions/manage-favorites', { headers: { Authorization: `Bearer ${u.token.access_token}` } });
-                        myFavorites = await r.json() || [];
-                        if(myFavorites.length > 0) createRow("La Mia Lista", myFavorites.map(f => ({ id: f.item_id, media_type: f.media_type, poster_path: f.poster_path })));
+                        try {
+                            const r = await fetch('/.netlify/functions/manage-favorites', { headers: { Authorization: `Bearer ${u.token.access_token}` } });
+                            myFavorites = await r.json() || [];
+                            if(myFavorites.length > 0) createRow("La Mia Lista", myFavorites.map(f => ({ id: f.item_id, media_type: f.media_type, poster_path: f.poster_path })));
+                        } catch(e) {}
                     }
                     if(trending) createRow("Tendenze della settimana", trending.results);
                     const popM = await call("/movie/popular"); createRow("Film Popolari", popM.results);
@@ -182,7 +197,7 @@
                     }
                 }
             } finally {
-                isPageLoading = false;
+                isFetching = false;
             }
         }
 
@@ -201,17 +216,18 @@
             document.getElementById('favBtn').className = isF ? "bg-white text-black px-6 py-2 rounded font-black text-sm" : "bg-transparent text-white border border-white/40 px-6 py-2 rounded font-bold text-sm hover:bg-white/10";
             
             const tvS = document.getElementById('tvSelectors');
-            // FIX DEFINITIVO: Se è una serie (ha stagioni o è di tipo tv), mostra sempre i selettori
-            if(cur.type === 'tv' || cur.seasons) {
+            // FIX SERIE TV: Se ha stagioni, mostra sempre i menu stagioni/episodi
+            if(cur.seasons && cur.seasons.length > 0) {
+                cur.type = 'tv';
                 tvS.classList.remove('hidden');
-                const s = document.getElementById('seasonSelect');
-                const validSeasons = (cur.seasons || []).filter(x => x.season_number > 0);
-                s.innerHTML = validSeasons.map(x => `<option value="${x.season_number}">Stagione ${x.season_number}</option>`).join('');
-                s.onchange = async () => {
-                    const sd = await call(`/tv/${cur.id}/season/${s.value}`);
+                const sSelect = document.getElementById('seasonSelect');
+                const validSeasons = cur.seasons.filter(x => x.season_number > 0);
+                sSelect.innerHTML = validSeasons.map(x => `<option value="${x.season_number}">Stagione ${x.season_number}</option>`).join('');
+                sSelect.onchange = async () => {
+                    const sd = await call(`/tv/${cur.id}/season/${sSelect.value}`);
                     document.getElementById('episodeSelect').innerHTML = sd.episodes.map(e => `<option value="${e.episode_number}">Episodio ${e.episode_number}</option>`).join('');
                 };
-                await s.onchange();
+                await sSelect.onchange();
             } else { 
                 tvS.classList.add('hidden'); 
             }
