@@ -27,24 +27,23 @@
         #infoModal > div { max-width: 850px; width: 95%; max-height: 90vh; overflow-y: auto; border-radius: 8px; background: #181818; }
         .modal-hero { position: relative; width: 100%; aspect-ratio: 16 / 9; }
         .modal-hero img { width: 100%; height: 100%; object-fit: cover; }
-        /* Fix per la ricerca: aggiunge spazio in alto se l'Hero è nascosto */
         .search-mode { padding-top: 100px !important; margin-top: 0 !important; }
     </style>
 </head>
 <body class="scrollbar-hide">
 
-    <header id="mainHeader" class="fixed top-0 w-full p-4 md:px-12 flex justify-between items-center transition-all">
-        <div class="flex items-center gap-4 md:gap-10">
-            <a href="#" onclick="showCategory('all')" class="text-red-600 text-2xl md:text-3xl font-black tracking-tighter">VIXSTREAM</a>
-            <nav class="flex gap-4 md:gap-6 text-[10px] md:text-xs font-bold uppercase tracking-widest">
-                <a href="#" id="nav-all" onclick="showCategory('all')" class="nav-link text-white">Home</a>
-                <a href="#" id="nav-tv" onclick="showCategory('tv')" class="nav-link text-white/70">Serie TV</a>
-                <a href="#" id="nav-movie" onclick="showCategory('movie')" class="nav-link text-white/70">Film</a>
+    <header id="mainHeader" class="fixed top-0 w-full p-3 md:p-4 md:px-12 flex justify-between items-center transition-all flex-nowrap overflow-hidden">
+        <div class="flex items-center gap-2 md:gap-10 min-w-0">
+            <a href="#" onclick="showCategory('all')" class="text-red-600 text-xl md:text-3xl font-black tracking-tighter shrink-0">VIXSTREAM</a>
+            <nav class="flex gap-2.5 md:gap-6 text-[9px] md:text-xs font-bold uppercase tracking-tighter md:tracking-widest">
+                <a href="#" id="nav-all" onclick="showCategory('all')" class="nav-link text-white whitespace-nowrap">Home</a>
+                <a href="#" id="nav-tv" onclick="showCategory('tv')" class="nav-link text-white/70 whitespace-nowrap">Serie TV</a>
+                <a href="#" id="nav-movie" onclick="showCategory('movie')" class="nav-link text-white/70 whitespace-nowrap">Film</a>
             </nav>
         </div>
-        <div class="flex items-center gap-3">
-            <input type="text" id="searchInput" placeholder="Cerca..." class="bg-black/50 border border-white/20 text-white text-[10px] md:text-xs rounded px-2 md:px-3 py-1.5 w-24 md:w-60 outline-none focus:border-red-600">
-            <button id="authBtn" onclick="handleAuth()" class="bg-red-600 text-white text-[10px] md:text-xs px-3 md:px-4 py-1.5 rounded font-black uppercase tracking-tighter shadow-lg">Accedi</button>
+        <div class="flex items-center gap-2 shrink-0">
+            <input type="text" id="searchInput" placeholder="Cerca..." class="bg-black/50 border border-white/20 text-white text-[9px] md:text-xs rounded px-2 py-1 w-16 md:w-60 outline-none focus:border-red-600 transition-all">
+            <button id="authBtn" onclick="handleAuth()" class="bg-red-600 text-white text-[9px] md:text-xs px-2 md:px-4 py-1.5 rounded font-black uppercase shrink-0">Accedi</button>
         </div>
     </header>
 
@@ -93,7 +92,7 @@
 
     <div id="playerModal" class="fixed inset-0 z-[200] hidden bg-black">
         <button onclick="closeAllModals()" class="absolute top-6 right-6 z-[210] bg-white/10 px-4 py-2 rounded-full text-white font-bold hover:bg-red-600 transition">✕ Chiudi</button>
-        <iframe id="playerFrame" class="w-full h-full" allowfullscreen allow="autoplay"></iframe>
+        <iframe id="playerFrame" class="w-full h-full" allowfullscreen allow="autoplay; fullscreen; picture-in-picture"></iframe>
     </div>
 
     <script>
@@ -153,10 +152,9 @@
         async function showCategory(type) {
             if(isFetching) return;
             isFetching = true;
-            
             window.currentCategory = type;
             const container = document.getElementById('sections');
-            container.classList.remove('search-mode'); // Reset padding ricerca
+            container.classList.remove('search-mode');
             container.innerHTML = ''; 
             
             document.querySelectorAll('.nav-link').forEach(a => {
@@ -173,7 +171,6 @@
                 if (type === 'all') {
                     const trending = await call("/trending/all/week");
                     if(trending) initHero(trending.results[0]);
-                    
                     const u = netlifyIdentity.currentUser();
                     if(u) {
                         try {
@@ -207,14 +204,12 @@
         async function showInfo(item) {
             cur = { ...item };
             cur.type = item.media_type || (item.title ? 'movie' : 'tv');
-
             const full = await call(`/${cur.type}/${item.id}`);
             if(full) Object.assign(cur, full);
 
             document.getElementById('infoTitle').textContent = cur.title || cur.name;
             document.getElementById('infoOverview').textContent = cur.overview;
             document.getElementById('infoBgImg').src = IMG + (cur.backdrop_path || cur.poster_path);
-            
             const isF = myFavorites.some(f => f.item_id == cur.id);
             document.getElementById('favBtn').className = isF ? "bg-white text-black px-6 py-2 rounded font-black text-sm" : "bg-transparent text-white border border-white/40 px-6 py-2 rounded font-bold text-sm hover:bg-white/10";
             
@@ -233,7 +228,6 @@
             } else { 
                 tvS.classList.add('hidden'); 
             }
-            
             document.getElementById('infoModal').classList.replace('hidden', 'flex');
             document.body.style.overflow = 'hidden';
             document.getElementById('favBtn').onclick = toggleFavorite;
@@ -279,7 +273,7 @@
             if(q.length > 2) {
                 const res = await call("/search/multi", { query: q });
                 container.innerHTML = '';
-                container.classList.add('search-mode'); // FIX: Aggiunge spazio sotto il logo
+                container.classList.add('search-mode');
                 document.getElementById('hero').classList.add('hidden');
                 createRow(`Risultati per: ${q}`, res.results);
             } else if (q.length === 0) {
@@ -289,7 +283,6 @@
         };
 
         window.addEventListener('scroll', () => document.querySelector('header').classList.toggle('scrolled', window.scrollY > 50));
-        
         netlifyIdentity.init();
         updateAuthBtn();
         showCategory('all');
