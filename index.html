@@ -93,8 +93,8 @@
     </div>
 
     <div id="playerModal" class="fixed inset-0 z-[200] hidden bg-black">
-        <button onclick="closeAllModals()" class="absolute top-6 right-6 z-[210] bg-white/10 px-4 py-2 rounded-full text-white font-bold hover:bg-red-600 transition">✕ Chiudi</button>
-        <iframe id="playerFrame" class="w-full h-full" allowfullscreen allow="autoplay; fullscreen; picture-in-picture; encrypted-media"></iframe>
+        <button onclick="closeAllModals(true)" class="absolute top-6 right-6 z-[210] bg-white/10 px-4 py-2 rounded-full text-white font-bold hover:bg-red-600 transition">✕ Chiudi</button>
+        <iframe id="playerFrame" class="w-full h-full" allowfullscreen allow="autoplay; fullscreen"></iframe>
     </div>
 
     <script>
@@ -102,30 +102,8 @@
         const IMG = "https://image.tmdb.org/t/p/original";
         let cur = null, myFavorites = [], isFetching = false;
         
+        // --- LOGICA STORIA ---
         let watchHistory = JSON.parse(localStorage.getItem('vixstream_history')) || [];
-
-        // ASCOLTATORE EVENTI AGGIORNATO
-        window.addEventListener("message", (event) => {
-            if (event.data && event.data.type === "PLAYER_EVENT") {
-                const data = event.data.data;
-                if (data.event === "timeupdate" && cur) {
-                    const historyItem = {
-                        id: cur.id,
-                        type: cur.type,
-                        title: cur.title || cur.name,
-                        poster_path: cur.poster_path,
-                        time: Math.floor(data.currentTime),
-                        season: cur.type === 'tv' ? document.getElementById('seasonSelect').value : null,
-                        episode: cur.type === 'tv' ? document.getElementById('episodeSelect').value : null,
-                        updatedAt: Date.now()
-                    };
-                    watchHistory = watchHistory.filter(h => h.id !== cur.id);
-                    watchHistory.unshift(historyItem);
-                    watchHistory = watchHistory.slice(0, 10);
-                    localStorage.setItem('vixstream_history', JSON.stringify(watchHistory));
-                }
-            }
-        }, false);
 
         function updateAuthBtn() {
             const u = netlifyIdentity.currentUser();
@@ -214,14 +192,6 @@
                     const res = await call(`/${type}/popular`);
                     if(res) initHero(res.results[0]);
                     createRow(type === 'movie' ? "Film Popolari" : "Serie TV Popolari", res.results);
-                    if(type === 'movie') {
-                        const action = await call("/discover/movie", { with_genres: 28 });
-                        createRow("Film d'Azione", action.results);
-                        createRow("I più votati", (await call("/movie/top_rated")).results);
-                    } else {
-                        createRow("In onda oggi", (await call("/tv/airing_today")).results);
-                        createRow("Serie Più Votate", (await call("/tv/top_rated")).results);
-                    }
                 }
             } finally { isFetching = false; }
         }
@@ -235,7 +205,7 @@
                     method: 'POST', headers: { Authorization: `Bearer ${u.token.access_token}` },
                     body: JSON.stringify({ action: isF?'remove':'add', item_id: cur.id, media_type: cur.type, poster_path: cur.poster_path })
                 });
-                setTimeout(() => { closeAllModals(); showCategory('all'); }, 600);
+                setTimeout(() => { closeAllModals(true); }, 600);
             } catch (e) { closeAllModals(); }
         }
 
@@ -281,30 +251,33 @@
 
         function play() {
             let u = `https://vixsrc.to/${cur.type}/${cur.id}`;
-            let startAt = 0;
-            const saved = watchHistory.find(h => h.id === cur.id);
+            const s = cur.type === 'tv' ? document.getElementById('seasonSelect').value : null;
+            const e = cur.type === 'tv' ? document.getElementById('episodeSelect').value : null;
+            if(cur.type === 'tv') u += `/${s}/${e}`;
 
-            if(cur.type === 'tv') {
-                const s = document.getElementById('seasonSelect').value;
-                const e = document.getElementById('episodeSelect').value;
-                u += `/${s}/${e}`;
-                if(saved && saved.season == s && saved.episode == e) startAt = saved.time;
-            } else if(saved) {
-                startAt = saved.time;
-            }
+            // Salva subito nella storia quando clicchi play
+            const historyItem = {
+                id: cur.id,
+                type: cur.type,
+                title: cur.title || cur.name,
+                poster_path: cur.poster_path,
+                season: s,
+                episode: e
+            };
+            watchHistory = watchHistory.filter(h => h.id !== cur.id);
+            watchHistory.unshift(historyItem);
+            watchHistory = watchHistory.slice(0, 10);
+            localStorage.setItem('vixstream_history', JSON.stringify(watchHistory));
 
-            const startTime = startAt > 10 ? startAt - 5 : 0;
-            // AGGIUNTO EVENT_TRACKING=TRUE
-            document.getElementById('playerFrame').src = `${u}?autoplay=true&primaryColor=B20710&lang=it&startAt=${startTime}&event_tracking=true`;
+            document.getElementById('playerFrame').src = `${u}?autoplay=true&primaryColor=B20710&lang=it`;
             document.getElementById('playerModal').classList.replace('hidden', 'flex');
         }
 
-        function closeAllModals() {
+        function closeAllModals(refresh = false) {
             document.querySelectorAll('#infoModal, #playerModal').forEach(m => m.classList.replace('flex', 'hidden'));
             document.getElementById('playerFrame').src = "";
             document.body.style.overflow = '';
-            // Rinfresca la home per mostrare la riga aggiornata se è cambiato qualcosa
-            showCategory(window.currentCategory || 'all');
+            if(refresh) showCategory(window.currentCategory || 'all');
         }
 
         function initHero(item) {
