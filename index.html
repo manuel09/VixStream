@@ -4,29 +4,42 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>VixStream - Premium</title>
+    
     <link rel="icon" type="image/png" href="https://upload.wikimedia.org/wikipedia/commons/0/08/Netflix_2015_logo.svg">
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <script type="text/javascript" src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+    
     <style>
         body { background-color: #141414; color: #fff; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; overflow-x: hidden; }
         .scrollbar-hide::-webkit-scrollbar { display: none; }
         header { background: linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, transparent 100%); transition: all 0.3s; z-index: 100; }
         header.scrolled { background: #141414; }
+        
+        /* FIX WIDGET LOGIN MOBILE */
+        #netlify-identity-widget { z-index: 9999 !important; }
+        .netlify-identity-menu { top: 10% !important; max-height: 85vh !important; overflow-y: auto !important; border-radius: 12px !important; }
+
         .row-container { position: relative; margin-bottom: 2rem; }
         .carousel-container { position: relative; display: flex; align-items: center; }
         .carousel-track { display: flex; overflow-x: auto; scroll-behavior: smooth; gap: 10px; padding: 15px 0; width: 100%; }
+        
         .nav-arrow { position: absolute; top: 0; bottom: 0; width: 45px; background: rgba(0,0,0,0.7); color: white; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 40; opacity: 0; transition: opacity 0.3s; font-size: 24px; }
         .row-container:hover .nav-arrow { opacity: 1; }
         .arrow-left { left: 0; border-radius: 0 4px 4px 0; }
         .arrow-right { right: 0; border-radius: 4px 0 0 4px; }
+        
         @media (max-width: 768px) { .nav-arrow { display: none; } }
+        
         .card { min-width: 110px; width: 110px; height: 165px; flex-shrink: 0; transition: transform 0.3s ease; cursor: pointer; border-radius: 4px; overflow: hidden; }
         @media (min-width: 768px) { .card { min-width: 160px; width: 160px; height: 240px; } }
         .card:hover { transform: scale(1.05); z-index: 10; }
         .card img { width: 100%; height: 100%; object-fit: cover; }
+        
         #infoModal > div { max-width: 850px; width: 95%; max-height: 90vh; overflow-y: auto; border-radius: 8px; background: #181818; }
         .modal-hero { position: relative; width: 100%; aspect-ratio: 16 / 9; }
         .modal-hero img { width: 100%; height: 100%; object-fit: cover; }
+        
         .search-mode { padding-top: 100px !important; margin-top: 0 !important; }
     </style>
 </head>
@@ -43,7 +56,7 @@
         </div>
         <div class="flex items-center gap-2 shrink-0">
             <input type="text" id="searchInput" placeholder="Cerca..." class="bg-black/50 border border-white/20 text-white text-[9px] md:text-xs rounded px-2 py-1 w-16 md:w-60 outline-none focus:border-red-600 transition-all">
-            <button id="authBtn" onclick="handleAuth()" class="bg-red-600 text-white text-[9px] md:text-xs px-2 md:px-4 py-1.5 rounded font-black uppercase shrink-0">Accedi</button>
+            <button id="authBtn" onclick="handleAuth(event)" class="bg-red-600 text-white text-[9px] md:text-xs px-2 md:px-4 py-1.5 rounded font-black uppercase shrink-0">Accedi</button>
         </div>
     </header>
 
@@ -105,22 +118,14 @@
             document.getElementById('authBtn').textContent = u ? 'LOGOUT' : 'ACCEDI';
         }
 
-        function handleAuth() {
+        function handleAuth(e) {
+            if(e) e.preventDefault();
             const u = netlifyIdentity.currentUser();
             u ? netlifyIdentity.logout() : netlifyIdentity.open();
         }
 
-        // Fix Login: ricarica i dati senza refresh pesante
-        netlifyIdentity.on('login', (user) => { 
-            updateAuthBtn(); 
-            showCategory('all'); 
-            netlifyIdentity.close(); 
-        });
-        
-        netlifyIdentity.on('logout', () => { 
-            myFavorites = [];
-            location.reload(); 
-        });
+        netlifyIdentity.on('login', () => { updateAuthBtn(); showCategory('all'); netlifyIdentity.close(); });
+        netlifyIdentity.on('logout', () => { myFavorites = []; location.reload(); });
 
         async function call(path, params = {}) {
             const url = new URL(`https://api.themoviedb.org/3${path}`);
@@ -167,41 +172,25 @@
             container.innerHTML = ''; 
             
             document.querySelectorAll('.nav-link').forEach(a => {
-                a.classList.remove('text-white', 'text-white/70');
+                a.classList.remove('text-white');
                 a.classList.add('text-white/70');
             });
             const active = document.getElementById(`nav-${type}`);
-            if(active) {
-                active.classList.remove('text-white/70');
-                active.classList.add('text-white');
-            }
+            if(active) active.classList.replace('text-white/70', 'text-white');
 
             try {
                 if (type === 'all') {
                     const trending = await call("/trending/all/week");
                     if(trending) initHero(trending.results[0]);
                     
-                    // FIX FAVORITI: Recupera l'utente fresco e il token ogni volta
                     const u = netlifyIdentity.currentUser();
                     if(u) {
                         try {
-                            const response = await fetch('/.netlify/functions/manage-favorites', { 
-                                headers: { Authorization: `Bearer ${u.token.access_token}` } 
-                            });
-                            if (response.ok) {
-                                myFavorites = await response.json() || [];
-                                if(myFavorites.length > 0) {
-                                    createRow("La Mia Lista", myFavorites.map(f => ({ 
-                                        id: f.item_id, 
-                                        media_type: f.media_type, 
-                                        poster_path: f.poster_path,
-                                        title: "Lista" 
-                                    })));
-                                }
-                            }
-                        } catch(e) { console.error("Errore fetch lista:", e); }
+                            const r = await fetch('/.netlify/functions/manage-favorites', { headers: { Authorization: `Bearer ${u.token.access_token}` } });
+                            myFavorites = await r.json() || [];
+                            if(myFavorites.length > 0) createRow("La Mia Lista", myFavorites.map(f => ({ id: f.item_id, media_type: f.media_type, poster_path: f.poster_path })));
+                        } catch(e) {}
                     }
-                    
                     if(trending) createRow("Tendenze della settimana", trending.results);
                     const popM = await call("/movie/popular"); createRow("Film Popolari", popM.results);
                     const popT = await call("/tv/popular"); createRow("Serie TV Popolari", popT.results);
@@ -218,38 +207,21 @@
                         createRow("Serie Più Votate", (await call("/tv/top_rated")).results);
                     }
                 }
-            } finally {
-                isFetching = false;
-            }
+            } finally { isFetching = false; }
         }
 
         async function toggleFavorite() {
-            const u = netlifyIdentity.currentUser(); 
-            if(!u) return netlifyIdentity.open();
-
+            const u = netlifyIdentity.currentUser(); if(!u) return netlifyIdentity.open();
             const isF = myFavorites.some(f => f.item_id == cur.id);
-            const btn = document.getElementById('favBtn');
-            btn.textContent = "...";
+            document.getElementById('favBtn').textContent = "...";
 
             try {
                 await fetch('/.netlify/functions/manage-favorites', {
-                    method: 'POST', 
-                    headers: { Authorization: `Bearer ${u.token.access_token}` },
-                    body: JSON.stringify({ 
-                        action: isF ? 'remove' : 'add', 
-                        item_id: cur.id, 
-                        media_type: cur.type, 
-                        poster_path: cur.poster_path 
-                    })
+                    method: 'POST', headers: { Authorization: `Bearer ${u.token.access_token}` },
+                    body: JSON.stringify({ action: isF?'remove':'add', item_id: cur.id, media_type: cur.type, poster_path: cur.poster_path })
                 });
-
-                // Piccola attesa e poi ricarica forzata
-                setTimeout(() => {
-                    closeAllModals();
-                    showCategory('all');
-                }, 500);
-                
-            } catch (e) { console.error(e); closeAllModals(); }
+                setTimeout(() => { closeAllModals(); showCategory('all'); }, 600);
+            } catch (e) { closeAllModals(); }
         }
 
         async function showInfo(item) {
@@ -264,9 +236,7 @@
             
             const isF = myFavorites.some(f => f.item_id == cur.id);
             document.getElementById('favBtn').textContent = isF ? "❤️ RIMUOVI" : "❤️ LISTA";
-            document.getElementById('favBtn').className = isF ? 
-                "bg-white text-black px-6 py-2 rounded font-black text-sm shadow-lg" : 
-                "bg-transparent text-white border border-white/40 px-6 py-2 rounded font-bold text-sm hover:bg-white/10";
+            document.getElementById('favBtn').className = isF ? "bg-white text-black px-6 py-2 rounded font-black text-sm shadow-lg" : "bg-transparent text-white border border-white/40 px-6 py-2 rounded font-bold text-sm hover:bg-white/10";
             
             const tvS = document.getElementById('tvSelectors');
             if(cur.seasons && cur.seasons.length > 0) {
@@ -327,17 +297,9 @@
 
         window.addEventListener('scroll', () => document.querySelector('header').classList.toggle('scrolled', window.scrollY > 50));
         
-        // AVVIO: Aspetta che Netlify Identity sia pronto prima di caricare la Home
         netlifyIdentity.init();
         updateAuthBtn();
-        
-        // Se l'utente è già loggato all'apertura, carichiamo subito tutto
-        if (netlifyIdentity.currentUser()) {
-            showCategory('all');
-        } else {
-            // Se non è loggato, aspettiamo l'init o mostriamo la home pubblica
-            setTimeout(() => showCategory('all'), 500);
-        }
+        setTimeout(() => showCategory('all'), 400);
     </script>
 </body>
 </html>
