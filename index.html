@@ -93,7 +93,7 @@
     </div>
 
     <div id="playerModal" class="fixed inset-0 z-[200] hidden bg-black">
-        <button onclick="closeAllModals(true)" class="absolute top-6 right-6 z-[210] bg-white/10 px-4 py-2 rounded-full text-white font-bold hover:bg-red-600 transition">✕ Chiudi</button>
+        <button onclick="closeAllModals()" class="absolute top-6 right-6 z-[210] bg-white/10 px-4 py-2 rounded-full text-white font-bold hover:bg-red-600 transition">✕ Chiudi</button>
         <iframe id="playerFrame" class="w-full h-full" allowfullscreen allow="autoplay; fullscreen"></iframe>
     </div>
 
@@ -101,9 +101,32 @@
         const API_KEY = "7b5fcf48f24a334bb09f87ce20e5f2ce";
         const IMG = "https://image.tmdb.org/t/p/original";
         let cur = null, myFavorites = [], isFetching = false;
-        
-        // --- LOGICA STORIA ---
         let watchHistory = JSON.parse(localStorage.getItem('vixstream_history')) || [];
+
+        // --- ASCOLTATORE EVENTI PLAYER ---
+        window.addEventListener("message", (event) => {
+            // Se riceviamo un messaggio di tipo PLAYER_EVENT (come da documentazione vixsrc)
+            if (event.data && event.data.type === "PLAYER_EVENT") {
+                const data = event.data.data;
+                if (data.event === "timeupdate" && cur) {
+                    const historyItem = {
+                        id: cur.id,
+                        type: cur.type,
+                        title: cur.title || cur.name,
+                        poster_path: cur.poster_path,
+                        time: Math.floor(data.currentTime),
+                        season: cur.type === 'tv' ? document.getElementById('seasonSelect').value : null,
+                        episode: cur.type === 'tv' ? document.getElementById('episodeSelect').value : null,
+                        updatedAt: Date.now()
+                    };
+                    // Aggiorna storia locale
+                    watchHistory = watchHistory.filter(h => h.id !== cur.id);
+                    watchHistory.unshift(historyItem);
+                    watchHistory = watchHistory.slice(0, 10);
+                    localStorage.setItem('vixstream_history', JSON.stringify(watchHistory));
+                }
+            }
+        }, false);
 
         function updateAuthBtn() {
             const u = netlifyIdentity.currentUser();
@@ -199,13 +222,13 @@
         async function toggleFavorite() {
             const u = netlifyIdentity.currentUser(); if(!u) return netlifyIdentity.open();
             const isF = myFavorites.some(f => f.item_id == cur.id);
-            document.getElementById('favBtn').textContent = "...";
             try {
                 await fetch('/.netlify/functions/manage-favorites', {
                     method: 'POST', headers: { Authorization: `Bearer ${u.token.access_token}` },
                     body: JSON.stringify({ action: isF?'remove':'add', item_id: cur.id, media_type: cur.type, poster_path: cur.poster_path })
                 });
-                setTimeout(() => { closeAllModals(true); }, 600);
+                closeAllModals();
+                setTimeout(() => showCategory('all'), 300); // Ricarica solo in questo caso
             } catch (e) { closeAllModals(); }
         }
 
@@ -255,29 +278,18 @@
             const e = cur.type === 'tv' ? document.getElementById('episodeSelect').value : null;
             if(cur.type === 'tv') u += `/${s}/${e}`;
 
-            // Salva subito nella storia quando clicchi play
-            const historyItem = {
-                id: cur.id,
-                type: cur.type,
-                title: cur.title || cur.name,
-                poster_path: cur.poster_path,
-                season: s,
-                episode: e
-            };
-            watchHistory = watchHistory.filter(h => h.id !== cur.id);
-            watchHistory.unshift(historyItem);
-            watchHistory = watchHistory.slice(0, 10);
-            localStorage.setItem('vixstream_history', JSON.stringify(watchHistory));
+            // Controlla se abbiamo il tempo salvato
+            const saved = watchHistory.find(h => h.id === cur.id && (cur.type === 'movie' || (h.season == s && h.episode == e)));
+            const startAt = (saved && saved.time) ? saved.time : 0;
 
-            document.getElementById('playerFrame').src = `${u}?autoplay=true&primaryColor=B20710&lang=it`;
+            document.getElementById('playerFrame').src = `${u}?autoplay=true&primaryColor=B20710&lang=it&startAt=${startAt}`;
             document.getElementById('playerModal').classList.replace('hidden', 'flex');
         }
 
-        function closeAllModals(refresh = false) {
+        function closeAllModals() {
             document.querySelectorAll('#infoModal, #playerModal').forEach(m => m.classList.replace('flex', 'hidden'));
             document.getElementById('playerFrame').src = "";
             document.body.style.overflow = '';
-            if(refresh) showCategory(window.currentCategory || 'all');
         }
 
         function initHero(item) {
