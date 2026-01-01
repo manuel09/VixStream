@@ -29,7 +29,6 @@
         #infoModal > div { max-width: 850px; width: 95%; max-height: 90vh; overflow-y: auto; border-radius: 8px; background: #181818; }
         .modal-hero { position: relative; width: 100%; aspect-ratio: 16 / 9; }
         .modal-hero img { width: 100%; height: 100%; object-fit: cover; }
-        .search-mode { padding-top: 100px !important; margin-top: 0 !important; }
     </style>
 </head>
 <body class="scrollbar-hide">
@@ -64,7 +63,7 @@
 
     <div id="infoModal" class="fixed inset-0 z-[100] hidden bg-black/90 flex items-center justify-center p-2">
         <div class="scrollbar-hide relative shadow-2xl">
-            <button onclick="closeAllModals()" class="absolute top-4 right-4 z-[110] bg-black/60 text-white w-10 h-10 rounded-full flex items-center justify-center hover:bg-white/20 transition">✕</button>
+            <button onclick="closeAllModals(false)" class="absolute top-4 right-4 z-[110] bg-black/60 text-white w-10 h-10 rounded-full flex items-center justify-center hover:bg-white/20 transition">✕</button>
             <div class="modal-hero">
                 <img id="infoBgImg" src="">
                 <div class="absolute bottom-6 left-6 md:left-10 z-20"><h2 id="infoTitle" class="text-2xl md:text-4xl font-black italic uppercase"></h2></div>
@@ -93,8 +92,8 @@
     </div>
 
     <div id="playerModal" class="fixed inset-0 z-[200] hidden bg-black">
-        <button onclick="closeAllModals()" class="absolute top-6 right-6 z-[210] bg-white/10 px-4 py-2 rounded-full text-white font-bold hover:bg-red-600 transition">✕ Chiudi</button>
-        <iframe id="playerFrame" class="w-full h-full" allowfullscreen allow="autoplay; fullscreen"></iframe>
+        <button onclick="closeAllModals(false)" class="absolute top-6 right-6 z-[210] bg-white/10 px-4 py-2 rounded-full text-white font-bold hover:bg-red-600 transition">✕ Chiudi</button>
+        <iframe id="playerFrame" class="w-full h-full" allowfullscreen allow="autoplay"></iframe>
     </div>
 
     <script>
@@ -102,31 +101,8 @@
         const IMG = "https://image.tmdb.org/t/p/original";
         let cur = null, myFavorites = [], isFetching = false;
         let watchHistory = JSON.parse(localStorage.getItem('vixstream_history')) || [];
-
-        // --- ASCOLTATORE EVENTI PLAYER ---
-        window.addEventListener("message", (event) => {
-            // Se riceviamo un messaggio di tipo PLAYER_EVENT (come da documentazione vixsrc)
-            if (event.data && event.data.type === "PLAYER_EVENT") {
-                const data = event.data.data;
-                if (data.event === "timeupdate" && cur) {
-                    const historyItem = {
-                        id: cur.id,
-                        type: cur.type,
-                        title: cur.title || cur.name,
-                        poster_path: cur.poster_path,
-                        time: Math.floor(data.currentTime),
-                        season: cur.type === 'tv' ? document.getElementById('seasonSelect').value : null,
-                        episode: cur.type === 'tv' ? document.getElementById('episodeSelect').value : null,
-                        updatedAt: Date.now()
-                    };
-                    // Aggiorna storia locale
-                    watchHistory = watchHistory.filter(h => h.id !== cur.id);
-                    watchHistory.unshift(historyItem);
-                    watchHistory = watchHistory.slice(0, 10);
-                    localStorage.setItem('vixstream_history', JSON.stringify(watchHistory));
-                }
-            }
-        }, false);
+        let manualTimer = null;
+        let currentSeconds = 0;
 
         function updateAuthBtn() {
             const u = netlifyIdentity.currentUser();
@@ -181,7 +157,6 @@
             isFetching = true;
             window.currentCategory = type;
             const container = document.getElementById('sections');
-            container.classList.remove('search-mode');
             container.innerHTML = ''; 
             
             document.querySelectorAll('.nav-link').forEach(a => {
@@ -197,7 +172,9 @@
                     if(trending) initHero(trending.results[0]);
                     
                     if (watchHistory.length > 0) {
-                        createRow("Continua a guardare", watchHistory.map(h => ({ id: h.id, media_type: h.type, poster_path: h.poster_path, title: h.title })));
+                        createRow("Continua a guardare", watchHistory.map(h => ({ 
+                            id: h.id, media_type: h.type, poster_path: h.poster_path, title: h.title 
+                        })));
                     }
 
                     const u = netlifyIdentity.currentUser();
@@ -209,8 +186,6 @@
                         } catch(e) {}
                     }
                     if(trending) createRow("Tendenze della settimana", trending.results);
-                    const popM = await call("/movie/popular"); createRow("Film Popolari", popM.results);
-                    const popT = await call("/tv/popular"); createRow("Serie TV Popolari", popT.results);
                 } else {
                     const res = await call(`/${type}/popular`);
                     if(res) initHero(res.results[0]);
@@ -227,9 +202,8 @@
                     method: 'POST', headers: { Authorization: `Bearer ${u.token.access_token}` },
                     body: JSON.stringify({ action: isF?'remove':'add', item_id: cur.id, media_type: cur.type, poster_path: cur.poster_path })
                 });
-                closeAllModals();
-                setTimeout(() => showCategory('all'), 300); // Ricarica solo in questo caso
-            } catch (e) { closeAllModals(); }
+                closeAllModals(true); 
+            } catch (e) { closeAllModals(false); }
         }
 
         async function showInfo(item) {
@@ -244,15 +218,13 @@
             
             const isF = myFavorites.some(f => f.item_id == cur.id);
             document.getElementById('favBtn').textContent = isF ? "❤️ RIMUOVI" : "❤️ LISTA";
-            document.getElementById('favBtn').className = isF ? "bg-white text-black px-6 py-2 rounded font-black text-sm shadow-lg" : "bg-transparent text-white border border-white/40 px-6 py-2 rounded font-bold text-sm hover:bg-white/10";
             
             const tvS = document.getElementById('tvSelectors');
             if(cur.seasons && cur.seasons.length > 0) {
                 cur.type = 'tv';
                 tvS.classList.remove('hidden');
                 const sSelect = document.getElementById('seasonSelect');
-                const validSeasons = cur.seasons.filter(x => x.season_number > 0);
-                sSelect.innerHTML = validSeasons.map(x => `<option value="${x.season_number}">Stagione ${x.season_number}</option>`).join('');
+                sSelect.innerHTML = cur.seasons.filter(x => x.season_number > 0).map(x => `<option value="${x.season_number}">Stagione ${x.season_number}</option>`).join('');
                 
                 const saved = watchHistory.find(h => h.id === cur.id);
                 if(saved && saved.season) sSelect.value = saved.season;
@@ -278,18 +250,44 @@
             const e = cur.type === 'tv' ? document.getElementById('episodeSelect').value : null;
             if(cur.type === 'tv') u += `/${s}/${e}`;
 
-            // Controlla se abbiamo il tempo salvato
+            // RECUPERO TEMPO SALVATO
             const saved = watchHistory.find(h => h.id === cur.id && (cur.type === 'movie' || (h.season == s && h.episode == e)));
-            const startAt = (saved && saved.time) ? saved.time : 0;
+            currentSeconds = saved ? saved.time : 0;
 
-            document.getElementById('playerFrame').src = `${u}?autoplay=true&primaryColor=B20710&lang=it&startAt=${startAt}`;
+            // AVVIO TIMER MANUALE (Salva ogni 10 secondi)
+            clearInterval(manualTimer);
+            manualTimer = setInterval(() => {
+                currentSeconds += 10;
+                saveToHistory(currentSeconds, s, e);
+            }, 10000);
+
+            document.getElementById('playerFrame').src = `${u}?autoplay=true&primaryColor=B20710&lang=it&startAt=${currentSeconds}`;
             document.getElementById('playerModal').classList.replace('hidden', 'flex');
         }
 
-        function closeAllModals() {
+        function saveToHistory(sec, s, e) {
+            const historyItem = {
+                id: cur.id,
+                type: cur.type,
+                title: cur.title || cur.name,
+                poster_path: cur.poster_path,
+                time: sec,
+                season: s,
+                episode: e,
+                updatedAt: Date.now()
+            };
+            watchHistory = watchHistory.filter(h => h.id !== cur.id);
+            watchHistory.unshift(historyItem);
+            watchHistory = watchHistory.slice(0, 10);
+            localStorage.setItem('vixstream_history', JSON.stringify(watchHistory));
+        }
+
+        function closeAllModals(shouldRefresh) {
             document.querySelectorAll('#infoModal, #playerModal').forEach(m => m.classList.replace('flex', 'hidden'));
             document.getElementById('playerFrame').src = "";
             document.body.style.overflow = '';
+            clearInterval(manualTimer);
+            if(shouldRefresh) showCategory(window.currentCategory || 'all');
         }
 
         function initHero(item) {
@@ -307,11 +305,9 @@
             if(q.length > 2) {
                 const res = await call("/search/multi", { query: q });
                 container.innerHTML = '';
-                container.classList.add('search-mode');
                 document.getElementById('hero').classList.add('hidden');
                 createRow(`Risultati per: ${q}`, res.results);
             } else if (q.length === 0) {
-                container.classList.remove('search-mode');
                 showCategory(window.currentCategory || 'all');
             }
         };
