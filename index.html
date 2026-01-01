@@ -4,42 +4,31 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>VixStream - Premium</title>
-    
     <link rel="icon" type="image/png" href="https://upload.wikimedia.org/wikipedia/commons/0/08/Netflix_2015_logo.svg">
-    
     <script src="https://cdn.tailwindcss.com"></script>
     <script type="text/javascript" src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-    
     <style>
         body { background-color: #141414; color: #fff; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; overflow-x: hidden; }
         .scrollbar-hide::-webkit-scrollbar { display: none; }
         header { background: linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, transparent 100%); transition: all 0.3s; z-index: 100; }
         header.scrolled { background: #141414; }
-        
-        /* FIX WIDGET LOGIN MOBILE */
         #netlify-identity-widget { z-index: 9999 !important; }
         .netlify-identity-menu { top: 10% !important; max-height: 85vh !important; overflow-y: auto !important; border-radius: 12px !important; }
-
         .row-container { position: relative; margin-bottom: 2rem; }
         .carousel-container { position: relative; display: flex; align-items: center; }
         .carousel-track { display: flex; overflow-x: auto; scroll-behavior: smooth; gap: 10px; padding: 15px 0; width: 100%; }
-        
         .nav-arrow { position: absolute; top: 0; bottom: 0; width: 45px; background: rgba(0,0,0,0.7); color: white; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 40; opacity: 0; transition: opacity 0.3s; font-size: 24px; }
         .row-container:hover .nav-arrow { opacity: 1; }
         .arrow-left { left: 0; border-radius: 0 4px 4px 0; }
         .arrow-right { right: 0; border-radius: 4px 0 0 4px; }
-        
         @media (max-width: 768px) { .nav-arrow { display: none; } }
-        
         .card { min-width: 110px; width: 110px; height: 165px; flex-shrink: 0; transition: transform 0.3s ease; cursor: pointer; border-radius: 4px; overflow: hidden; }
         @media (min-width: 768px) { .card { min-width: 160px; width: 160px; height: 240px; } }
         .card:hover { transform: scale(1.05); z-index: 10; }
         .card img { width: 100%; height: 100%; object-fit: cover; }
-        
         #infoModal > div { max-width: 850px; width: 95%; max-height: 90vh; overflow-y: auto; border-radius: 8px; background: #181818; }
         .modal-hero { position: relative; width: 100%; aspect-ratio: 16 / 9; }
         .modal-hero img { width: 100%; height: 100%; object-fit: cover; }
-        
         .search-mode { padding-top: 100px !important; margin-top: 0 !important; }
     </style>
 </head>
@@ -112,6 +101,31 @@
         const API_KEY = "7b5fcf48f24a334bb09f87ce20e5f2ce";
         const IMG = "https://image.tmdb.org/t/p/original";
         let cur = null, myFavorites = [], isFetching = false;
+        
+        // --- LOGICA CONTINUA A GUARDARE ---
+        let watchHistory = JSON.parse(localStorage.getItem('vixstream_history')) || [];
+
+        window.addEventListener("message", (event) => {
+            if (event.data.type === "PLAYER_EVENT") {
+                const data = event.data.data;
+                if (data.event === "timeupdate" && cur) {
+                    const historyItem = {
+                        id: cur.id,
+                        type: cur.type,
+                        title: cur.title || cur.name,
+                        poster_path: cur.poster_path,
+                        time: Math.floor(data.currentTime),
+                        season: cur.type === 'tv' ? document.getElementById('seasonSelect').value : null,
+                        episode: cur.type === 'tv' ? document.getElementById('episodeSelect').value : null,
+                        updatedAt: Date.now()
+                    };
+                    watchHistory = watchHistory.filter(h => h.id !== cur.id);
+                    watchHistory.unshift(historyItem);
+                    watchHistory = watchHistory.slice(0, 10);
+                    localStorage.setItem('vixstream_history', JSON.stringify(watchHistory));
+                }
+            }
+        }, false);
 
         function updateAuthBtn() {
             const u = netlifyIdentity.currentUser();
@@ -138,8 +152,6 @@
         function createRow(title, items) {
             if (!items || items.length === 0) return;
             const container = document.getElementById('sections');
-            if (Array.from(container.querySelectorAll('h2')).some(h => h.innerText === title)) return;
-
             const div = document.createElement('div');
             div.className = "row-container";
             div.innerHTML = `
@@ -183,6 +195,11 @@
                     const trending = await call("/trending/all/week");
                     if(trending) initHero(trending.results[0]);
                     
+                    // RIGA CONTINUA A GUARDARE
+                    if (watchHistory.length > 0) {
+                        createRow("Continua a guardare", watchHistory.map(h => ({ id: h.id, media_type: h.type, poster_path: h.poster_path, title: h.title })));
+                    }
+
                     const u = netlifyIdentity.currentUser();
                     if(u) {
                         try {
@@ -214,7 +231,6 @@
             const u = netlifyIdentity.currentUser(); if(!u) return netlifyIdentity.open();
             const isF = myFavorites.some(f => f.item_id == cur.id);
             document.getElementById('favBtn').textContent = "...";
-
             try {
                 await fetch('/.netlify/functions/manage-favorites', {
                     method: 'POST', headers: { Authorization: `Bearer ${u.token.access_token}` },
@@ -245,9 +261,16 @@
                 const sSelect = document.getElementById('seasonSelect');
                 const validSeasons = cur.seasons.filter(x => x.season_number > 0);
                 sSelect.innerHTML = validSeasons.map(x => `<option value="${x.season_number}">Stagione ${x.season_number}</option>`).join('');
+                
+                // RECUPERA EPISODIO SALVATO
+                const saved = watchHistory.find(h => h.id === cur.id);
+                if(saved && saved.season) sSelect.value = saved.season;
+
                 sSelect.onchange = async () => {
                     const sd = await call(`/tv/${cur.id}/season/${sSelect.value}`);
-                    document.getElementById('episodeSelect').innerHTML = sd.episodes.map(e => `<option value="${e.episode_number}">Episodio ${e.episode_number}</option>`).join('');
+                    const epSelect = document.getElementById('episodeSelect');
+                    epSelect.innerHTML = sd.episodes.map(e => `<option value="${e.episode_number}">Episodio ${e.episode_number}</option>`).join('');
+                    if(saved && saved.episode && sSelect.value == saved.season) epSelect.value = saved.episode;
                 };
                 await sSelect.onchange();
             } else { tvS.classList.add('hidden'); }
@@ -260,8 +283,20 @@
 
         function play() {
             let u = `https://vixsrc.to/${cur.type}/${cur.id}`;
-            if(cur.type === 'tv') u += `/${document.getElementById('seasonSelect').value}/${document.getElementById('episodeSelect').value}`;
-            document.getElementById('playerFrame').src = u + "?autoplay=true&primaryColor=B20710&lang=it";
+            let startAt = 0;
+            const saved = watchHistory.find(h => h.id === cur.id);
+
+            if(cur.type === 'tv') {
+                const s = document.getElementById('seasonSelect').value;
+                const e = document.getElementById('episodeSelect').value;
+                u += `/${s}/${e}`;
+                if(saved && saved.season == s && saved.episode == e) startAt = saved.time;
+            } else if(saved) {
+                startAt = saved.time;
+            }
+
+            const startTime = startAt > 10 ? startAt - 5 : 0;
+            document.getElementById('playerFrame').src = `${u}?autoplay=true&primaryColor=B20710&lang=it&startAt=${startTime}`;
             document.getElementById('playerModal').classList.replace('hidden', 'flex');
         }
 
@@ -296,7 +331,6 @@
         };
 
         window.addEventListener('scroll', () => document.querySelector('header').classList.toggle('scrolled', window.scrollY > 50));
-        
         netlifyIdentity.init();
         updateAuthBtn();
         setTimeout(() => showCategory('all'), 400);
