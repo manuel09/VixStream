@@ -185,11 +185,30 @@
                             if(myFavorites.length > 0) createRow("La Mia Lista", myFavorites.map(f => ({ id: f.item_id, media_type: f.media_type, poster_path: f.poster_path })));
                         } catch(e) {}
                     }
+                    
                     if(trending) createRow("Tendenze della settimana", trending.results);
-                } else {
-                    const res = await call(`/${type}/popular`);
+                    createRow("Film Popolari", (await call("/movie/popular")).results);
+                    createRow("Serie TV Popolari", (await call("/tv/popular")).results);
+                    createRow("Animazione", (await call("/discover/movie", {with_genres: 16})).results);
+                    createRow("Azione", (await call("/discover/movie", {with_genres: 28})).results);
+
+                } else if (type === 'movie') {
+                    const res = await call(`/movie/popular`);
                     if(res) initHero(res.results[0]);
-                    createRow(type === 'movie' ? "Film Popolari" : "Serie TV Popolari", res.results);
+                    createRow("I più visti al cinema", res.results);
+                    createRow("In arrivo", (await call("/movie/upcoming")).results);
+                    createRow("I grandi classici", (await call("/movie/top_rated")).results);
+                    createRow("Horror", (await call("/discover/movie", {with_genres: 27})).results);
+                    createRow("Commedia", (await call("/discover/movie", {with_genres: 35})).results);
+
+                } else if (type === 'tv') {
+                    const res = await call(`/tv/popular`);
+                    if(res) initHero(res.results[0]);
+                    createRow("Serie TV del momento", res.results);
+                    createRow("Novità Assolute", (await call("/tv/on_the_air")).results);
+                    createRow("Migliori di sempre", (await call("/tv/top_rated")).results);
+                    createRow("Sci-Fi & Fantasy", (await call("/discover/tv", {with_genres: 10765})).results);
+                    createRow("Crime", (await call("/discover/tv", {with_genres: 80})).results);
                 }
             } finally { isFetching = false; }
         }
@@ -250,11 +269,9 @@
             const e = cur.type === 'tv' ? document.getElementById('episodeSelect').value : null;
             if(cur.type === 'tv') u += `/${s}/${e}`;
 
-            // RECUPERO TEMPO SALVATO
             const saved = watchHistory.find(h => h.id === cur.id && (cur.type === 'movie' || (h.season == s && h.episode == e)));
             currentSeconds = saved ? saved.time : 0;
 
-            // AVVIO TIMER MANUALE (Salva ogni 10 secondi)
             clearInterval(manualTimer);
             manualTimer = setInterval(() => {
                 currentSeconds += 10;
