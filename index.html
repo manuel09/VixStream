@@ -94,7 +94,7 @@
 
     <div id="playerModal" class="fixed inset-0 z-[200] hidden bg-black">
         <button onclick="closeAllModals()" class="absolute top-6 right-6 z-[210] bg-white/10 px-4 py-2 rounded-full text-white font-bold hover:bg-red-600 transition">✕ Chiudi</button>
-        <iframe id="playerFrame" class="w-full h-full" allowfullscreen allow="autoplay; fullscreen; picture-in-picture"></iframe>
+        <iframe id="playerFrame" class="w-full h-full" allowfullscreen allow="autoplay; fullscreen; picture-in-picture; encrypted-media"></iframe>
     </div>
 
     <script>
@@ -102,11 +102,11 @@
         const IMG = "https://image.tmdb.org/t/p/original";
         let cur = null, myFavorites = [], isFetching = false;
         
-        // --- LOGICA CONTINUA A GUARDARE ---
         let watchHistory = JSON.parse(localStorage.getItem('vixstream_history')) || [];
 
+        // ASCOLTATORE EVENTI AGGIORNATO
         window.addEventListener("message", (event) => {
-            if (event.data.type === "PLAYER_EVENT") {
+            if (event.data && event.data.type === "PLAYER_EVENT") {
                 const data = event.data.data;
                 if (data.event === "timeupdate" && cur) {
                     const historyItem = {
@@ -195,7 +195,6 @@
                     const trending = await call("/trending/all/week");
                     if(trending) initHero(trending.results[0]);
                     
-                    // RIGA CONTINUA A GUARDARE
                     if (watchHistory.length > 0) {
                         createRow("Continua a guardare", watchHistory.map(h => ({ id: h.id, media_type: h.type, poster_path: h.poster_path, title: h.title })));
                     }
@@ -262,7 +261,6 @@
                 const validSeasons = cur.seasons.filter(x => x.season_number > 0);
                 sSelect.innerHTML = validSeasons.map(x => `<option value="${x.season_number}">Stagione ${x.season_number}</option>`).join('');
                 
-                // RECUPERA EPISODIO SALVATO
                 const saved = watchHistory.find(h => h.id === cur.id);
                 if(saved && saved.season) sSelect.value = saved.season;
 
@@ -296,7 +294,8 @@
             }
 
             const startTime = startAt > 10 ? startAt - 5 : 0;
-            document.getElementById('playerFrame').src = `${u}?autoplay=true&primaryColor=B20710&lang=it&startAt=${startTime}`;
+            // AGGIUNTO EVENT_TRACKING=TRUE
+            document.getElementById('playerFrame').src = `${u}?autoplay=true&primaryColor=B20710&lang=it&startAt=${startTime}&event_tracking=true`;
             document.getElementById('playerModal').classList.replace('hidden', 'flex');
         }
 
@@ -304,6 +303,8 @@
             document.querySelectorAll('#infoModal, #playerModal').forEach(m => m.classList.replace('flex', 'hidden'));
             document.getElementById('playerFrame').src = "";
             document.body.style.overflow = '';
+            // Rinfresca la home per mostrare la riga aggiornata se è cambiato qualcosa
+            showCategory(window.currentCategory || 'all');
         }
 
         function initHero(item) {
