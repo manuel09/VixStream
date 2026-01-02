@@ -326,7 +326,7 @@
         }
 
         /* =========================================
-           BOOT SHIELD (FIXED ANIMATION)
+           BOOT SHIELD - STABILIZZATO
            ========================================= */
         #boot-shield { 
             position: fixed; 
@@ -340,9 +340,9 @@
         }
 
         @keyframes vpulse { 
-            0% { opacity: 0.3; transform: scale(0.98); filter: drop-shadow(0 0 0px #e50914); } 
-            50% { opacity: 1; transform: scale(1.02); filter: drop-shadow(0 0 15px #e50914); } 
-            100% { opacity: 0.3; transform: scale(0.98); filter: drop-shadow(0 0 0px #e50914); } 
+            0% { opacity: 0.4; filter: drop-shadow(0 0 0px #e50914); } 
+            50% { opacity: 1; filter: drop-shadow(0 0 15px #e50914); } 
+            100% { opacity: 0.4; filter: drop-shadow(0 0 0px #e50914); } 
         }
         
         .loader-logo { 
@@ -350,8 +350,9 @@
             font-weight: 900; 
             color: #e50914; 
             font-style: italic; 
-            animation: vpulse 1.8s infinite ease-in-out; 
+            animation: vpulse 2s infinite ease-in-out; 
             letter-spacing: -4px;
+            transform: translateZ(0); /* Evita il tremolio */
         }
 
         .loading-bar-container {
@@ -369,7 +370,7 @@
             height: 100%;
             background: #e50914;
             position: absolute;
-            animation: loadingMove 1.5s infinite ease-in-out;
+            animation: loadingMove 1.5s infinite linear;
             box-shadow: 0 0 10px #e50914;
         }
 
@@ -386,7 +387,7 @@
         <div class="loading-bar-container">
             <div class="loading-bar-progress"></div>
         </div>
-        <div class="mt-6 text-[10px] font-black tracking-[0.6em] text-white/30 uppercase">
+        <div class="mt-6 text-[10px] font-black tracking-[0.6em] text-white/30 uppercase animate-pulse">
             Inizializzazione Cinema Premium
         </div>
     </div>
@@ -415,7 +416,6 @@
     </header>
 
     <main id="main-content" class="opacity-0 transition-opacity duration-1000">
-        
         <section id="hero" class="relative h-[80vh] w-full flex flex-col justify-end p-10 md:p-24 pb-32 hidden">
             <img id="heroImg" src="" class="absolute inset-0 w-full h-full object-cover -z-10">
             <div class="absolute inset-0 bg-gradient-to-t from-[#141414] via-[#141414]/30 to-transparent"></div>
@@ -425,9 +425,7 @@
                 <button id="heroPlay" class="btn-main">▶ Riproduci Ora</button>
             </div>
         </section>
-
         <div id="sections" class="relative z-20 -mt-24 space-y-6"></div>
-        
     </main>
 
     <div id="infoModal" class="modal-overlay" onclick="if(event.target==this) closeModals()">
@@ -438,7 +436,6 @@
                 <div class="absolute inset-0 bg-gradient-to-t from-[#181818] via-transparent"></div>
                 <h2 id="infoTitle" class="absolute bottom-6 left-10 text-4xl md:text-6xl font-black uppercase italic tracking-tighter"></h2>
             </div>
-            
             <div class="p-10 md:p-14 grid md:grid-cols-3 gap-12">
                 <div class="md:col-span-2">
                     <p id="infoOverview" class="text-gray-300 text-base md:text-lg leading-relaxed mb-12 font-light italic"></p>
@@ -447,7 +444,6 @@
                         <button id="favBtn" onclick="toggleFavorite()" class="btn-secondary">❤️ Lista</button>
                     </div>
                 </div>
-                
                 <div id="tvBox" class="hidden space-y-6 bg-white/5 p-8 rounded-3xl border border-white/5 backdrop-blur-2xl">
                     <div>
                         <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 block">Stagione</label>
@@ -519,7 +515,11 @@
                     renderHero(popular.results[0]);
                     renderRow("Titoli del Momento", popular.results);
                 }
-            } catch (e) { console.error("Errore:", e); }
+                return true; // Caricamento riuscito
+            } catch (e) { 
+                console.error("Errore:", e); 
+                return false; 
+            }
         }
 
         function renderRow(title, items) {
@@ -642,22 +642,38 @@
 
         window.onscroll = () => { document.getElementById('mainHeader').classList.toggle('scrolled', window.scrollY > 60); };
 
+        // =========================================
+        // FIX CARICAMENTO (SINCRO)
+        // =========================================
+        function terminateLoading() {
+            const shield = document.getElementById('boot-shield');
+            if(shield) {
+                shield.style.transition = "opacity 0.8s ease";
+                shield.style.opacity = "0";
+                setTimeout(() => {
+                    shield.style.display = "none";
+                    document.getElementById('main-content').classList.remove('opacity-0');
+                }, 800);
+            }
+        }
+
         netlifyIdentity.on('init', async user => {
-            // FIX: Carica i contenuti PRIMA di nascondere lo scudo
+            // Sicurezza: Se dopo 3.5 secondi non è successo nulla, sblocca la pagina
+            const safetyTimeout = setTimeout(terminateLoading, 3500);
+
             if(user) {
                 const userName = user.user_metadata.full_name || user.email.split('@')[0];
                 document.getElementById('authBtn').innerText = userName.toUpperCase();
                 document.getElementById('userDisplay').innerText = "Premium: " + userName.toUpperCase();
             }
             
-            // Aspetta il caricamento effettivo dei dati
-            await loadContent('all');
+            // Prova a caricare i contenuti
+            const success = await loadContent('all');
             
-            // Nasconde lo scudo solo quando tutto è pronto
-            setTimeout(() => {
-                document.getElementById('boot-shield').style.display = 'none';
-                document.getElementById('main-content').classList.remove('opacity-0');
-            }, 800);
+            if(success) {
+                clearTimeout(safetyTimeout); // Annulla il timer di emergenza se TMDB risponde prima
+                terminateLoading();
+            }
         });
 
         netlifyIdentity.on('login', () => location.reload());
