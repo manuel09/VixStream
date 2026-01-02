@@ -332,7 +332,7 @@
             position: fixed; 
             inset: 0; 
             background: #141414; 
-            z-index: 9999; 
+            z-index: 99999; 
             display: flex; 
             flex-direction: column;
             align-items: center; 
@@ -352,7 +352,7 @@
             font-style: italic; 
             animation: vpulse 2s infinite ease-in-out; 
             letter-spacing: -4px;
-            transform: translateZ(0); /* Evita il tremolio */
+            transform: translateZ(0);
         }
 
         .loading-bar-container {
@@ -470,6 +470,7 @@
         let watchHistory = JSON.parse(localStorage.getItem('vix_history_premium_v3')) || [];
         let alreadyShownIds = new Set();
         let idleTimer;
+        let isAppStarted = false; // FLAG DI SICUREZZA PER IL LOOP
 
         async function callTMDB(path, extraParams = {}) {
             const url = new URL(BASE_URL + path);
@@ -515,7 +516,7 @@
                     renderHero(popular.results[0]);
                     renderRow("Titoli del Momento", popular.results);
                 }
-                return true; // Caricamento riuscito
+                return true;
             } catch (e) { 
                 console.error("Errore:", e); 
                 return false; 
@@ -642,9 +643,6 @@
 
         window.onscroll = () => { document.getElementById('mainHeader').classList.toggle('scrolled', window.scrollY > 60); };
 
-        // =========================================
-        // FIX CARICAMENTO (SINCRO)
-        // =========================================
         function terminateLoading() {
             const shield = document.getElementById('boot-shield');
             if(shield) {
@@ -657,9 +655,12 @@
             }
         }
 
-        netlifyIdentity.on('init', async user => {
-            // Sicurezza: Se dopo 3.5 secondi non è successo nulla, sblocca la pagina
-            const safetyTimeout = setTimeout(terminateLoading, 3500);
+        // =========================================
+        // AVVIO CONTROLLATO (NO LOOP)
+        // =========================================
+        async function startApp(user) {
+            if(isAppStarted) return;
+            isAppStarted = true;
 
             if(user) {
                 const userName = user.user_metadata.full_name || user.email.split('@')[0];
@@ -667,13 +668,13 @@
                 document.getElementById('userDisplay').innerText = "Premium: " + userName.toUpperCase();
             }
             
-            // Prova a caricare i contenuti
             const success = await loadContent('all');
-            
-            if(success) {
-                clearTimeout(safetyTimeout); // Annulla il timer di emergenza se TMDB risponde prima
-                terminateLoading();
-            }
+            if(success) terminateLoading();
+        }
+
+        netlifyIdentity.on('init', user => {
+            setTimeout(() => startApp(user), 100);
+            setTimeout(terminateLoading, 5000); // Fail-safe 5 secondi
         });
 
         netlifyIdentity.on('login', () => location.reload());
