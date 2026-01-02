@@ -12,29 +12,38 @@
         .scrollbar-hide::-webkit-scrollbar { display: none; }
         header { background: linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, transparent 100%); transition: 0.3s; z-index: 1000; }
         header.scrolled { background: #141414; }
+        
         .nav-link { transition: color 0.3s; cursor: pointer; color: rgba(255,255,255,0.6); font-weight: 700; }
         .nav-link.active { color: white !important; font-weight: 900; }
-        .profile-container { position: relative; padding: 5px 0; }
-        .profile-dropdown { display: none; position: absolute; top: 100%; right: 0; background: #181818; border: 1px solid rgba(255,255,255,0.1); min-width: 180px; border-radius: 4px; box-shadow: 0 10px 25px rgba(0,0,0,0.8); }
+        
+        /* Dropdown Profilo */
+        .profile-container { position: relative; padding: 10px 0; cursor: pointer; }
+        .profile-dropdown { display: none; position: absolute; top: 100%; right: 0; background: #181818; border: 1px solid rgba(255,255,255,0.1); min-width: 180px; border-radius: 4px; box-shadow: 0 10px 25px rgba(0,0,0,0.8); z-index: 1100; }
         .profile-container:hover .profile-dropdown { display: block; }
-        .page-header-offset { padding-top: 120px !important; }
+        
+        .page-header-offset { padding-top: 130px !important; }
+        
+        /* Caroselli */
         .row-container { margin-bottom: 2.5rem; position: relative; }
         .carousel-wrapper { position: relative; display: flex; align-items: center; }
         .carousel-track { display: flex; overflow-x: auto; scroll-behavior: smooth; gap: 10px; padding: 15px 0; width: 100%; }
+        
         .nav-arrow { position: absolute; top: 0; bottom: 0; width: 45px; background: rgba(0,0,0,0.6); color: white; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 40; opacity: 0; transition: opacity 0.3s; font-size: 24px; }
         .row-container:hover .nav-arrow { opacity: 1; }
         .arrow-left { left: 0; } .arrow-right { right: 0; }
+        
         .card { min-width: 115px; width: 115px; height: 170px; flex-shrink: 0; transition: 0.3s; border-radius: 4px; overflow: hidden; cursor: pointer; }
         @media (min-width: 768px) { .card { min-width: 170px; width: 170px; height: 250px; } }
         .card:hover { transform: scale(1.06); z-index: 50; }
         .card img { width: 100%; height: 100%; object-fit: cover; }
+        
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 2000; display: none; align-items: center; justify-content: center; padding: 15px; }
-        .modal-box { background: #181818; width: 100%; max-width: 850px; border-radius: 12px; overflow-y: auto; max-height: 90vh; position: relative; }
+        .modal-box { background: #181818; width: 100%; max-width: 850px; border-radius: 12px; overflow-y: auto; max-height: 90vh; }
     </style>
 </head>
 <body class="scrollbar-hide">
 
-    <header id="mainHeader" class="fixed top-0 w-full p-4 md:px-12 flex justify-between items-center">
+    <header id="mainHeader" class="fixed top-0 w-full p-4 md:px-12 flex justify-between items-center transition-all">
         <div class="flex items-center gap-6 md:gap-10">
             <a href="#" onclick="showCategory('all')" class="text-red-600 text-2xl md:text-3xl font-black tracking-tighter">VIXSTREAM</a>
             <nav id="mainNav" class="hidden md:flex gap-6 text-[11px] font-bold uppercase tracking-widest">
@@ -46,11 +55,11 @@
         <div class="flex items-center gap-4">
             <input type="text" id="searchInput" placeholder="Cerca..." class="bg-black/50 border border-white/20 text-white text-xs rounded px-3 py-1.5 w-24 md:w-60 focus:border-red-600 outline-none">
             <div class="profile-container">
-                <button id="authBtn" onclick="handleAuth()" class="bg-red-600 text-white text-[10px] md:text-xs px-4 py-2 rounded font-black uppercase shadow-lg">Accedi</button>
+                <button id="authBtn" onclick="handleAuth()" class="bg-red-600 text-white text-[10px] md:text-xs px-4 py-2 rounded font-black uppercase">Accedi</button>
                 <div id="profileMenu" class="profile-dropdown">
                     <div id="userEmailLabel" class="px-4 py-3 text-[10px] text-gray-500 border-b border-white/10 truncate">Account</div>
-                    <a href="#" onclick="showProfile()" class="block px-4 py-3 text-xs hover:bg-white/5 transition">Mio Profilo</a>
-                    <a href="#" onclick="showCategory('favorites')" class="block px-4 py-3 text-xs hover:bg-white/5 transition">La mia Lista</a>
+                    <button onclick="showProfile()" class="w-full text-left px-4 py-3 text-xs text-white hover:bg-white/5 transition">Mio Profilo</button>
+                    <button onclick="showCategory('favorites')" class="w-full text-left px-4 py-3 text-xs text-white hover:bg-white/5 transition">La mia Lista</button>
                     <button onclick="netlifyIdentity.logout()" class="w-full text-left px-4 py-3 text-xs text-red-500 hover:bg-white/5 transition">Esci</button>
                 </div>
             </div>
@@ -88,8 +97,8 @@
                     </div>
                 </div>
                 <div id="tvSelectors" class="hidden space-y-5 border-l border-white/10 pl-8">
-                    <select id="seasonSelect" class="w-full bg-[#2f2f2f] p-3 rounded text-sm outline-none border border-white/5"></select>
-                    <select id="episodeSelect" class="w-full bg-[#2f2f2f] p-3 rounded text-sm outline-none border border-white/5"></select>
+                    <select id="seasonSelect" class="w-full bg-[#2f2f2f] p-3 rounded text-sm outline-none border border-white/5 text-white"></select>
+                    <select id="episodeSelect" class="w-full bg-[#2f2f2f] p-3 rounded text-sm outline-none border border-white/5 text-white"></select>
                 </div>
             </div>
         </div>
@@ -128,7 +137,7 @@
             const container = document.getElementById('sections');
             const row = document.createElement('div');
             row.className = "row-container";
-            row.innerHTML = `<h2 class="text-lg font-black mb-2 ml-2 italic uppercase">${title}</h2>
+            row.innerHTML = `<h2 class="text-lg font-black mb-2 ml-2 italic uppercase tracking-tighter">${title}</h2>
                 <div class="carousel-wrapper">
                     <button class="nav-arrow arrow-left" onclick="this.nextElementSibling.scrollLeft -= 600">❮</button>
                     <div class="carousel-track scrollbar-hide"></div>
@@ -153,17 +162,54 @@
             });
             const container = document.getElementById('sections');
             container.innerHTML = '';
-            container.classList.toggle('page-header-offset', cat === 'favorites');
-            if(cat !== 'favorites') {
-                const data = await call(cat === 'all' ? "/trending/all/week" : `/${cat}/popular`);
+            container.classList.remove('page-header-offset');
+            window.scrollTo(0,0);
+            
+            if(cat === 'all') {
+                const data = await call("/trending/all/week");
                 initHero(data.results[0]);
-                if(cat === 'all' && watchHistory.length > 0) createRow("Continua a guardare", watchHistory);
-                createRow(cat === 'all' ? "Tendenze" : "Popolari", data.results);
-            } else {
+                if(watchHistory.length > 0) createRow("Continua a guardare", watchHistory);
+                
+                const user = netlifyIdentity.currentUser();
+                if(user) {
+                    try {
+                        const r = await fetch('/.netlify/functions/manage-favorites', { headers: { Authorization: `Bearer ${user.token.access_token}` } });
+                        myFavorites = await r.json() || [];
+                        if(myFavorites.length > 0) createRow("La mia Lista", myFavorites.map(f => ({ id: f.item_id, media_type: f.media_type, poster_path: f.poster_path })));
+                    } catch(e) {}
+                }
+                createRow("Tendenze della settimana", data.results);
+                createRow("Film Popolari", (await call("/movie/popular")).results);
+                createRow("Serie TV Popolari", (await call("/tv/popular")).results);
+            } else if (cat === 'favorites') {
                 document.getElementById('hero').classList.add('hidden');
-                if(myFavorites.length > 0) createRow("La mia Lista", myFavorites.map(f => ({ id: f.item_id, media_type: f.media_type, poster_path: f.poster_path })));
-                else container.innerHTML = '<p class="text-center py-40 opacity-30 text-2xl font-black">LISTA VUOTA</p>';
+                container.classList.add('page-header-offset');
+                if(myFavorites.length > 0) createRow("I tuoi preferiti", myFavorites.map(f => ({ id: f.item_id, media_type: f.media_type, poster_path: f.poster_path })));
+                else container.innerHTML = '<p class="text-center py-40 opacity-30 text-2xl font-black">LA TUA LISTA È VUOTA</p>';
+            } else {
+                const data = await call(`/${cat}/popular`);
+                initHero(data.results[0]);
+                createRow("Popolari", data.results);
             }
+        }
+
+        async function showProfile() {
+            document.getElementById('hero').classList.add('hidden');
+            const container = document.getElementById('sections');
+            container.innerHTML = '';
+            container.classList.add('page-header-offset');
+            const user = netlifyIdentity.currentUser();
+            if(!user) return netlifyIdentity.open();
+            
+            container.innerHTML = `
+                <div class="max-w-4xl mx-auto p-12 bg-white/5 rounded-2xl border border-white/5 flex flex-col md:flex-row items-center gap-10 mb-12">
+                    <div class="w-24 h-24 bg-red-600 rounded-full flex items-center justify-center text-5xl font-black">${user.email[0].toUpperCase()}</div>
+                    <div class="text-center md:text-left">
+                        <h2 class="text-4xl font-black mb-2">${user.user_metadata.full_name || 'Utente'}</h2>
+                        <p class="text-white/40 text-lg">${user.email}</p>
+                    </div>
+                </div>`;
+            if(watchHistory.length > 0) createRow("Cronologia Visione", watchHistory);
         }
 
         async function showInfo(item) {
@@ -191,13 +237,13 @@
         }
 
         function play() {
-            let baseUrl = `https://vixsrc.to/embed/${cur.type}/${cur.id}`;
+            let url = `https://vixsrc.to/embed/${cur.type}/${cur.id}`;
             if(cur.type === 'tv') {
                 const s = document.getElementById('seasonSelect').value;
                 const e = document.getElementById('episodeSelect').value;
-                baseUrl += `/${s}/${e}`;
+                url += `/${s}/${e}`;
             }
-            document.getElementById('playerFrame').src = baseUrl;
+            document.getElementById('playerFrame').src = url;
             document.getElementById('playerModal').classList.replace('hidden', 'flex');
         }
 
@@ -219,7 +265,7 @@
         function handleAuth() { if(!netlifyIdentity.currentUser()) netlifyIdentity.open(); }
         window.addEventListener('scroll', () => document.getElementById('mainHeader').classList.toggle('scrolled', window.scrollY > 50));
         netlifyIdentity.on('init', updateAuthUI);
-        netlifyIdentity.on('login', () => { updateAuthUI(); netlifyIdentity.close(); showCategory('all'); });
+        netlifyIdentity.on('login', () => { updateAuthUI(); showCategory('all'); netlifyIdentity.close(); });
         netlifyIdentity.on('logout', () => { location.reload(); });
         netlifyIdentity.init();
         showCategory('all');
