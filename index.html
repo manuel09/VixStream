@@ -326,7 +326,7 @@
         }
 
         /* =========================================
-           BOOT SHIELD (ANIMAZIONE LAMPEGGIANTE)
+           BOOT SHIELD (FIXED ANIMATION)
            ========================================= */
         #boot-shield { 
             position: fixed; 
@@ -340,9 +340,9 @@
         }
 
         @keyframes vpulse { 
-            0% { opacity: 0.4; transform: scale(0.95); filter: drop-shadow(0 0 0px #e50914); } 
-            50% { opacity: 1; transform: scale(1.05); filter: drop-shadow(0 0 20px #e50914); } 
-            100% { opacity: 0.4; transform: scale(0.95); filter: drop-shadow(0 0 0px #e50914); } 
+            0% { opacity: 0.3; transform: scale(0.98); filter: drop-shadow(0 0 0px #e50914); } 
+            50% { opacity: 1; transform: scale(1.02); filter: drop-shadow(0 0 15px #e50914); } 
+            100% { opacity: 0.3; transform: scale(0.98); filter: drop-shadow(0 0 0px #e50914); } 
         }
         
         .loader-logo { 
@@ -350,7 +350,7 @@
             font-weight: 900; 
             color: #e50914; 
             font-style: italic; 
-            animation: vpulse 1.2s infinite ease-in-out; 
+            animation: vpulse 1.8s infinite ease-in-out; 
             letter-spacing: -4px;
         }
 
@@ -369,7 +369,7 @@
             height: 100%;
             background: #e50914;
             position: absolute;
-            animation: loadingMove 1.8s infinite ease-in-out;
+            animation: loadingMove 1.5s infinite ease-in-out;
             box-shadow: 0 0 10px #e50914;
         }
 
@@ -386,7 +386,7 @@
         <div class="loading-bar-container">
             <div class="loading-bar-progress"></div>
         </div>
-        <div class="mt-6 text-[10px] font-black tracking-[0.6em] text-white/30 uppercase animate-pulse">
+        <div class="mt-6 text-[10px] font-black tracking-[0.6em] text-white/30 uppercase">
             Inizializzazione Cinema Premium
         </div>
     </div>
@@ -642,17 +642,22 @@
 
         window.onscroll = () => { document.getElementById('mainHeader').classList.toggle('scrolled', window.scrollY > 60); };
 
-        netlifyIdentity.on('init', user => {
-            // Piccolo ritardo per mostrare l'effetto caricamento premium
+        netlifyIdentity.on('init', async user => {
+            // FIX: Carica i contenuti PRIMA di nascondere lo scudo
+            if(user) {
+                const userName = user.user_metadata.full_name || user.email.split('@')[0];
+                document.getElementById('authBtn').innerText = userName.toUpperCase();
+                document.getElementById('userDisplay').innerText = "Premium: " + userName.toUpperCase();
+            }
+            
+            // Aspetta il caricamento effettivo dei dati
+            await loadContent('all');
+            
+            // Nasconde lo scudo solo quando tutto è pronto
             setTimeout(() => {
                 document.getElementById('boot-shield').style.display = 'none';
-                if(user) {
-                    const userName = user.user_metadata.full_name || user.email.split('@')[0];
-                    document.getElementById('authBtn').innerText = userName.toUpperCase();
-                    document.getElementById('userDisplay').innerText = "Premium: " + userName.toUpperCase();
-                }
-                loadContent('all').then(() => { document.getElementById('main-content').classList.remove('opacity-0'); });
-            }, 1500);
+                document.getElementById('main-content').classList.remove('opacity-0');
+            }, 800);
         });
 
         netlifyIdentity.on('login', () => location.reload());
