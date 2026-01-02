@@ -470,7 +470,7 @@
         let watchHistory = JSON.parse(localStorage.getItem('vix_history_premium_v3')) || [];
         let alreadyShownIds = new Set();
         let idleTimer;
-        let isAppStarted = false; // FLAG DI SICUREZZA PER IL LOOP
+        let isAppStarted = false; 
 
         async function callTMDB(path, extraParams = {}) {
             const url = new URL(BASE_URL + path);
@@ -672,14 +672,25 @@
             if(success) terminateLoading();
         }
 
+        // Netlify Logic
         netlifyIdentity.on('init', user => {
-            setTimeout(() => startApp(user), 100);
-            setTimeout(terminateLoading, 5000); // Fail-safe 5 secondi
+            startApp(user);
         });
 
-        netlifyIdentity.on('login', () => location.reload());
+        netlifyIdentity.on('login', user => {
+            // Ricarica solo se l'app non era già partita correttamente
+            if(!isAppStarted) location.reload();
+            else startApp(user);
+        });
+
         netlifyIdentity.on('logout', () => location.reload());
+
+        // Inizializzazione
         netlifyIdentity.init();
+        
+        // Fail-safe per il caricamento
+        setTimeout(() => { if(!isAppStarted) startApp(netlifyIdentity.currentUser()); }, 3000);
+
     </script>
 </body>
 </html>
