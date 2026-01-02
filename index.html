@@ -10,57 +10,26 @@
     <style>
         body { background-color: #141414; color: #fff; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; margin: 0; overflow-x: hidden; }
         .scrollbar-hide::-webkit-scrollbar { display: none; }
-        
         header { background: linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, transparent 100%); transition: 0.3s; z-index: 1000; }
         header.scrolled { background: #141414; }
-        
-        /* Nav Link Active State */
-        .nav-link { transition: color 0.3s; cursor: pointer; }
+        .nav-link { transition: color 0.3s; cursor: pointer; color: rgba(255,255,255,0.6); font-weight: 700; }
         .nav-link.active { color: white !important; font-weight: 900; }
-        .nav-link.inactive { color: rgba(255,255,255,0.5); }
-
-        /* Fix Tendina Profilo Magnetica */
         .profile-container { position: relative; padding: 5px 0; }
-        .profile-dropdown { 
-            display: none; 
-            position: absolute; 
-            top: 100%; 
-            right: 0; 
-            background: #181818; 
-            border: 1px solid rgba(255,255,255,0.1); 
-            min-width: 180px; 
-            border-radius: 4px; 
-            box-shadow: 0 10px 25px rgba(0,0,0,0.8);
-        }
+        .profile-dropdown { display: none; position: absolute; top: 100%; right: 0; background: #181818; border: 1px solid rgba(255,255,255,0.1); min-width: 180px; border-radius: 4px; box-shadow: 0 10px 25px rgba(0,0,0,0.8); }
         .profile-container:hover .profile-dropdown { display: block; }
-
-        /* Pagine Profilo/Liste */
         .page-header-offset { padding-top: 120px !important; }
-
-        /* Row e Card proporzionate */
         .row-container { margin-bottom: 2.5rem; position: relative; }
         .carousel-wrapper { position: relative; display: flex; align-items: center; }
         .carousel-track { display: flex; overflow-x: auto; scroll-behavior: smooth; gap: 10px; padding: 15px 0; width: 100%; }
-        
-        /* Frecce carosello ripristinate */
-        .nav-arrow { 
-            position: absolute; top: 0; bottom: 0; width: 45px; 
-            background: rgba(0,0,0,0.6); color: white; border: none; 
-            display: flex; align-items: center; justify-content: center; 
-            cursor: pointer; z-index: 40; opacity: 0; transition: opacity 0.3s; font-size: 24px; 
-        }
+        .nav-arrow { position: absolute; top: 0; bottom: 0; width: 45px; background: rgba(0,0,0,0.6); color: white; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 40; opacity: 0; transition: opacity 0.3s; font-size: 24px; }
         .row-container:hover .nav-arrow { opacity: 1; }
-        .arrow-left { left: 0; border-radius: 0 4px 4px 0; }
-        .arrow-right { right: 0; border-radius: 4px 0 0 4px; }
-
+        .arrow-left { left: 0; } .arrow-right { right: 0; }
         .card { min-width: 115px; width: 115px; height: 170px; flex-shrink: 0; transition: 0.3s; border-radius: 4px; overflow: hidden; cursor: pointer; }
         @media (min-width: 768px) { .card { min-width: 170px; width: 170px; height: 250px; } }
         .card:hover { transform: scale(1.06); z-index: 50; }
         .card img { width: 100%; height: 100%; object-fit: cover; }
-
-        /* Modale Info */
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 2000; display: none; align-items: center; justify-content: center; padding: 15px; }
-        .modal-box { background: #181818; width: 100%; max-width: 850px; border-radius: 12px; overflow-y: auto; max-height: 90vh; }
+        .modal-box { background: #181818; width: 100%; max-width: 850px; border-radius: 12px; overflow-y: auto; max-height: 90vh; position: relative; }
     </style>
 </head>
 <body class="scrollbar-hide">
@@ -70,18 +39,16 @@
             <a href="#" onclick="showCategory('all')" class="text-red-600 text-2xl md:text-3xl font-black tracking-tighter">VIXSTREAM</a>
             <nav id="mainNav" class="hidden md:flex gap-6 text-[11px] font-bold uppercase tracking-widest">
                 <a onclick="showCategory('all')" class="nav-link active">Home</a>
-                <a onclick="showCategory('tv')" class="nav-link inactive">Serie TV</a>
-                <a onclick="showCategory('movie')" class="nav-link inactive">Film</a>
+                <a onclick="showCategory('tv')" class="nav-link">Serie TV</a>
+                <a onclick="showCategory('movie')" class="nav-link">Film</a>
             </nav>
         </div>
-        
         <div class="flex items-center gap-4">
-            <input type="text" id="searchInput" placeholder="Cerca..." class="bg-black/50 border border-white/20 text-white text-xs rounded px-3 py-1.5 w-24 md:w-60 focus:border-red-600 outline-none transition-all">
-            
+            <input type="text" id="searchInput" placeholder="Cerca..." class="bg-black/50 border border-white/20 text-white text-xs rounded px-3 py-1.5 w-24 md:w-60 focus:border-red-600 outline-none">
             <div class="profile-container">
-                <button id="authBtn" onclick="handleAuth()" class="bg-red-600 text-white text-[10px] md:text-xs px-4 py-2 rounded font-black uppercase shadow-lg transition hover:bg-red-700">Accedi</button>
+                <button id="authBtn" onclick="handleAuth()" class="bg-red-600 text-white text-[10px] md:text-xs px-4 py-2 rounded font-black uppercase shadow-lg">Accedi</button>
                 <div id="profileMenu" class="profile-dropdown">
-                    <div id="userEmailLabel" class="px-4 py-3 text-[10px] text-gray-500 border-b border-white/10 truncate italic">Account</div>
+                    <div id="userEmailLabel" class="px-4 py-3 text-[10px] text-gray-500 border-b border-white/10 truncate">Account</div>
                     <a href="#" onclick="showProfile()" class="block px-4 py-3 text-xs hover:bg-white/5 transition">Mio Profilo</a>
                     <a href="#" onclick="showCategory('favorites')" class="block px-4 py-3 text-xs hover:bg-white/5 transition">La mia Lista</a>
                     <button onclick="netlifyIdentity.logout()" class="w-full text-left px-4 py-3 text-xs text-red-500 hover:bg-white/5 transition">Esci</button>
@@ -90,7 +57,7 @@
         </div>
     </header>
 
-    <main>
+    <main id="mainBody">
         <section id="hero" class="relative h-[65vh] md:h-[85vh] w-full hidden">
             <img id="heroImg" src="" class="absolute w-full h-full object-cover">
             <div class="absolute inset-0 bg-gradient-to-t from-[#141414] via-transparent to-black/30"></div>
@@ -100,7 +67,6 @@
                 <button id="heroPlay" class="bg-white text-black px-10 py-3 rounded font-black hover:bg-red-600 hover:text-white transition shadow-2xl w-fit">▶ RIPRODUCI</button>
             </div>
         </section>
-
         <div id="sections" class="px-4 md:px-12 relative z-20 space-y-12 pb-20"></div>
     </main>
 
@@ -117,19 +83,13 @@
                 <div class="md:col-span-2">
                     <p id="infoOverview" class="text-gray-300 text-sm md:text-base mb-10 leading-relaxed"></p>
                     <div class="flex gap-4">
-                        <button id="playBtn" class="bg-white text-black px-10 py-3 rounded font-black hover:bg-red-600 hover:text-white transition shadow-lg">▶ RIPRODUCI</button>
+                        <button id="playBtn" class="bg-white text-black px-10 py-3 rounded font-black hover:bg-red-600 hover:text-white transition">▶ RIPRODUCI</button>
                         <button id="favBtn" class="border border-white/30 px-8 py-3 rounded font-bold hover:bg-white/10 transition">❤️ LISTA</button>
                     </div>
                 </div>
                 <div id="tvSelectors" class="hidden space-y-5 border-l border-white/10 pl-8">
-                    <div>
-                        <label class="text-[10px] text-white/40 font-black uppercase tracking-widest block mb-2">Stagione</label>
-                        <select id="seasonSelect" class="w-full bg-[#2f2f2f] p-3 rounded text-sm outline-none border border-white/5"></select>
-                    </div>
-                    <div>
-                        <label class="text-[10px] text-white/40 font-black uppercase tracking-widest block mb-2">Episodio</label>
-                        <select id="episodeSelect" class="w-full bg-[#2f2f2f] p-3 rounded text-sm outline-none border border-white/5"></select>
-                    </div>
+                    <select id="seasonSelect" class="w-full bg-[#2f2f2f] p-3 rounded text-sm outline-none border border-white/5"></select>
+                    <select id="episodeSelect" class="w-full bg-[#2f2f2f] p-3 rounded text-sm outline-none border border-white/5"></select>
                 </div>
             </div>
         </div>
@@ -144,34 +104,14 @@
         const API_KEY = "7b5fcf48f24a334bb09f87ce20e5f2ce";
         const IMG = "https://image.tmdb.org/t/p/original";
         let cur = null, myFavorites = [], watchHistory = JSON.parse(localStorage.getItem('vixstream_history')) || [];
-        let timer = null, secs = 0;
 
         function updateAuthUI() {
             const user = netlifyIdentity.currentUser();
-            const authBtn = document.getElementById('authBtn');
-            const userLabel = document.getElementById('userEmailLabel');
             if (user) {
-                authBtn.textContent = (user.user_metadata.full_name || user.email.split('@')[0]).toUpperCase();
-                userLabel.textContent = user.email;
+                document.getElementById('authBtn').textContent = (user.user_metadata.full_name || user.email.split('@')[0]).toUpperCase();
+                document.getElementById('userEmailLabel').textContent = user.email;
             } else {
-                authBtn.textContent = "ACCEDI";
-            }
-        }
-
-        // Funzione per gestire i link attivi
-        function updateNavUI(type) {
-            document.querySelectorAll('.nav-link').forEach(link => {
-                link.classList.remove('active');
-                link.classList.add('inactive');
-            });
-            const activeLink = Array.from(document.querySelectorAll('.nav-link')).find(l => 
-                (type === 'all' && l.textContent === 'Home') || 
-                (type === 'tv' && l.textContent === 'Serie TV') || 
-                (type === 'movie' && l.textContent === 'Film')
-            );
-            if(activeLink) {
-                activeLink.classList.add('active');
-                activeLink.classList.remove('inactive');
+                document.getElementById('authBtn').textContent = "ACCEDI";
             }
         }
 
@@ -188,8 +128,7 @@
             const container = document.getElementById('sections');
             const row = document.createElement('div');
             row.className = "row-container";
-            row.innerHTML = `
-                <h2 class="text-lg font-black mb-2 ml-2 italic uppercase tracking-tighter">${title}</h2>
+            row.innerHTML = `<h2 class="text-lg font-black mb-2 ml-2 italic uppercase">${title}</h2>
                 <div class="carousel-wrapper">
                     <button class="nav-arrow arrow-left" onclick="this.nextElementSibling.scrollLeft -= 600">❮</button>
                     <div class="carousel-track scrollbar-hide"></div>
@@ -208,68 +147,32 @@
         }
 
         async function showCategory(cat) {
-            updateNavUI(cat);
+            document.querySelectorAll('.nav-link').forEach(l => {
+                l.classList.remove('active');
+                if((cat==='all' && l.textContent==='Home') || (cat==='tv' && l.textContent==='Serie TV') || (cat==='movie' && l.textContent==='Film')) l.classList.add('active');
+            });
             const container = document.getElementById('sections');
             container.innerHTML = '';
-            container.classList.remove('page-header-offset');
-            window.scrollTo(0,0);
-            
-            if(cat === 'all') {
-                const data = await call("/trending/all/week");
+            container.classList.toggle('page-header-offset', cat === 'favorites');
+            if(cat !== 'favorites') {
+                const data = await call(cat === 'all' ? "/trending/all/week" : `/${cat}/popular`);
                 initHero(data.results[0]);
-                if(watchHistory.length > 0) createRow("Continua a guardare", watchHistory);
-                const user = netlifyIdentity.currentUser();
-                if(user) {
-                    try {
-                        const r = await fetch('/.netlify/functions/manage-favorites', { headers: { Authorization: `Bearer ${user.token.access_token}` } });
-                        myFavorites = await r.json() || [];
-                        if(myFavorites.length > 0) createRow("La mia Lista", myFavorites.map(f => ({ id: f.item_id, media_type: f.media_type, poster_path: f.poster_path })));
-                    } catch(e) {}
-                }
-                createRow("Tendenze della settimana", data.results);
-                createRow("Film Popolari", (await call("/movie/popular")).results);
-                createRow("Serie TV Popolari", (await call("/tv/popular")).results);
-            } else if (cat === 'favorites') {
-                document.getElementById('hero').classList.add('hidden');
-                container.classList.add('page-header-offset');
-                if(myFavorites.length > 0) createRow("I tuoi preferiti", myFavorites.map(f => ({ id: f.item_id, media_type: f.media_type, poster_path: f.poster_path })));
-                else container.innerHTML = '<p class="text-center py-40 opacity-30 text-2xl font-black">LA TUA LISTA È VUOTA</p>';
+                if(cat === 'all' && watchHistory.length > 0) createRow("Continua a guardare", watchHistory);
+                createRow(cat === 'all' ? "Tendenze" : "Popolari", data.results);
             } else {
-                const data = await call(`/${cat}/popular`);
-                initHero(data.results[0]);
-                createRow(`Popolari su VixStream`, data.results);
+                document.getElementById('hero').classList.add('hidden');
+                if(myFavorites.length > 0) createRow("La mia Lista", myFavorites.map(f => ({ id: f.item_id, media_type: f.media_type, poster_path: f.poster_path })));
+                else container.innerHTML = '<p class="text-center py-40 opacity-30 text-2xl font-black">LISTA VUOTA</p>';
             }
-        }
-
-        function showProfile() {
-            document.getElementById('hero').classList.add('hidden');
-            const container = document.getElementById('sections');
-            container.innerHTML = '';
-            container.classList.add('page-header-offset');
-            const user = netlifyIdentity.currentUser();
-            container.innerHTML = `
-                <div class="max-w-4xl mx-auto p-12 bg-white/5 rounded-2xl border border-white/5 flex flex-col md:flex-row items-center gap-10 mb-12 shadow-2xl">
-                    <div class="w-28 h-28 bg-red-600 rounded-full flex items-center justify-center text-5xl font-black shadow-inner">${user.email[0].toUpperCase()}</div>
-                    <div class="text-center md:text-left">
-                        <h2 class="text-5xl font-black mb-2">${user.user_metadata.full_name || 'Utente'}</h2>
-                        <p class="text-white/40 text-xl font-medium">${user.email}</p>
-                        <span class="mt-4 inline-block bg-red-600 text-[10px] px-3 py-1 rounded font-black uppercase tracking-tighter">Premium Active</span>
-                    </div>
-                </div>`;
-            if(watchHistory.length > 0) createRow("Cronologia Visione", watchHistory);
         }
 
         async function showInfo(item) {
             cur = {...item, type: item.media_type || (item.title ? 'movie' : 'tv')};
             const full = await call(`/${cur.type}/${item.id}`);
             Object.assign(cur, full);
-
             document.getElementById('infoTitle').textContent = cur.title || cur.name;
             document.getElementById('infoOverview').textContent = cur.overview;
             document.getElementById('infoBgImg').src = IMG + (cur.backdrop_path || cur.poster_path);
-            
-            const isF = myFavorites.some(f => f.item_id == cur.id);
-            document.getElementById('favBtn').textContent = isF ? "❤️ RIMUOVI" : "❤️ LISTA";
             
             const tv = document.getElementById('tvSelectors');
             if(cur.seasons) {
@@ -284,42 +187,18 @@
             } else tv.classList.add('hidden');
 
             document.getElementById('infoModal').style.display = 'flex';
-            document.body.style.overflow = 'hidden';
             document.getElementById('playBtn').onclick = play;
-            document.getElementById('favBtn').onclick = toggleFav;
-        }
-
-        async function toggleFav() {
-            const user = netlifyIdentity.currentUser(); if(!user) return netlifyIdentity.open();
-            const isF = myFavorites.some(f => f.item_id == cur.id);
-            await fetch('/.netlify/functions/manage-favorites', {
-                method: 'POST', headers: { Authorization: `Bearer ${user.token.access_token}` },
-                body: JSON.stringify({ action: isF?'remove':'add', item_id: cur.id, media_type: cur.type, poster_path: cur.poster_path })
-            });
-            closeModals(); showCategory('all');
         }
 
         function play() {
-            let url = `https://vixsrc.to/${cur.type}/${cur.id}`;
-            const s = cur.type === 'tv' ? document.getElementById('seasonSelect').value : null;
-            const e = cur.type === 'tv' ? document.getElementById('episodeSelect').value : null;
-            if(cur.type === 'tv') url += `/${s}/${e}`;
-
-            const saved = watchHistory.find(h => h.id === cur.id && (cur.type === 'movie' || (h.season == s && h.episode == e)));
-            secs = saved ? saved.time : 0;
-
-            clearInterval(timer);
-            timer = setInterval(() => { secs += 10; saveHistory(s, e); }, 10000);
-
-            document.getElementById('playerFrame').src = `${url}?autoplay=true&startAt=${secs}`;
+            let baseUrl = `https://vixsrc.to/embed/${cur.type}/${cur.id}`;
+            if(cur.type === 'tv') {
+                const s = document.getElementById('seasonSelect').value;
+                const e = document.getElementById('episodeSelect').value;
+                baseUrl += `/${s}/${e}`;
+            }
+            document.getElementById('playerFrame').src = baseUrl;
             document.getElementById('playerModal').classList.replace('hidden', 'flex');
-        }
-
-        function saveHistory(s, e) {
-            const h = { id: cur.id, type: cur.type, title: cur.title || cur.name, poster_path: cur.poster_path, time: secs, season: s, episode: e };
-            watchHistory = watchHistory.filter(x => x.id !== cur.id);
-            watchHistory.unshift(h);
-            localStorage.setItem('vixstream_history', JSON.stringify(watchHistory.slice(0, 20)));
         }
 
         function closeModals() {
@@ -327,11 +206,9 @@
             document.getElementById('playerModal').classList.replace('flex', 'hidden');
             document.getElementById('playerFrame').src = "";
             document.body.style.overflow = '';
-            clearInterval(timer);
         }
 
         function initHero(item) {
-            if(!item) return;
             document.getElementById('hero').classList.remove('hidden');
             document.getElementById('heroImg').src = IMG + item.backdrop_path;
             document.getElementById('heroTitle').textContent = item.title || item.name;
@@ -341,11 +218,9 @@
 
         function handleAuth() { if(!netlifyIdentity.currentUser()) netlifyIdentity.open(); }
         window.addEventListener('scroll', () => document.getElementById('mainHeader').classList.toggle('scrolled', window.scrollY > 50));
-        
         netlifyIdentity.on('init', updateAuthUI);
-        netlifyIdentity.on('login', () => { updateAuthUI(); showCategory('all'); netlifyIdentity.close(); });
+        netlifyIdentity.on('login', () => { updateAuthUI(); netlifyIdentity.close(); showCategory('all'); });
         netlifyIdentity.on('logout', () => { location.reload(); });
-        
         netlifyIdentity.init();
         showCategory('all');
     </script>
