@@ -12,31 +12,22 @@
         .scrollbar-hide::-webkit-scrollbar { display: none; }
         header { background: linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, transparent 100%); transition: 0.3s; z-index: 1000; }
         header.scrolled { background: #141414; }
-        
         .nav-link { transition: color 0.3s; cursor: pointer; color: rgba(255,255,255,0.6); font-weight: 700; }
         .nav-link.active { color: white !important; font-weight: 900; }
-        
-        /* Dropdown Profilo */
         .profile-container { position: relative; padding: 10px 0; cursor: pointer; }
         .profile-dropdown { display: none; position: absolute; top: 100%; right: 0; background: #181818; border: 1px solid rgba(255,255,255,0.1); min-width: 180px; border-radius: 4px; box-shadow: 0 10px 25px rgba(0,0,0,0.8); z-index: 1100; }
         .profile-container:hover .profile-dropdown { display: block; }
-        
         .page-header-offset { padding-top: 130px !important; }
-        
-        /* Caroselli */
         .row-container { margin-bottom: 2.5rem; position: relative; }
         .carousel-wrapper { position: relative; display: flex; align-items: center; }
         .carousel-track { display: flex; overflow-x: auto; scroll-behavior: smooth; gap: 10px; padding: 15px 0; width: 100%; }
-        
         .nav-arrow { position: absolute; top: 0; bottom: 0; width: 45px; background: rgba(0,0,0,0.6); color: white; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 40; opacity: 0; transition: opacity 0.3s; font-size: 24px; }
         .row-container:hover .nav-arrow { opacity: 1; }
         .arrow-left { left: 0; } .arrow-right { right: 0; }
-        
         .card { min-width: 115px; width: 115px; height: 170px; flex-shrink: 0; transition: 0.3s; border-radius: 4px; overflow: hidden; cursor: pointer; }
         @media (min-width: 768px) { .card { min-width: 170px; width: 170px; height: 250px; } }
         .card:hover { transform: scale(1.06); z-index: 50; }
         .card img { width: 100%; height: 100%; object-fit: cover; }
-        
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 2000; display: none; align-items: center; justify-content: center; padding: 15px; }
         .modal-box { background: #181818; width: 100%; max-width: 850px; border-radius: 12px; overflow-y: auto; max-height: 90vh; }
     </style>
@@ -166,8 +157,8 @@
             window.scrollTo(0,0);
             
             if(cat === 'all') {
-                const data = await call("/trending/all/week");
-                initHero(data.results[0]);
+                const trending = await call("/trending/all/week");
+                initHero(trending.results[0]);
                 if(watchHistory.length > 0) createRow("Continua a guardare", watchHistory);
                 
                 const user = netlifyIdentity.currentUser();
@@ -178,9 +169,11 @@
                         if(myFavorites.length > 0) createRow("La mia Lista", myFavorites.map(f => ({ id: f.item_id, media_type: f.media_type, poster_path: f.poster_path })));
                     } catch(e) {}
                 }
-                createRow("Tendenze della settimana", data.results);
-                createRow("Film Popolari", (await call("/movie/popular")).results);
-                createRow("Serie TV Popolari", (await call("/tv/popular")).results);
+                createRow("I Titoli del Momento", trending.results);
+                const movies = await call("/movie/popular");
+                createRow("Film Popolari", movies.results);
+                const series = await call("/tv/popular");
+                createRow("Serie TV Popolari", series.results);
             } else if (cat === 'favorites') {
                 document.getElementById('hero').classList.add('hidden');
                 container.classList.add('page-header-offset');
@@ -189,7 +182,9 @@
             } else {
                 const data = await call(`/${cat}/popular`);
                 initHero(data.results[0]);
-                createRow("Popolari", data.results);
+                createRow(cat === 'tv' ? "Serie TV più viste" : "Film di successo", data.results);
+                const topRated = await call(`/${cat}/top_rated`);
+                createRow("I più votati", topRated.results);
             }
         }
 
@@ -203,7 +198,7 @@
             
             container.innerHTML = `
                 <div class="max-w-4xl mx-auto p-12 bg-white/5 rounded-2xl border border-white/5 flex flex-col md:flex-row items-center gap-10 mb-12">
-                    <div class="w-24 h-24 bg-red-600 rounded-full flex items-center justify-center text-5xl font-black">${user.email[0].toUpperCase()}</div>
+                    <div class="w-24 h-24 bg-red-600 rounded-full flex items-center justify-center text-5xl font-black shadow-lg">${user.email[0].toUpperCase()}</div>
                     <div class="text-center md:text-left">
                         <h2 class="text-4xl font-black mb-2">${user.user_metadata.full_name || 'Utente'}</h2>
                         <p class="text-white/40 text-lg">${user.email}</p>
