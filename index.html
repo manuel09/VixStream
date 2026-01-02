@@ -11,7 +11,7 @@
 
     <style>
         /* =========================================
-           RESET E STILI BASE 
+           CORE SYSTEM & RESET
            ========================================= */
         body { 
             background-color: #141414; 
@@ -19,17 +19,19 @@
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; 
             margin: 0; 
             overflow-x: hidden; 
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
         .scrollbar-hide::-webkit-scrollbar { display: none; }
         .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 
         /* =========================================
-           HEADER E NAVIGAZIONE 
+           HEADER & NAVIGATION
            ========================================= */
         header { 
             background: linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, transparent 100%); 
-            transition: background-color 0.4s ease-in-out; 
+            transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1); 
             z-index: 1000; 
             height: 75px; 
             position: fixed; 
@@ -38,9 +40,10 @@
             display: flex; 
             align-items: center; 
         }
+        
         header.scrolled { 
             background-color: #141414 !important; 
-            box-shadow: 0 4px 20px rgba(0,0,0,0.7); 
+            box-shadow: 0 4px 30px rgba(0,0,0,0.8); 
         }
 
         .nav-link { 
@@ -48,17 +51,31 @@
             color: rgba(255,255,255,0.7); 
             font-weight: 700; 
             font-size: 13px; 
-            transition: 0.3s; 
+            transition: all 0.3s ease; 
             text-transform: uppercase; 
-            letter-spacing: 0.5px;
+            letter-spacing: 0.8px;
+            position: relative;
         }
-        .nav-link:hover, .nav-link.active { color: white; }
-        .nav-link.active { border-bottom: 2px solid #e50914; padding-bottom: 5px; }
+        
+        .nav-link:hover, .nav-link.active { 
+            color: #ffffff; 
+        }
+        
+        .nav-link.active::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background-color: #e50914;
+        }
 
         /* =========================================
-           PROFILO E DROPDOWN 
+           PROFILE DROPDOWN SYSTEM
            ========================================= */
         .profile-container { position: relative; cursor: pointer; }
+        
         .profile-dropdown { 
             display: none; 
             position: absolute; 
@@ -66,60 +83,83 @@
             right: 0; 
             background: #181818; 
             border: 1px solid rgba(255,255,255,0.1); 
-            min-width: 200px; 
+            min-width: 230px; 
             border-radius: 8px; 
-            box-shadow: 0 10px 40px rgba(0,0,0,0.9); 
-            margin-top: 12px; 
+            box-shadow: 0 20px 50px rgba(0,0,0,0.9); 
+            margin-top: 15px; 
             overflow: hidden;
+            z-index: 1100;
         }
-        .profile-container:hover .profile-dropdown { display: block; }
+        
+        .profile-container:hover .profile-dropdown { 
+            display: block; 
+            animation: slideDown 0.3s ease;
+        }
+        
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
         
         .dropdown-item {
             width: 100%;
             text-align: left;
-            padding: 14px 20px;
+            padding: 16px 22px;
             font-size: 11px;
-            font-weight: 700;
-            transition: 0.2s;
+            font-weight: 800;
+            transition: background 0.3s;
             text-transform: uppercase;
             border-bottom: 1px solid rgba(255,255,255,0.05);
+            color: rgba(255,255,255,0.6);
         }
-        .dropdown-item:hover { background: rgba(255,255,255,0.08); }
+        
+        .dropdown-item:hover { 
+            background: rgba(255,255,255,0.1); 
+            color: white;
+        }
 
         /* =========================================
-           CAROSELLI (FIX TITOLI) 
+           CAROUSEL & ROWS (FIX TITOLI FOTO 1)
            ========================================= */
-        .row-container { margin-bottom: 3.5rem; position: relative; padding: 0 4%; }
+        .row-container { 
+            margin-bottom: 4rem; 
+            position: relative; 
+            padding: 0 4%; 
+        }
         
         .row-title { 
-            font-size: 15px; 
-            font-weight: 800; 
-            color: #f5f5f5; 
-            margin-bottom: 18px; 
-            margin-top: 15px;
+            font-size: 17px; 
+            font-weight: 900; 
+            color: #ffffff; 
+            margin-bottom: 25px; 
+            margin-top: 20px;
             text-transform: uppercase; 
-            letter-spacing: 1.2px;
+            letter-spacing: 1.5px;
             display: block;
-            opacity: 0.9;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
         }
 
-        .carousel-wrapper { position: relative; display: flex; align-items: center; }
+        .carousel-wrapper { 
+            position: relative; 
+            display: flex; 
+            align-items: center; 
+        }
+        
         .carousel-track { 
             display: flex; 
             overflow-x: auto; 
             scroll-behavior: smooth; 
-            gap: 15px; 
-            padding: 10px 0; 
+            gap: 16px; 
+            padding: 15px 0; 
             width: 100%; 
         }
         
-        /* FRECCE TONDE */
         .nav-arrow { 
             position: absolute; 
             top: 50%; 
             transform: translateY(-50%);
-            width: 45px; 
-            height: 45px; 
+            width: 50px; 
+            height: 50px; 
             background: rgba(0,0,0,0.85); 
             color: white; 
             border: 1px solid rgba(255,255,255,0.2); 
@@ -130,70 +170,142 @@
             cursor: pointer; 
             z-index: 50; 
             opacity: 0; 
-            transition: all 0.3s ease; 
-            font-size: 20px; 
-            backdrop-filter: blur(5px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(10px);
         }
+        
         .carousel-wrapper:hover .nav-arrow { opacity: 1; }
-        .nav-arrow:hover { background: #e50914; border-color: #e50914; transform: translateY(-50%) scale(1.1); }
-        .arrow-left { left: -22px; } 
-        .arrow-right { right: -22px; }
+        .nav-arrow:hover { 
+            background: #e50914; 
+            border-color: #e50914; 
+            transform: translateY(-50%) scale(1.1);
+        }
+        
+        .arrow-left { left: -25px; } 
+        .arrow-right { right: -25px; }
 
-        /* CARDS */
         .card { 
-            min-width: 140px; 
-            width: 140px; 
+            min-width: 145px; 
+            width: 145px; 
             aspect-ratio: 2/3; 
             flex-shrink: 0; 
-            border-radius: 6px; 
+            border-radius: 8px; 
             overflow: hidden; 
             cursor: pointer;
-            transition: transform 0.4s cubic-bezier(0.2, 1, 0.3, 1); 
+            transition: all 0.4s cubic-bezier(0.2, 1, 0.3, 1); 
             background: #222; 
         }
-        @media (min-width: 768px) { .card { min-width: 185px; width: 185px; } }
-        .card:hover { transform: scale(1.08); z-index: 10; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
-        .card img { width: 100%; height: 100%; object-fit: cover; }
+        
+        @media (min-width: 768px) { 
+            .card { min-width: 190px; width: 190px; } 
+        }
+        
+        .card:hover { 
+            transform: scale(1.08); 
+            z-index: 10; 
+            box-shadow: 0 15px 40px rgba(0,0,0,0.8); 
+        }
+        
+        .card img { 
+            width: 100%; 
+            height: 100%; 
+            object-fit: cover; 
+        }
 
         /* =========================================
-           MODALE (FIX ALTEZZA E UX) 
+           INFO MODAL (FIX ALTEZZA FOTO 2)
            ========================================= */
         .modal-overlay { 
             position: fixed; 
             inset: 0; 
-            background: rgba(0,0,0,0.92); 
+            background: rgba(0,0,0,0.95); 
             z-index: 2000; 
             display: none; 
             align-items: center; 
             justify-content: center; 
             padding: 20px; 
-            backdrop-filter: blur(10px); 
+            backdrop-filter: blur(15px); 
         }
+        
         .modal-box { 
             background: #181818; 
             width: 100%; 
-            max-width: 800px; 
-            border-radius: 12px; 
+            max-width: 850px; 
+            border-radius: 16px; 
             overflow-y: auto; 
             max-height: 90vh; 
             position: relative; 
             border: 1px solid rgba(255,255,255,0.1); 
         }
         
-        /* Altezza ridotta per vedere subito i tasti play/episodi */
         .modal-hero { 
             position: relative; 
-            height: 38vh; 
-            min-height: 280px; 
+            height: 35vh; 
+            min-height: 250px; 
             width: 100%; 
         }
-        .modal-hero img { width: 100%; height: 100%; object-fit: cover; }
-
-        #playerModal { position: fixed; inset: 0; background: #000; z-index: 3000; display: none; }
-        #playerFrame { border: none; width: 100%; height: 100%; }
+        
+        .modal-hero img { 
+            width: 100%; 
+            height: 100%; 
+            object-fit: cover; 
+        }
 
         /* =========================================
-           BOOT SHIELD (ANTI-LAMPEGGIO) 
+           PREMIUM PLAYER FULLSCREEN & AUTO-HIDE
+           ========================================= */
+        #playerModal { 
+            position: fixed; 
+            inset: 0; 
+            background: #000; 
+            z-index: 5000; 
+            display: none; 
+            cursor: none; /* Nasconde il cursore */
+        }
+        
+        #playerModal.active-ui { cursor: default; }
+
+        #closePlayerBtn {
+            position: fixed;
+            top: 35px;
+            right: 45px;
+            z-index: 5100;
+            background: rgba(0,0,0,0.6);
+            color: white;
+            padding: 14px 30px;
+            border-radius: 100px;
+            font-weight: 900;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            border: 1px solid rgba(255,255,255,0.2);
+            backdrop-filter: blur(15px);
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(-10px);
+        }
+        
+        #closePlayerBtn.visible { 
+            opacity: 1; 
+            pointer-events: auto;
+            transform: translateY(0);
+        }
+        
+        #closePlayerBtn:hover { 
+            background: #e50914; 
+            border-color: #e50914; 
+            transform: scale(1.1);
+        }
+
+        #playerFrame { 
+            border: none; 
+            width: 100%; 
+            height: 100%; 
+        }
+
+        /* =========================================
+           BOOT SYSTEM
            ========================================= */
         #boot-shield { 
             position: fixed; 
@@ -205,87 +317,95 @@
             align-items: center; 
             justify-content: center; 
         }
-        .loader-logo {
-            font-size: 3.5rem;
-            font-weight: 900;
-            color: #e50914;
-            font-style: italic;
-            letter-spacing: -2px;
-            animation: pulse 1.5s infinite;
+        
+        .loader-logo { 
+            font-size: 4rem; 
+            font-weight: 900; 
+            color: #e50914; 
+            font-style: italic; 
+            animation: pulse 1.5s infinite; 
+            letter-spacing: -3px;
         }
-        @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.95); } }
+        
+        @keyframes pulse { 
+            0%, 100% { opacity: 1; transform: scale(1); } 
+            50% { opacity: 0.5; transform: scale(0.95); } 
+        }
     </style>
 </head>
 <body class="scrollbar-hide">
 
     <div id="boot-shield">
         <div class="loader-logo">VIXSTREAM</div>
-        <div class="mt-4 text-[10px] font-bold tracking-[0.4em] text-white/30 uppercase">Sincronizzazione...</div>
+        <div class="mt-4 text-[10px] font-black tracking-[0.6em] text-white/30 uppercase">Inizializzazione Cinema</div>
     </div>
 
     <header id="mainHeader">
         <div class="flex items-center justify-between w-full px-6 md:px-16">
-            <div class="flex items-center gap-10">
-                <span onclick="window.location.reload()" class="text-red-600 text-3xl font-black tracking-tighter cursor-pointer italic">VIXSTREAM</span>
-                <nav class="hidden lg:flex gap-8">
+            <div class="flex items-center gap-12">
+                <span onclick="window.location.reload()" class="text-red-600 text-3xl font-black italic cursor-pointer tracking-tighter">VIXSTREAM</span>
+                <nav class="hidden lg:flex gap-10">
                     <a onclick="loadContent('all')" id="nav-all" class="nav-link active">Home</a>
                     <a onclick="loadContent('tv')" id="nav-tv" class="nav-link">Serie TV</a>
                     <a onclick="loadContent('movie')" id="nav-movie" class="nav-link">Film</a>
+                    <a onclick="loadContent('favorites')" id="nav-fav" class="nav-link">La mia Lista</a>
                 </nav>
             </div>
             
             <div class="profile-container">
-                <button id="authBtn" onclick="if(!netlifyIdentity.currentUser()) netlifyIdentity.open()" class="bg-red-600 text-white text-[11px] px-6 py-2.5 rounded-full font-black uppercase tracking-widest hover:bg-red-700 transition shadow-lg">Accedi</button>
+                <button id="authBtn" onclick="if(!netlifyIdentity.currentUser()) netlifyIdentity.open()" class="bg-red-600 text-white text-[11px] px-8 py-3 rounded-full font-black uppercase tracking-widest shadow-xl hover:bg-red-700 transition">Accedi</button>
                 <div id="profileMenu" class="profile-dropdown">
-                    <div id="userDisplay" class="px-6 py-5 text-[11px] font-black text-white/40 border-b border-white/5 bg-white/5 italic uppercase tracking-widest">Account Ospite</div>
-                    <button onclick="showFullProfile()" class="dropdown-item">👤 Mio Profilo</button>
+                    <div id="userDisplay" class="px-6 py-6 text-[10px] font-black text-white/30 border-b border-white/5 bg-white/5 uppercase tracking-widest italic">Ospite</div>
+                    <button onclick="showFullProfile()" class="dropdown-item">👤 Profilo Utente</button>
                     <button onclick="loadContent('favorites')" class="dropdown-item">❤️ La mia Lista</button>
-                    <button onclick="netlifyIdentity.logout()" class="dropdown-item text-red-500 font-black">🚪 Esci Account</button>
+                    <button onclick="netlifyIdentity.logout()" class="dropdown-item text-red-500 font-bold">🚪 Esci Account</button>
                 </div>
             </div>
         </div>
     </header>
 
-    <main id="main-content" class="opacity-0 transition-opacity duration-700">
-        <section id="hero" class="relative h-[75vh] w-full flex flex-col justify-end p-8 md:p-20 pb-28 hidden">
+    <main id="main-content" class="opacity-0 transition-opacity duration-1000">
+        
+        <section id="hero" class="relative h-[80vh] w-full flex flex-col justify-end p-10 md:p-24 pb-32 hidden">
             <img id="heroImg" src="" class="absolute inset-0 w-full h-full object-cover -z-10">
-            <div class="absolute inset-0 bg-gradient-to-t from-[#141414] via-[#141414]/20 to-transparent"></div>
-            <div class="relative z-10 max-w-3xl">
-                <h1 id="heroTitle" class="text-5xl md:text-7xl font-black uppercase italic mb-5 tracking-tighter drop-shadow-2xl"></h1>
-                <p id="heroOverview" class="text-sm md:text-base mb-10 line-clamp-3 text-gray-200 font-medium max-w-xl"></p>
-                <button id="heroPlay" class="bg-white text-black px-12 py-4 rounded font-black hover:bg-red-600 hover:text-white transition shadow-2xl uppercase italic text-sm">▶ Riproduci Ora</button>
+            <div class="absolute inset-0 bg-gradient-to-t from-[#141414] via-[#141414]/30 to-transparent"></div>
+            <div class="relative z-10 max-w-4xl">
+                <h1 id="heroTitle" class="text-6xl md:text-8xl font-black uppercase italic mb-6 tracking-tighter drop-shadow-2xl"></h1>
+                <p id="heroOverview" class="text-base md:text-lg mb-10 line-clamp-3 text-gray-200 font-medium max-w-2xl italic"></p>
+                <button id="heroPlay" class="bg-white text-black px-16 py-5 rounded-lg font-black hover:bg-red-600 hover:text-white transition shadow-2xl uppercase italic text-sm">▶ Riproduci Ora</button>
             </div>
         </section>
 
-        <div id="sections" class="relative z-20 -mt-20 space-y-4"></div>
+        <div id="sections" class="relative z-20 -mt-24 space-y-6"></div>
+        
     </main>
 
     <div id="infoModal" class="modal-overlay" onclick="if(event.target==this) closeModals()">
         <div class="modal-box scrollbar-hide">
             <div class="modal-hero">
-                <img id="infoBgImg" src="" alt="backdrop">
-                <button onclick="closeModals()" class="absolute top-5 right-5 bg-black/60 text-white w-10 h-10 rounded-full flex items-center justify-center text-xl hover:bg-red-600 transition">✕</button>
+                <img id="infoBgImg" src="" alt="poster-large">
+                <button onclick="closeModals()" class="absolute top-6 right-6 bg-black/70 text-white w-12 h-12 rounded-full flex items-center justify-center text-2xl hover:bg-red-600 transition">✕</button>
                 <div class="absolute inset-0 bg-gradient-to-t from-[#181818] via-transparent"></div>
-                <h2 id="infoTitle" class="absolute bottom-6 left-10 text-3xl md:text-5xl font-black uppercase italic tracking-tighter"></h2>
+                <h2 id="infoTitle" class="absolute bottom-6 left-10 text-4xl md:text-6xl font-black uppercase italic tracking-tighter shadow-black"></h2>
             </div>
             
-            <div class="p-8 md:p-12 grid md:grid-cols-3 gap-10">
+            <div class="p-10 md:p-14 grid md:grid-cols-3 gap-12">
                 <div class="md:col-span-2">
-                    <p id="infoOverview" class="text-gray-300 text-sm md:text-base leading-relaxed mb-10 font-light"></p>
-                    <div class="flex gap-4">
-                        <button id="playBtn" class="bg-red-600 text-white px-12 py-3.5 rounded font-black hover:bg-red-700 transition shadow-xl uppercase text-sm">▶ Guarda Ora</button>
-                        <button id="favBtn" onclick="toggleFavorite()" class="border-2 border-white/10 px-8 py-3.5 rounded font-black hover:bg-white/10 transition uppercase text-sm">❤️ Lista</button>
+                    <p id="infoOverview" class="text-gray-300 text-base md:text-lg leading-relaxed mb-12 font-light italic"></p>
+                    <div class="flex gap-5">
+                        <button id="playBtn" class="bg-red-600 text-white px-14 py-4.5 rounded-xl font-black hover:bg-red-700 transition shadow-2xl uppercase text-sm">▶ Guarda Ora</button>
+                        <button id="favBtn" onclick="toggleFavorite()" class="border-2 border-white/10 px-10 py-4.5 rounded-xl font-black hover:bg-white/10 transition uppercase text-sm">❤️ Lista</button>
                     </div>
                 </div>
                 
-                <div id="tvBox" class="hidden space-y-5 bg-white/5 p-6 rounded-2xl border border-white/5 backdrop-blur-md">
-                    <div class="space-y-2">
-                        <label class="text-[10px] font-black text-gray-500 uppercase tracking-widest">Stagione</label>
-                        <select id="seasonSelect" class="w-full bg-zinc-900 p-4 rounded-xl text-xs font-bold text-white border border-white/10 outline-none cursor-pointer"></select>
+                <div id="tvBox" class="hidden space-y-6 bg-white/5 p-8 rounded-3xl border border-white/5 backdrop-blur-2xl">
+                    <div>
+                        <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 block">Stagione</label>
+                        <select id="seasonSelect" class="w-full bg-zinc-900 p-4 rounded-xl text-xs font-bold text-white border border-white/10 outline-none cursor-pointer hover:border-red-600 transition"></select>
                     </div>
-                    <div class="space-y-2">
-                        <label class="text-[10px] font-black text-gray-500 uppercase tracking-widest">Episodio</label>
-                        <select id="episodeSelect" class="w-full bg-zinc-900 p-4 rounded-xl text-xs font-bold text-white border border-white/10 outline-none cursor-pointer"></select>
+                    <div>
+                        <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 block">Episodio</label>
+                        <select id="episodeSelect" class="w-full bg-zinc-900 p-4 rounded-xl text-xs font-bold text-white border border-white/10 outline-none cursor-pointer hover:border-red-600 transition"></select>
                     </div>
                 </div>
             </div>
@@ -293,10 +413,7 @@
     </div>
 
     <div id="playerModal">
-        <div class="flex justify-between items-center p-5 bg-black/95 border-b border-white/5">
-            <span class="text-white/40 text-[10px] font-black italic uppercase tracking-[0.3em]">Cinema Streaming Premium</span>
-            <button onclick="closeModals()" class="bg-red-600 text-white px-8 py-2.5 rounded-full font-black hover:bg-red-700 transition uppercase text-xs shadow-lg">Chiudi Player ✕</button>
-        </div>
+        <button id="closePlayerBtn" onclick="closeModals()">Chiudi Visione ✕</button>
         <iframe id="playerFrame" allowfullscreen allow="autoplay"></iframe>
     </div>
 
@@ -304,9 +421,9 @@
         const API_KEY = "7b5fcf48f24a334bb09f87ce20e5f2ce";
         const BASE_URL = "https://api.themoviedb.org/3";
         let currentItem = null;
-        let watchHistory = JSON.parse(localStorage.getItem('vix_history_premium')) || [];
+        let watchHistory = JSON.parse(localStorage.getItem('vix_history_premium_v3')) || [];
         let alreadyShownIds = new Set();
-        let appReady = false;
+        let idleTimer;
 
         async function callTMDB(path, extraParams = {}) {
             const url = new URL(BASE_URL + path);
@@ -336,18 +453,18 @@
                     renderRow("I Più Popolari della Settimana", trending.results.filter(i => i.media_type === 'movie'));
                     renderRow("Serie TV suggerite", trending.results.filter(i => i.media_type === 'tv'));
                     const topMovies = await callTMDB('/movie/top_rated');
-                    renderRow("Top Rated - Film", topMovies.results);
+                    renderRow("I migliori Film di sempre", topMovies.results);
                 } 
                 else if(category === 'favorites') {
                     heroSection.classList.add('hidden');
-                    container.style.marginTop = "140px";
+                    container.style.marginTop = "150px";
                     const user = netlifyIdentity.currentUser();
                     if(user) {
                         const res = await fetch('/.netlify/functions/manage-favorites', { 
                             headers: { Authorization: `Bearer ${user.token.access_token}` } 
                         });
                         const favs = await res.json();
-                        renderRow("I tuoi preferiti", favs.map(x => ({ id: x.item_id, media_type: x.media_type, poster_path: x.poster_path })));
+                        renderRow("La mia Lista Personale", favs.map(x => ({ id: x.item_id, media_type: x.media_type, poster_path: x.poster_path })));
                     }
                 } 
                 else {
@@ -357,7 +474,7 @@
                     const topRated = await callTMDB(`/${category}/top_rated`);
                     renderRow("I più votati dalla critica", topRated.results);
                 }
-            } catch (e) { console.error(e); }
+            } catch (e) { console.error("Errore caricamento:", e); }
         }
 
         function renderRow(title, items) {
@@ -401,7 +518,7 @@
             const details = await callTMDB(`/${type}/${id}`);
             currentItem = {...details, type: type};
             document.getElementById('infoTitle').innerText = currentItem.title || currentItem.name;
-            document.getElementById('infoOverview').innerText = currentItem.overview || "Nessuna trama disponibile.";
+            document.getElementById('infoOverview').innerText = currentItem.overview || "Trama non disponibile in italiano.";
             document.getElementById('infoBgImg').src = "https://image.tmdb.org/t/p/original" + (currentItem.backdrop_path || currentItem.poster_path);
             
             const tvBox = document.getElementById('tvBox');
@@ -413,7 +530,7 @@
                 sSelect.innerHTML = validSeasons.map(s => `<option value="${s.season_number}">STAGIONE ${s.season_number}</option>`).join('');
                 sSelect.onchange = async () => {
                     const sData = await callTMDB(`/tv/${currentItem.id}/season/${sSelect.value}`);
-                    eSelect.innerHTML = sData.episodes.map(e => `<option value="${e.episode_number}">EP. ${e.episode_number} - ${e.name}</option>`).join('');
+                    eSelect.innerHTML = sData.episodes.map(e => `<option value="${e.episode_number}">EPISODIO ${e.episode_number}</option>`).join('');
                 };
                 await sSelect.onchange();
             } else { tvBox.classList.add('hidden'); }
@@ -427,10 +544,28 @@
             if(currentItem.type === 'tv') streamUrl += `/${document.getElementById('seasonSelect').value}/${document.getElementById('episodeSelect').value}`;
             streamUrl += `?primaryColor=B20710&autoplay=true&lang=it`;
             document.getElementById('playerFrame').src = streamUrl;
-            document.getElementById('playerModal').style.display = 'flex';
+            document.getElementById('playerModal').style.display = 'block';
+            
+            // Gestione Interfaccia a Scomparsa
+            document.addEventListener('mousemove', handleUiActivity);
+            handleUiActivity(); // Forza la visibilità all'avvio
+
             watchHistory = watchHistory.filter(x => x.id !== currentItem.id);
             watchHistory.unshift(currentItem);
-            localStorage.setItem('vix_history_premium', JSON.stringify(watchHistory.slice(0, 15)));
+            localStorage.setItem('vix_history_premium_v3', JSON.stringify(watchHistory.slice(0, 15)));
+        }
+
+        function handleUiActivity() {
+            const btn = document.getElementById('closePlayerBtn');
+            const player = document.getElementById('playerModal');
+            btn.classList.add('visible');
+            player.classList.add('active-ui');
+            
+            clearTimeout(idleTimer);
+            idleTimer = setTimeout(() => {
+                btn.classList.remove('visible');
+                player.classList.remove('active-ui');
+            }, 3000); // 3 secondi di inattività
         }
 
         function showFullProfile() {
@@ -440,21 +575,21 @@
             sections.style.marginTop = "150px";
             const name = (user.user_metadata.full_name || user.email.split('@')[0]).toUpperCase();
             sections.innerHTML = `
-                <div class="max-w-2xl mx-auto p-16 bg-white/5 rounded-[40px] text-center border border-white/5 backdrop-blur-3xl shadow-2xl">
-                    <div class="w-24 h-24 bg-red-600 rounded-full flex items-center justify-center text-5xl font-black mx-auto mb-8 shadow-2xl">${name[0]}</div>
-                    <h2 class="text-4xl font-black uppercase italic tracking-tighter">${name}</h2>
-                    <p class="text-white/40 mt-3 font-bold tracking-widest text-xs uppercase">${user.email}</p>
-                    <div class="grid grid-cols-2 gap-6 mt-12">
-                        <div class="bg-white/5 p-8 rounded-3xl border border-white/5"><div class="text-red-600 font-black text-3xl">${watchHistory.length}</div><div class="text-[10px] text-white/30 font-bold uppercase mt-2">Visti</div></div>
-                        <div class="bg-white/5 p-8 rounded-3xl border border-white/5"><div class="text-white font-black text-3xl italic">PRO</div><div class="text-[10px] text-white/30 font-bold uppercase mt-2">Account</div></div>
+                <div class="max-w-2xl mx-auto p-20 bg-white/5 rounded-[60px] text-center border border-white/5 backdrop-blur-3xl shadow-2xl">
+                    <div class="w-28 h-28 bg-red-600 rounded-full flex items-center justify-center text-6xl font-black mx-auto mb-10 shadow-2xl">${name[0]}</div>
+                    <h2 class="text-5xl font-black uppercase italic tracking-tighter">${name}</h2>
+                    <p class="text-white/30 mt-4 font-bold tracking-[0.3em] text-xs uppercase italic">${user.email}</p>
+                    <div class="grid grid-cols-2 gap-8 mt-14">
+                        <div class="bg-white/5 p-10 rounded-3xl border border-white/5 shadow-inner"><div class="text-red-600 font-black text-4xl italic">${watchHistory.length}</div><div class="text-[10px] text-white/30 font-bold uppercase mt-3 tracking-widest">Contenuti Visti</div></div>
+                        <div class="bg-white/5 p-10 rounded-3xl border border-white/5 shadow-inner"><div class="text-white font-black text-4xl italic">PRO</div><div class="text-[10px] text-white/30 font-bold uppercase mt-3 tracking-widest">Membership</div></div>
                     </div>
-                    <button onclick="window.location.reload()" class="mt-12 text-gray-500 font-black text-xs uppercase hover:text-white transition tracking-widest">Torna alla Home</button>
+                    <button onclick="window.location.reload()" class="mt-14 text-white/20 font-black text-[10px] uppercase hover:text-white transition tracking-[0.5em]">Indietro alla Home</button>
                 </div>`;
         }
 
         async function toggleFavorite() {
             const user = netlifyIdentity.currentUser(); if(!user) return netlifyIdentity.open();
-            const btn = document.getElementById('favBtn'); btn.innerText = "Attendi...";
+            const btn = document.getElementById('favBtn'); btn.innerText = "Attendere...";
             const res = await fetch('/.netlify/functions/manage-favorites', {
                 method: 'POST', headers: { Authorization: `Bearer ${user.token.access_token}` },
                 body: JSON.stringify({ item_id: currentItem.id, media_type: currentItem.type, poster_path: currentItem.poster_path })
@@ -466,26 +601,25 @@
             document.getElementById('infoModal').style.display = 'none';
             document.getElementById('playerModal').style.display = 'none';
             document.getElementById('playerFrame').src = "";
+            document.removeEventListener('mousemove', handleUiActivity);
         }
 
         window.onscroll = () => { document.getElementById('mainHeader').classList.toggle('scrolled', window.scrollY > 60); };
 
         netlifyIdentity.on('init', user => {
-            appReady = true;
             document.getElementById('boot-shield').style.display = 'none';
             if(user) {
                 const userName = user.user_metadata.full_name || user.email.split('@')[0];
                 document.getElementById('authBtn').innerText = userName.toUpperCase();
-                document.getElementById('userDisplay').innerText = "Account: " + userName.toUpperCase();
+                document.getElementById('userDisplay').innerText = "Account Premium: " + userName.toUpperCase();
             }
             loadContent('all').then(() => { document.getElementById('main-content').classList.remove('opacity-0'); });
         });
 
-        netlifyIdentity.on('login', () => { if(!sessionStorage.getItem('vix_log')) { sessionStorage.setItem('vix_log','1'); location.reload(); } });
-        netlifyIdentity.on('logout', () => { sessionStorage.removeItem('vix_log'); location.reload(); });
+        netlifyIdentity.on('login', () => { if(!sessionStorage.getItem('vx_logged')) { sessionStorage.setItem('vx_logged','1'); location.reload(); } });
+        netlifyIdentity.on('logout', () => { sessionStorage.removeItem('vx_logged'); location.reload(); });
         
         netlifyIdentity.init();
-        setTimeout(() => { if(!appReady) { document.getElementById('boot-shield').style.display = 'none'; loadContent('all'); } }, 3500);
     </script>
 </body>
 </html>
