@@ -3,277 +3,364 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>VixStream Premium</title>
+    <title>VixStream Premium - Official</title>
+    <link rel="icon" type="image/png" href="https://upload.wikimedia.org/wikipedia/commons/0/08/Netflix_2015_logo.svg">
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <script type="text/javascript" src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-    <style>
-        body { background-color: #141414; color: #fff; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; margin: 0; overflow-x: hidden; }
-        .scrollbar-hide::-webkit-scrollbar { display: none; }
-        
-        header { background: linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, transparent 100%); transition: 0.4s; z-index: 1000; height: 70px; display: flex; align-items: center; position: fixed; top: 0; width: 100%; }
-        header.scrolled { background: #141414 !important; }
-        
-        .nav-link { cursor: pointer; color: rgba(255,255,255,0.6); font-weight: 700; font-size: 13px; transition: 0.3s; text-transform: uppercase; }
-        .nav-link.active { color: white !important; border-bottom: 2px solid #e50914; }
 
-        .profile-container { position: relative; cursor: pointer; }
-        .profile-dropdown { display: none; position: absolute; top: 100%; right: 0; background: #181818; border: 1px solid rgba(255,255,255,0.1); min-width: 180px; border-radius: 4px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
-        .profile-container:hover .profile-dropdown { display: block; }
-        
-        #sections { min-height: 100vh; padding-bottom: 100px; opacity: 1; transition: opacity 0.3s; }
-        .row-container { margin-bottom: 3rem; }
-        
-        .carousel-track { display: flex; overflow-x: auto; scroll-behavior: smooth; gap: 12px; padding: 15px 0; width: 100%; }
-        
-        .card { 
-            min-width: 140px; width: 140px; height: 210px; flex-shrink: 0; 
-            border-radius: 4px; overflow: hidden; cursor: pointer;
-            transition: transform 0.3s ease; background: #222; 
+    <style>
+        /* Setup Base */
+        body { 
+            background-color: #141414; 
+            color: #fff; 
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; 
+            margin: 0; 
+            overflow-x: hidden; 
+            -webkit-font-smoothing: antialiased;
         }
-        @media (min-width: 768px) { .card { min-width: 190px; width: 190px; height: 280px; } }
-        .card:hover { transform: scale(1.08); z-index: 50; }
+
+        /* Scrollbar Invisibile */
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Header e Navigazione */
+        header { 
+            background: linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, transparent 100%); 
+            transition: background-color 0.5s ease; 
+            z-index: 1000; 
+            height: 70px; 
+            position: fixed; 
+            top: 0; 
+            width: 100%; 
+            display: flex; 
+            align-items: center; 
+        }
+        header.scrolled { background-color: #141414 !important; }
+
+        .nav-link { 
+            cursor: pointer; 
+            color: #e5e5e5; 
+            font-weight: 500; 
+            font-size: 14px; 
+            transition: color 0.3s; 
+            position: relative;
+        }
+        .nav-link:hover { color: #b3b3b3; }
+        .nav-link.active { color: #fff; font-weight: 700; }
+        .nav-link.active::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: #e50914;
+        }
+
+        /* Profilo Dropdown */
+        .profile-container { position: relative; cursor: pointer; height: 100%; display: flex; align-items: center; }
+        .profile-dropdown { 
+            display: none; 
+            position: absolute; 
+            top: 100%; 
+            right: 0; 
+            background: rgba(0,0,0,0.9); 
+            border: 1px solid rgba(255,255,255,0.15); 
+            min-width: 180px; 
+            box-shadow: 0 8px 16px rgba(0,0,0,0.5);
+            padding: 10px 0;
+        }
+        .profile-container:hover .profile-dropdown { display: block; }
+
+        /* Griglia e Row */
+        .row-container { margin-bottom: 2.5vw; padding: 0 4%; }
+        .carousel-track { 
+            display: flex; 
+            overflow-x: auto; 
+            scroll-behavior: smooth; 
+            gap: 0.8vw; 
+            padding: 1vw 0; 
+        }
+
+        .card { 
+            min-width: 160px; 
+            width: 160px; 
+            aspect-ratio: 2/3;
+            flex-shrink: 0; 
+            border-radius: 4px; 
+            overflow: hidden; 
+            cursor: pointer;
+            transition: transform 0.4s cubic-bezier(0.5, 0, 0.1, 1);
+            background: #2f2f2f;
+        }
+        @media (min-width: 768px) { .card { min-width: 200px; width: 200px; } }
+        .card:hover { transform: scale(1.1); z-index: 10; }
         .card img { width: 100%; height: 100%; object-fit: cover; }
 
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 2000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(10px); }
-        .modal-box { background: #181818; width: 95%; max-width: 900px; border-radius: 12px; overflow-y: auto; max-height: 90vh; position: relative; }
-        
-        #playerModal { position: fixed; inset: 0; background: #000; z-index: 3000; display: none; }
-        iframe { border: none; width: 100%; height: 100%; }
+        /* Modali */
+        .modal-overlay { 
+            position: fixed; 
+            inset: 0; 
+            background: rgba(0,0,0,0.85); 
+            z-index: 2000; 
+            display: none; 
+            align-items: center; 
+            justify-content: center; 
+            backdrop-filter: blur(10px);
+        }
+        .modal-box { 
+            background: #181818; 
+            width: 95%; 
+            max-width: 850px; 
+            border-radius: 8px; 
+            overflow-y: auto; 
+            max-height: 90vh;
+        }
 
-        #boot-loader { position: fixed; inset: 0; background: #141414; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .loader-v { color: #e50914; font-size: 3rem; font-weight: 900; animation: pulse 1.5s infinite; italic; }
-        @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.95); } }
+        #playerWindow { 
+            position: fixed; 
+            inset: 0; 
+            background: #000; 
+            z-index: 3000; 
+            display: none; 
+        }
+
+        /* Hero Section */
+        #hero { height: 80vh; position: relative; margin-bottom: 20px; }
+        #hero-gradient {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, #141414 5%, transparent 50%),
+                        linear-gradient(to right, #141414 0%, transparent 40%);
+        }
     </style>
 </head>
 <body class="scrollbar-hide">
 
-    <div id="boot-loader">
-        <div class="loader-v italic">VIXSTREAM</div>
-        <p class="text-xs font-bold tracking-[0.3em] mt-4 opacity-50">SINCRO IN CORSO...</p>
-    </div>
-
-    <header id="mainHeader">
-        <div class="flex items-center gap-10 px-6 md:px-16 w-full justify-between">
+    <header id="navbar">
+        <div class="flex items-center justify-between w-full px-10">
             <div class="flex items-center gap-10">
-                <span onclick="window.location.reload()" class="text-red-600 text-3xl font-black tracking-tighter cursor-pointer italic">VIXSTREAM</span>
-                <nav class="hidden lg:flex gap-6">
-                    <a onclick="changeCategory('all')" id="nav-all" class="nav-link active">Home</a>
-                    <a onclick="changeCategory('tv')" id="nav-tv" class="nav-link">Serie TV</a>
-                    <a onclick="changeCategory('movie')" id="nav-movie" class="nav-link">Film</a>
+                <h1 onclick="location.reload()" class="text-red-600 text-3xl font-black italic cursor-pointer tracking-tighter">VIXSTREAM</h1>
+                <nav class="hidden md:flex gap-6">
+                    <span onclick="loadContent('all')" id="n-all" class="nav-link active">Home</span>
+                    <span onclick="loadContent('tv')" id="n-tv" class="nav-link">Serie TV</span>
+                    <span onclick="loadContent('movie')" id="n-movie" class="nav-link">Film</span>
                 </nav>
             </div>
-            <div class="profile-container">
-                <button id="authBtn" onclick="if(!netlifyIdentity.currentUser()) netlifyIdentity.open()" class="bg-red-600 text-white text-[10px] px-5 py-2 rounded font-black uppercase tracking-widest">Accedi</button>
-                <div id="profileMenu" class="profile-dropdown">
-                    <button onclick="showProfile()" class="w-full text-left px-5 py-4 text-xs font-bold hover:bg-white/5 border-b border-white/5">PROFILO</button>
-                    <button onclick="changeCategory('favorites')" class="w-full text-left px-5 py-4 text-xs font-bold hover:bg-white/5">LA MIA LISTA</button>
-                    <button onclick="netlifyIdentity.logout()" class="w-full text-left px-5 py-4 text-xs font-bold text-red-500 hover:bg-white/5">ESCI</button>
+            
+            <div class="flex items-center gap-5">
+                <div class="profile-container">
+                    <button id="user-trigger" onclick="if(!netlifyIdentity.currentUser()) netlifyIdentity.open()" class="bg-red-600 px-5 py-1.5 rounded text-xs font-bold uppercase tracking-wider">Accedi</button>
+                    <div class="profile-dropdown rounded">
+                        <div id="user-info" class="px-4 py-2 text-[10px] text-gray-400 border-b border-white/10 italic">Ospite</div>
+                        <a onclick="loadContent('favorites')" class="block px-4 py-2 text-xs hover:bg-white/10">La mia Lista</a>
+                        <a onclick="netlifyIdentity.logout()" class="block px-4 py-2 text-xs text-red-500 hover:bg-white/10 font-bold">Esci</a>
+                    </div>
                 </div>
             </div>
         </div>
     </header>
 
-    <main>
-        <section id="hero" class="relative h-[80vh] w-full flex flex-col justify-end p-8 md:p-20 pb-32 hidden">
-            <img id="heroImg" src="" class="absolute inset-0 w-full h-full object-cover -z-10">
-            <div class="absolute inset-0 bg-gradient-to-t from-[#141414] via-transparent"></div>
-            <h1 id="heroTitle" class="text-4xl md:text-7xl font-black uppercase italic mb-4 tracking-tighter"></h1>
-            <p id="heroOverview" class="max-w-2xl text-sm md:text-lg mb-8 line-clamp-3 text-gray-200"></p>
-            <button id="heroPlay" class="bg-white text-black px-10 py-3 rounded font-black hover:bg-red-600 hover:text-white transition w-fit uppercase">▶ Riproduci</button>
+    <main id="main-content">
+        <section id="hero" class="hidden">
+            <img id="hero-img" src="" class="w-full h-full object-cover">
+            <div id="hero-gradient"></div>
+            <div class="absolute bottom-20 left-10 md:left-20 max-w-2xl">
+                <h2 id="hero-title" class="text-4xl md:text-7xl font-black uppercase italic mb-5 drop-shadow-2xl"></h2>
+                <p id="hero-desc" class="text-sm md:text-lg text-gray-200 line-clamp-3 mb-8"></p>
+                <button id="hero-play-btn" class="bg-white text-black px-10 py-3 rounded font-black hover:bg-red-600 hover:text-white transition uppercase italic">▶ Riproduci</button>
+            </div>
         </section>
 
-        <div id="sections" class="px-6 md:px-16 relative z-20 -mt-20 space-y-12"></div>
+        <div id="rows-container" class="relative z-10 -mt-20"></div>
     </main>
 
-    <div id="infoModal" class="modal-overlay" onclick="if(event.target==this) closeModals()">
+    <div id="modal-info" class="modal-overlay" onclick="if(event.target==this) closeAll()">
         <div class="modal-box scrollbar-hide">
-            <div class="relative aspect-video">
-                <img id="infoBgImg" src="" class="w-full h-full object-cover">
-                <button onclick="closeModals()" class="absolute top-4 right-4 bg-black/60 text-white w-10 h-10 rounded-full font-bold">✕</button>
+            <div class="relative w-full aspect-video">
+                <img id="m-img" src="" class="w-full h-full object-cover">
                 <div class="absolute inset-0 bg-gradient-to-t from-[#181818]"></div>
-                <h2 id="infoTitle" class="absolute bottom-6 left-8 text-3xl md:text-5xl font-black uppercase italic"></h2>
+                <button onclick="closeAll()" class="absolute top-5 right-5 text-white bg-black/50 w-10 h-10 rounded-full">✕</button>
             </div>
-            <div class="p-8 grid md:grid-cols-3 gap-8">
+            <div class="p-10 grid md:grid-cols-3 gap-10">
                 <div class="md:col-span-2">
-                    <p id="infoOverview" class="text-gray-300 text-base md:text-lg mb-8 leading-relaxed"></p>
+                    <h2 id="m-title" class="text-4xl font-black italic mb-4 uppercase"></h2>
+                    <p id="m-desc" class="text-gray-400 leading-relaxed mb-10"></p>
                     <div class="flex gap-4">
-                        <button id="playBtn" class="bg-red-600 text-white px-10 py-3 rounded font-black hover:bg-red-700 transition uppercase">▶ Guarda ora</button>
-                        <button id="favBtn" onclick="toggleFavorite()" class="border border-white/20 px-8 py-3 rounded font-black hover:bg-white/10 transition uppercase">❤️ Lista</button>
+                        <button id="m-play" class="bg-red-600 px-10 py-3 rounded font-black hover:bg-red-700 transition uppercase">Guarda Ora</button>
+                        <button id="m-fav" onclick="addToFav()" class="border border-white/30 px-6 py-3 rounded font-bold hover:bg-white/10">❤️ Lista</button>
                     </div>
                 </div>
-                <div id="tvBox" class="hidden space-y-4 bg-white/5 p-4 rounded-lg">
-                    <select id="seasonSelect" class="w-full bg-zinc-900 p-3 rounded font-bold text-white border border-white/10 outline-none"></select>
-                    <select id="episodeSelect" class="w-full bg-zinc-900 p-3 rounded font-bold text-white border border-white/10 outline-none"></select>
+                <div id="tv-logic" class="hidden space-y-4">
+                    <label class="text-[10px] font-bold text-gray-500 uppercase">Selezione Episodio</label>
+                    <select id="s-season" class="w-full bg-zinc-800 p-3 rounded border border-white/10 outline-none text-sm font-bold"></select>
+                    <select id="s-episode" class="w-full bg-zinc-800 p-3 rounded border border-white/10 outline-none text-sm font-bold"></select>
                 </div>
             </div>
         </div>
     </div>
 
-    <div id="playerModal">
-        <div class="absolute top-0 w-full p-6 flex justify-between z-50">
-            <span id="pTitle" class="font-black italic uppercase text-white"></span>
-            <button onclick="closeModals()" class="bg-red-600 text-white px-6 py-2 rounded-full font-black">CHIUDI ✕</button>
+    <div id="playerWindow">
+        <div class="absolute top-0 w-full p-5 flex justify-between items-center bg-gradient-to-b from-black to-transparent z-[3001]">
+            <span id="player-label" class="text-xs font-bold italic tracking-widest opacity-70">VIXSTREAM PLAYER</span>
+            <button onclick="closeAll()" class="bg-red-600 px-6 py-2 rounded-full font-bold text-xs uppercase">Chiudi X</button>
         </div>
-        <iframe id="playerFrame" allowfullscreen allow="autoplay"></iframe>
+        <iframe id="p-frame" class="w-full h-full" allowfullscreen allow="autoplay"></iframe>
     </div>
 
     <script>
-        const API_KEY = "7b5fcf48f24a334bb09f87ce20e5f2ce";
+        const KEY = "7b5fcf48f24a334bb09f87ce20e5f2ce";
         const BASE = "https://api.themoviedb.org/3";
-        let cur = null, history = JSON.parse(localStorage.getItem('vix_h')) || [], shown = new Set();
-        let ready = false;
+        let currentItem = null;
+        let shownIds = new Set();
+        let watchHistory = JSON.parse(localStorage.getItem('vix_history')) || [];
 
-        async function api(path, p = {}) {
-            const u = new URL(BASE + path);
-            u.searchParams.append("api_key", API_KEY);
-            u.searchParams.append("language", "it-IT");
-            for (let k in p) u.searchParams.append(k, p[k]);
-            const r = await fetch(u); return r.json();
+        // Inizializzazione Identità
+        netlifyIdentity.init();
+
+        async function fetchAPI(path, params = {}) {
+            const url = new URL(BASE + path);
+            url.searchParams.append("api_key", KEY);
+            url.searchParams.append("language", "it-IT");
+            for (let k in params) url.searchParams.append(k, params[k]);
+            const res = await fetch(url);
+            return res.json();
         }
 
-        async function changeCategory(cat) {
-            shown.clear();
-            const sect = document.getElementById('sections');
+        async function loadContent(type) {
+            shownIds.clear();
+            const container = document.getElementById('rows-container');
             const hero = document.getElementById('hero');
-            sect.innerHTML = '';
             
-            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-            if(document.getElementById('nav-'+cat)) document.getElementById('nav-'+cat).classList.add('active');
+            // UI Update
+            document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
+            if(document.getElementById('n-'+type)) document.getElementById('n-'+type).classList.add('active');
 
-            try {
-                if(cat === 'all') {
-                    const tr = await api('/trending/all/week');
-                    setHero(tr.results[0]);
-                    if(history.length > 0) renderRow("Continua a guardare", history);
-                    renderRow("Film di Tendenza", tr.results.filter(i => i.media_type === 'movie'));
-                    renderRow("Serie TV di Tendenza", tr.results.filter(i => i.media_type === 'tv'));
-                } else if(cat === 'favorites') {
-                    hero.classList.add('hidden');
-                    sect.style.marginTop = "120px";
-                    const user = netlifyIdentity.currentUser();
-                    if(user) {
-                        const r = await fetch('/.netlify/functions/manage-favorites', { headers: { Authorization: `Bearer ${user.token.access_token}` } });
-                        const f = await r.json();
-                        renderRow("I tuoi preferiti", f.map(x => ({id: x.item_id, media_type: x.media_type, poster_path: x.poster_path})));
-                    }
-                } else {
-                    const p = await api(`/${cat}/popular`);
-                    setHero(p.results[0]);
-                    renderRow("Popolari", p.results);
-                    renderRow("I più votati", (await api(`/${cat}/top_rated`)).results);
-                }
-            } catch(e) { console.log(e); }
-        }
+            let rows = [];
 
-        function renderRow(t, items) {
-            const data = items.filter(i => {
-                const id = i.id || i.item_id;
-                if(shown.has(id)) return false;
-                shown.add(id); return true;
+            if(type === 'all') {
+                const trending = await fetchAPI('/trending/all/week');
+                updateHero(trending.results[0]);
+                if(watchHistory.length > 0) rows.push({title: "Continua a guardare", data: watchHistory});
+                rows.push({title: "Film del Momento", data: trending.results.filter(i => i.media_type === 'movie')});
+                rows.push({title: "Serie TV Imperdibili", data: trending.results.filter(i => i.media_type === 'tv')});
+            } else if (type === 'favorites') {
+                hero.classList.add('hidden');
+                container.style.marginTop = "150px";
+                // Qui andrebbe la logica Netlify Functions per i preferiti
+            } else {
+                const popular = await fetchAPI(`/${type}/popular`);
+                updateHero(popular.results[0]);
+                rows.push({title: "I Più Popolari", data: popular.results});
+                rows.push({title: "Novità", data: (await fetchAPI(`/${type}/top_rated`)).results});
+            }
+
+            // Rendering Rows
+            container.innerHTML = ''; 
+            rows.forEach(row => {
+                const filteredData = row.data.filter(i => {
+                    if(shownIds.has(i.id)) return false;
+                    shownIds.add(i.id); return true;
+                });
+                if(filteredData.length > 0) renderRow(row.title, filteredData);
             });
-            if(data.length === 0) return;
-
-            const r = document.createElement('div');
-            r.className = "row-container";
-            r.innerHTML = `<h2 class="text-xl font-black mb-2 italic uppercase tracking-tighter">${t}</h2>
-                <div class="carousel-track scrollbar-hide">
-                    ${data.map(i => `
-                        <div class="card" onclick='openD(${i.id || i.item_id}, "${i.media_type || (i.title ? 'movie' : 'tv')}")'>
-                            <img src="https://image.tmdb.org/t/p/w500${i.poster_path}" loading="lazy">
-                        </div>
-                    `).join('')}
-                </div>`;
-            document.getElementById('sections').appendChild(r);
         }
 
-        async function openD(id, type) {
-            const d = await api(`/${type}/${id}`);
-            cur = {...d, type: type};
-            document.getElementById('infoTitle').innerText = cur.title || cur.name;
-            document.getElementById('infoOverview').innerText = cur.overview;
-            document.getElementById('infoBgImg').src = "https://image.tmdb.org/t/p/original" + (cur.backdrop_path || cur.poster_path);
+        function renderRow(title, items) {
+            const row = document.createElement('div');
+            row.className = "row-container";
+            row.innerHTML = `<h3 class="text-xl font-black italic uppercase mb-2 tracking-tight">${title}</h3>
+                             <div class="carousel-track scrollbar-hide"></div>`;
+            const track = row.querySelector('.carousel-track');
             
-            const tv = document.getElementById('tvBox');
-            if(type === 'tv') {
-                tv.classList.remove('hidden');
-                const s = document.getElementById('seasonSelect');
-                const e = document.getElementById('episodeSelect');
-                const seasons = cur.seasons.filter(x => x.season_number > 0);
-                s.innerHTML = seasons.map(x => `<option value="${x.season_number}">Stagione ${x.season_number}</option>`).join('');
-                s.onchange = async () => {
-                    const sd = await api(`/tv/${cur.id}/season/${s.value}`);
-                    e.innerHTML = sd.episodes.map(x => `<option value="${x.episode_number}">Episodio ${x.episode_number}</option>`).join('');
-                };
-                await s.onchange();
-            } else tv.classList.add('hidden');
-
-            document.getElementById('infoModal').style.display = 'flex';
-            document.getElementById('playBtn').onclick = start;
+            items.forEach(item => {
+                if(!item.poster_path) return;
+                const card = document.createElement('div');
+                card.className = "card";
+                card.innerHTML = `<img src="https://image.tmdb.org/t/p/w500${item.poster_path}" loading="lazy">`;
+                card.onclick = () => showDetails(item);
+                track.appendChild(card);
+            });
+            document.getElementById('rows-container').appendChild(row);
         }
 
-        function start() {
-            let u = `https://vixsrc.to/${cur.type}/${cur.id}`;
-            if(cur.type === 'tv') u += `/${document.getElementById('seasonSelect').value}/${document.getElementById('episodeSelect').value}`;
-            u += `?primaryColor=B20710&autoplay=true&lang=it`;
-            document.getElementById('pTitle').innerText = cur.title || cur.name;
-            document.getElementById('playerFrame').src = u;
-            document.getElementById('playerModal').style.display = 'block';
-            
-            history = history.filter(x => x.id !== cur.id);
-            history.unshift(cur);
-            localStorage.setItem('vix_h', JSON.stringify(history.slice(0, 15)));
-        }
-
-        function setHero(i) {
+        function updateHero(item) {
             const h = document.getElementById('hero');
             h.classList.remove('hidden');
-            document.getElementById('heroImg').src = "https://image.tmdb.org/t/p/original" + i.backdrop_path;
-            document.getElementById('heroTitle').innerText = i.title || i.name;
-            document.getElementById('heroOverview').innerText = i.overview;
-            document.getElementById('heroPlay').onclick = () => openD(i.id, i.media_type || (i.title ? 'movie' : 'tv'));
-            shown.add(i.id);
+            document.getElementById('hero-img').src = "https://image.tmdb.org/t/p/original" + item.backdrop_path;
+            document.getElementById('hero-title').innerText = item.title || item.name;
+            document.getElementById('hero-desc').innerText = item.overview;
+            document.getElementById('hero-play-btn').onclick = () => showDetails(item);
+            shownIds.add(item.id);
         }
 
-        function closeModals() {
-            document.getElementById('infoModal').style.display = 'none';
-            document.getElementById('playerModal').style.display = 'none';
-            document.getElementById('playerFrame').src = "";
-        }
+        async function showDetails(item) {
+            currentItem = {...item, media_type: item.media_type || (item.title ? 'movie' : 'tv')};
+            const details = await fetchAPI(`/${currentItem.media_type}/${item.id}`);
+            Object.assign(currentItem, details);
 
-        function showProfile() {
-            document.getElementById('hero').classList.add('hidden');
-            const s = document.getElementById('sections');
-            s.style.marginTop = "120px";
-            const u = netlifyIdentity.currentUser();
-            s.innerHTML = `<div class="p-10 bg-white/5 rounded-xl text-center">
-                <div class="w-20 h-20 bg-red-600 rounded-full flex items-center justify-center text-3xl font-black mx-auto mb-4">${u.email[0].toUpperCase()}</div>
-                <h2 class="text-2xl font-black uppercase italic">${u.email.split('@')[0]}</h2>
-            </div>`;
-        }
-
-        window.onscroll = () => document.getElementById('mainHeader').classList.toggle('scrolled', window.scrollY > 50);
-
-        // IL FIX ANTI-LAMPEGGIO: Carica solo quando Netlify è PRONTO
-        netlifyIdentity.on('init', user => {
-            ready = true;
-            document.getElementById('boot-loader').style.display = 'none';
-            if(user) {
-                document.getElementById('authBtn').innerText = "ACCOUNT";
-                document.getElementById('profileMenu').classList.remove('hidden');
+            document.getElementById('m-title').innerText = currentItem.title || currentItem.name;
+            document.getElementById('m-desc').innerText = currentItem.overview || "Nessuna trama disponibile.";
+            document.getElementById('m-img').src = "https://image.tmdb.org/t/p/original" + (currentItem.backdrop_path || currentItem.poster_path);
+            
+            const tvLogic = document.getElementById('tv-logic');
+            if(currentItem.media_type === 'tv') {
+                tvLogic.classList.remove('hidden');
+                const s = document.getElementById('s-season');
+                const e = document.getElementById('s-episode');
+                s.innerHTML = currentItem.seasons.filter(sea => sea.season_number > 0).map(sea => `<option value="${sea.season_number}">Stagione ${sea.season_number}</option>`).join('');
+                s.onchange = async () => {
+                    const seasonData = await fetchAPI(`/tv/${currentItem.id}/season/${s.value}`);
+                    e.innerHTML = seasonData.episodes.map(ep => `<option value="${ep.episode_number}">Episodio ${ep.episode_number}</option>`).join('');
+                };
+                await s.onchange();
+            } else {
+                tvLogic.classList.add('hidden');
             }
-            changeCategory('all');
+
+            document.getElementById('modal-info').style.display = 'flex';
+            document.getElementById('m-play').onclick = startPlayer;
+        }
+
+        function startPlayer() {
+            let url = `https://vixsrc.to/${currentItem.media_type}/${currentItem.id}`;
+            if(currentItem.media_type === 'tv') {
+                url += `/${document.getElementById('s-season').value}/${document.getElementById('s-episode').value}`;
+            }
+            url += `?primaryColor=B20710&autoplay=true&lang=it`;
+            document.getElementById('p-frame').src = url;
+            document.getElementById('playerWindow').style.display = 'block';
+
+            // Salva in cronologia
+            watchHistory = watchHistory.filter(i => i.id !== currentItem.id).slice(0, 10);
+            watchHistory.unshift(currentItem);
+            localStorage.setItem('vix_history', JSON.stringify(watchHistory));
+        }
+
+        function closeAll() {
+            document.getElementById('modal-info').style.display = 'none';
+            document.getElementById('playerWindow').style.display = 'none';
+            document.getElementById('p-frame').src = '';
+        }
+
+        // Netlify Identity Events
+        netlifyIdentity.on('login', user => {
+            document.getElementById('user-trigger').innerText = user.email.split('@')[0].toUpperCase();
+            document.getElementById('user-info').innerText = user.email;
+            location.reload();
         });
 
-        netlifyIdentity.on('login', () => location.reload());
-        netlifyIdentity.on('logout', () => location.reload());
-        
-        // Timeout di sicurezza se Netlify fallisce
-        setTimeout(() => {
-            if(!ready) {
-                document.getElementById('boot-loader').style.display = 'none';
-                changeCategory('all');
-            }
-        }, 3000);
+        netlifyIdentity.on('logout', () => {
+            location.reload();
+        });
+
+        window.onscroll = () => {
+            document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 50);
+        };
+
+        // Avvio
+        loadContent('all');
     </script>
 </body>
 </html>
