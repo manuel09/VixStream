@@ -72,21 +72,23 @@
         }
 
         /* =========================================
-           PROFILE DROPDOWN SYSTEM
+           PROFILE DROPDOWN SYSTEM (FIX: PONTE PER IL MOUSE)
            ========================================= */
-        .profile-container { position: relative; cursor: pointer; }
+        .profile-container { 
+            position: relative; 
+            padding: 20px 0; /* Crea il ponte per non far sparire il menu */
+        }
         
         .profile-dropdown { 
             display: none; 
             position: absolute; 
-            top: 100%; 
+            top: 70px; 
             right: 0; 
             background: #181818; 
             border: 1px solid rgba(255,255,255,0.1); 
             min-width: 230px; 
             border-radius: 8px; 
             box-shadow: 0 20px 50px rgba(0,0,0,0.9); 
-            margin-top: 15px; 
             overflow: hidden;
             z-index: 1100;
         }
@@ -119,7 +121,7 @@
         }
 
         /* =========================================
-           CAROUSEL & ROWS (FIX TITOLI FOTO 1)
+           CAROUSEL & ROWS
            ========================================= */
         .row-container { 
             margin-bottom: 4rem; 
@@ -213,7 +215,7 @@
         }
 
         /* =========================================
-           INFO MODAL (FIX ALTEZZA FOTO 2)
+           INFO MODAL (FIX TASTI & X)
            ========================================= */
         .modal-overlay { 
             position: fixed; 
@@ -251,8 +253,37 @@
             object-fit: cover; 
         }
 
+        /* TASTI STILE PREMIUM */
+        .btn-main {
+            background: #e50914;
+            color: white;
+            padding: 14px 40px;
+            border-radius: 8px;
+            font-weight: 900;
+            text-transform: uppercase;
+            font-size: 13px;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .btn-main:hover { background: #ff0a16; transform: translateY(-2px); }
+
+        .btn-secondary {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            padding: 14px 30px;
+            border-radius: 8px;
+            font-weight: 900;
+            text-transform: uppercase;
+            font-size: 13px;
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: 0.3s;
+        }
+        .btn-secondary:hover { background: rgba(255,255,255,0.2); }
+
         /* =========================================
-           PREMIUM PLAYER FULLSCREEN & AUTO-HIDE
+           PREMIUM PLAYER
            ========================================= */
         #playerModal { 
             position: fixed; 
@@ -260,7 +291,7 @@
             background: #000; 
             z-index: 5000; 
             display: none; 
-            cursor: none; /* Nasconde il cursore */
+            cursor: none; 
         }
         
         #playerModal.active-ui { cursor: default; }
@@ -270,7 +301,7 @@
             top: 35px;
             right: 45px;
             z-index: 5100;
-            background: rgba(0,0,0,0.6);
+            background: #e50914;
             color: white;
             padding: 14px 30px;
             border-radius: 100px;
@@ -278,24 +309,15 @@
             font-size: 11px;
             text-transform: uppercase;
             letter-spacing: 2px;
-            border: 1px solid rgba(255,255,255,0.2);
-            backdrop-filter: blur(15px);
-            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
             opacity: 0;
+            transition: all 0.5s;
             pointer-events: none;
-            transform: translateY(-10px);
         }
         
         #closePlayerBtn.visible { 
             opacity: 1; 
             pointer-events: auto;
             transform: translateY(0);
-        }
-        
-        #closePlayerBtn:hover { 
-            background: #e50914; 
-            border-color: #e50914; 
-            transform: scale(1.1);
         }
 
         #playerFrame { 
@@ -304,9 +326,6 @@
             height: 100%; 
         }
 
-        /* =========================================
-           BOOT SYSTEM
-           ========================================= */
         #boot-shield { 
             position: fixed; 
             inset: 0; 
@@ -348,7 +367,6 @@
                     <a onclick="loadContent('all')" id="nav-all" class="nav-link active">Home</a>
                     <a onclick="loadContent('tv')" id="nav-tv" class="nav-link">Serie TV</a>
                     <a onclick="loadContent('movie')" id="nav-movie" class="nav-link">Film</a>
-                    <a onclick="loadContent('favorites')" id="nav-fav" class="nav-link">La mia Lista</a>
                 </nav>
             </div>
             
@@ -372,7 +390,7 @@
             <div class="relative z-10 max-w-4xl">
                 <h1 id="heroTitle" class="text-6xl md:text-8xl font-black uppercase italic mb-6 tracking-tighter drop-shadow-2xl"></h1>
                 <p id="heroOverview" class="text-base md:text-lg mb-10 line-clamp-3 text-gray-200 font-medium max-w-2xl italic"></p>
-                <button id="heroPlay" class="bg-white text-black px-16 py-5 rounded-lg font-black hover:bg-red-600 hover:text-white transition shadow-2xl uppercase italic text-sm">▶ Riproduci Ora</button>
+                <button id="heroPlay" class="btn-main">▶ Riproduci Ora</button>
             </div>
         </section>
 
@@ -384,28 +402,28 @@
         <div class="modal-box scrollbar-hide">
             <div class="modal-hero">
                 <img id="infoBgImg" src="" alt="poster-large">
-                <button onclick="closeModals()" class="absolute top-6 right-6 bg-black/70 text-white w-12 h-12 rounded-full flex items-center justify-center text-2xl hover:bg-red-600 transition">✕</button>
+                <button onclick="closeModals()" class="absolute top-6 right-6 bg-black/70 text-white w-12 h-12 rounded-full flex items-center justify-center text-2xl hover:bg-red-600 transition z-50">✕</button>
                 <div class="absolute inset-0 bg-gradient-to-t from-[#181818] via-transparent"></div>
-                <h2 id="infoTitle" class="absolute bottom-6 left-10 text-4xl md:text-6xl font-black uppercase italic tracking-tighter shadow-black"></h2>
+                <h2 id="infoTitle" class="absolute bottom-6 left-10 text-4xl md:text-6xl font-black uppercase italic tracking-tighter"></h2>
             </div>
             
             <div class="p-10 md:p-14 grid md:grid-cols-3 gap-12">
                 <div class="md:col-span-2">
                     <p id="infoOverview" class="text-gray-300 text-base md:text-lg leading-relaxed mb-12 font-light italic"></p>
                     <div class="flex gap-5">
-                        <button id="playBtn" class="bg-red-600 text-white px-14 py-4.5 rounded-xl font-black hover:bg-red-700 transition shadow-2xl uppercase text-sm">▶ Guarda Ora</button>
-                        <button id="favBtn" onclick="toggleFavorite()" class="border-2 border-white/10 px-10 py-4.5 rounded-xl font-black hover:bg-white/10 transition uppercase text-sm">❤️ Lista</button>
+                        <button id="playBtn" class="btn-main">▶ Guarda Ora</button>
+                        <button id="favBtn" onclick="toggleFavorite()" class="btn-secondary">❤️ Lista</button>
                     </div>
                 </div>
                 
                 <div id="tvBox" class="hidden space-y-6 bg-white/5 p-8 rounded-3xl border border-white/5 backdrop-blur-2xl">
                     <div>
                         <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 block">Stagione</label>
-                        <select id="seasonSelect" class="w-full bg-zinc-900 p-4 rounded-xl text-xs font-bold text-white border border-white/10 outline-none cursor-pointer hover:border-red-600 transition"></select>
+                        <select id="seasonSelect" class="w-full bg-zinc-900 p-4 rounded-xl text-xs font-bold text-white border border-white/10 outline-none"></select>
                     </div>
                     <div>
                         <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 block">Episodio</label>
-                        <select id="episodeSelect" class="w-full bg-zinc-900 p-4 rounded-xl text-xs font-bold text-white border border-white/10 outline-none cursor-pointer hover:border-red-600 transition"></select>
+                        <select id="episodeSelect" class="w-full bg-zinc-900 p-4 rounded-xl text-xs font-bold text-white border border-white/10 outline-none"></select>
                     </div>
                 </div>
             </div>
@@ -448,12 +466,9 @@
                 if(category === 'all') {
                     const trending = await callTMDB('/trending/all/week');
                     renderHero(trending.results[0]);
-                    
                     if(watchHistory.length > 0) renderRow("Continua a guardare", watchHistory);
-                    renderRow("I Più Popolari della Settimana", trending.results.filter(i => i.media_type === 'movie'));
+                    renderRow("I Più Popolari", trending.results.filter(i => i.media_type === 'movie'));
                     renderRow("Serie TV suggerite", trending.results.filter(i => i.media_type === 'tv'));
-                    const topMovies = await callTMDB('/movie/top_rated');
-                    renderRow("I migliori Film di sempre", topMovies.results);
                 } 
                 else if(category === 'favorites') {
                     heroSection.classList.add('hidden');
@@ -471,8 +486,6 @@
                     const popular = await callTMDB(`/${category}/popular`);
                     renderHero(popular.results[0]);
                     renderRow("Titoli del Momento", popular.results);
-                    const topRated = await callTMDB(`/${category}/top_rated`);
-                    renderRow("I più votati dalla critica", topRated.results);
                 }
             } catch (e) { console.error("Errore caricamento:", e); }
         }
@@ -495,7 +508,7 @@
                     <div class="carousel-track scrollbar-hide">
                         ${validItems.map(item => `
                             <div class="card" onclick='openDetails(${item.id || item.item_id}, "${item.media_type || (item.title ? 'movie' : 'tv')}")'>
-                                <img src="https://image.tmdb.org/t/p/w500${item.poster_path}" alt="poster" loading="lazy">
+                                <img src="https://image.tmdb.org/t/p/w500${item.poster_path}" alt="poster">
                             </div>
                         `).join('')}
                     </div>
@@ -518,7 +531,7 @@
             const details = await callTMDB(`/${type}/${id}`);
             currentItem = {...details, type: type};
             document.getElementById('infoTitle').innerText = currentItem.title || currentItem.name;
-            document.getElementById('infoOverview').innerText = currentItem.overview || "Trama non disponibile in italiano.";
+            document.getElementById('infoOverview').innerText = currentItem.overview || "Trama non disponibile.";
             document.getElementById('infoBgImg').src = "https://image.tmdb.org/t/p/original" + (currentItem.backdrop_path || currentItem.poster_path);
             
             const tvBox = document.getElementById('tvBox');
@@ -542,13 +555,11 @@
         function launchPlayer() {
             let streamUrl = `https://vixsrc.to/${currentItem.type}/${currentItem.id}`;
             if(currentItem.type === 'tv') streamUrl += `/${document.getElementById('seasonSelect').value}/${document.getElementById('episodeSelect').value}`;
-            streamUrl += `?primaryColor=B20710&autoplay=true&lang=it`;
             document.getElementById('playerFrame').src = streamUrl;
             document.getElementById('playerModal').style.display = 'block';
             
-            // Gestione Interfaccia a Scomparsa
             document.addEventListener('mousemove', handleUiActivity);
-            handleUiActivity(); // Forza la visibilità all'avvio
+            handleUiActivity();
 
             watchHistory = watchHistory.filter(x => x.id !== currentItem.id);
             watchHistory.unshift(currentItem);
@@ -560,12 +571,11 @@
             const player = document.getElementById('playerModal');
             btn.classList.add('visible');
             player.classList.add('active-ui');
-            
             clearTimeout(idleTimer);
             idleTimer = setTimeout(() => {
                 btn.classList.remove('visible');
                 player.classList.remove('active-ui');
-            }, 3000); // 3 secondi di inattività
+            }, 3000);
         }
 
         function showFullProfile() {
@@ -574,17 +584,11 @@
             const sections = document.getElementById('sections');
             sections.style.marginTop = "150px";
             const name = (user.user_metadata.full_name || user.email.split('@')[0]).toUpperCase();
-            sections.innerHTML = `
-                <div class="max-w-2xl mx-auto p-20 bg-white/5 rounded-[60px] text-center border border-white/5 backdrop-blur-3xl shadow-2xl">
-                    <div class="w-28 h-28 bg-red-600 rounded-full flex items-center justify-center text-6xl font-black mx-auto mb-10 shadow-2xl">${name[0]}</div>
-                    <h2 class="text-5xl font-black uppercase italic tracking-tighter">${name}</h2>
-                    <p class="text-white/30 mt-4 font-bold tracking-[0.3em] text-xs uppercase italic">${user.email}</p>
-                    <div class="grid grid-cols-2 gap-8 mt-14">
-                        <div class="bg-white/5 p-10 rounded-3xl border border-white/5 shadow-inner"><div class="text-red-600 font-black text-4xl italic">${watchHistory.length}</div><div class="text-[10px] text-white/30 font-bold uppercase mt-3 tracking-widest">Contenuti Visti</div></div>
-                        <div class="bg-white/5 p-10 rounded-3xl border border-white/5 shadow-inner"><div class="text-white font-black text-4xl italic">PRO</div><div class="text-[10px] text-white/30 font-bold uppercase mt-3 tracking-widest">Membership</div></div>
-                    </div>
-                    <button onclick="window.location.reload()" class="mt-14 text-white/20 font-black text-[10px] uppercase hover:text-white transition tracking-[0.5em]">Indietro alla Home</button>
-                </div>`;
+            sections.innerHTML = `<div class="max-w-2xl mx-auto p-20 bg-white/5 rounded-[60px] text-center border border-white/5 backdrop-blur-3xl shadow-2xl">
+                <div class="w-28 h-28 bg-red-600 rounded-full flex items-center justify-center text-6xl font-black mx-auto mb-10 shadow-2xl">${name[0]}</div>
+                <h2 class="text-5xl font-black italic tracking-tighter">${name}</h2>
+                <button onclick="window.location.reload()" class="mt-14 text-white/20 font-black text-[10px] uppercase hover:text-white transition tracking-[0.5em]">Indietro alla Home</button>
+            </div>`;
         }
 
         async function toggleFavorite() {
@@ -611,14 +615,13 @@
             if(user) {
                 const userName = user.user_metadata.full_name || user.email.split('@')[0];
                 document.getElementById('authBtn').innerText = userName.toUpperCase();
-                document.getElementById('userDisplay').innerText = "Account Premium: " + userName.toUpperCase();
+                document.getElementById('userDisplay').innerText = "Premium: " + userName.toUpperCase();
             }
             loadContent('all').then(() => { document.getElementById('main-content').classList.remove('opacity-0'); });
         });
 
-        netlifyIdentity.on('login', () => { if(!sessionStorage.getItem('vx_logged')) { sessionStorage.setItem('vx_logged','1'); location.reload(); } });
-        netlifyIdentity.on('logout', () => { sessionStorage.removeItem('vx_logged'); location.reload(); });
-        
+        netlifyIdentity.on('login', () => location.reload());
+        netlifyIdentity.on('logout', () => location.reload());
         netlifyIdentity.init();
     </script>
 </body>
