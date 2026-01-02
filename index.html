@@ -36,7 +36,7 @@
 
     <header id="mainHeader" class="fixed top-0 w-full p-4 md:px-12 flex justify-between items-center transition-all">
         <div class="flex items-center gap-6 md:gap-10">
-            <a href="#" onclick="showCategory('all')" class="text-red-600 text-2xl md:text-3xl font-black tracking-tighter">VIXSTREAM</a>
+            <span onclick="showCategory('all')" class="text-red-600 text-2xl md:text-3xl font-black tracking-tighter cursor-pointer">VIXSTREAM</span>
             <nav id="mainNav" class="hidden md:flex gap-6 text-[11px] font-bold uppercase tracking-widest">
                 <a onclick="showCategory('all')" id="homeLink" class="nav-link active">Home</a>
                 <a onclick="showCategory('tv')" id="tvLink" class="nav-link">Serie TV</a>
@@ -49,9 +49,9 @@
                 <button id="authBtn" onclick="handleAuth()" class="bg-red-600 text-white text-[10px] md:text-xs px-4 py-2 rounded font-black uppercase">Accedi</button>
                 <div id="profileMenu" class="profile-dropdown">
                     <div id="userEmailLabel" class="px-4 py-3 text-[10px] text-gray-500 border-b border-white/10 truncate">Account</div>
-                    <button onclick="showProfile()" class="w-full text-left px-4 py-3 text-xs text-white hover:bg-white/5 transition">Mio Profilo</button>
-                    <button onclick="showCategory('favorites')" class="w-full text-left px-4 py-3 text-xs text-white hover:bg-white/5 transition">La mia Lista</button>
-                    <button onclick="netlifyIdentity.logout()" class="w-full text-left px-4 py-3 text-xs text-red-500 hover:bg-white/5 transition">Esci</button>
+                    <button onclick="showProfile()" class="w-full text-left px-4 py-3 text-xs text-white hover:bg-white/5 transition font-bold">Mio Profilo</button>
+                    <button onclick="showCategory('favorites')" class="w-full text-left px-4 py-3 text-xs text-white hover:bg-white/5 transition font-bold">La mia Lista</button>
+                    <button onclick="netlifyIdentity.logout()" class="w-full text-left px-4 py-3 text-xs text-red-500 hover:bg-white/5 transition font-bold">Esci</button>
                 </div>
             </div>
         </div>
@@ -63,11 +63,11 @@
             <div class="absolute inset-0 bg-gradient-to-t from-[#141414] via-transparent to-black/30"></div>
             <div class="relative z-10 h-full flex flex-col justify-end p-6 md:p-16 pb-24 md:pb-32">
                 <h1 id="heroTitle" class="text-3xl md:text-6xl font-black mb-4 uppercase italic drop-shadow-2xl"></h1>
-                <p id="heroOverview" class="max-w-2xl text-xs md:text-base mb-8 line-clamp-3 text-gray-200 font-medium"></p>
-                <button id="heroPlay" class="bg-white text-black px-10 py-3 rounded font-black hover:bg-red-600 hover:text-white transition shadow-2xl w-fit">▶ RIPRODUCI</button>
+                <p id="heroOverview" class="max-w-2xl text-xs md:text-base mb-8 line-clamp-3 text-gray-200"></p>
+                <button id="heroPlay" class="bg-white text-black px-10 py-3 rounded font-black hover:bg-red-600 hover:text-white transition w-fit">▶ RIPRODUCI</button>
             </div>
         </section>
-        <div id="sections" class="px-4 md:px-12 relative z-20 space-y-12 pb-20"></div>
+        <div id="sections" class="px-4 md:px-12 relative z-20 space-y-12 pb-20 mt-[-50px]"></div>
     </main>
 
     <div id="infoModal" class="modal-overlay" onclick="if(event.target==this) closeModals()">
@@ -84,12 +84,12 @@
                     <p id="infoOverview" class="text-gray-300 text-sm md:text-base mb-10 leading-relaxed"></p>
                     <div class="flex gap-4">
                         <button id="playBtn" class="bg-white text-black px-10 py-3 rounded font-black hover:bg-red-600 hover:text-white transition">▶ RIPRODUCI</button>
-                        <button id="favBtn" onclick="toggleFavorite()" class="border border-white/30 px-8 py-3 rounded font-bold hover:bg-white/10 transition">❤️ LISTA</button>
+                        <button onclick="toggleFavorite()" class="border border-white/30 px-8 py-3 rounded font-bold hover:bg-white/10 transition">❤️ LISTA</button>
                     </div>
                 </div>
                 <div id="tvSelectors" class="hidden space-y-5 border-l border-white/10 pl-8">
-                    <select id="seasonSelect" class="w-full bg-[#2f2f2f] p-3 rounded text-sm outline-none border border-white/5 text-white"></select>
-                    <select id="episodeSelect" class="w-full bg-[#2f2f2f] p-3 rounded text-sm outline-none border border-white/5 text-white"></select>
+                    <select id="seasonSelect" class="w-full bg-[#2f2f2f] p-3 rounded text-sm border border-white/10 text-white outline-none font-bold"></select>
+                    <select id="episodeSelect" class="w-full bg-[#2f2f2f] p-3 rounded text-sm border border-white/10 text-white outline-none font-bold"></select>
                 </div>
             </div>
         </div>
@@ -104,17 +104,7 @@
         const API_KEY = "7b5fcf48f24a334bb09f87ce20e5f2ce";
         const IMG = "https://image.tmdb.org/t/p/original";
         let cur = null, myFavorites = [], watchHistory = JSON.parse(localStorage.getItem('vixstream_history')) || [];
-        let shownIds = new Set(); // Gestione duplicati
-
-        function updateAuthUI() {
-            const user = netlifyIdentity.currentUser();
-            if (user) {
-                document.getElementById('authBtn').textContent = (user.user_metadata.full_name || user.email.split('@')[0]).toUpperCase();
-                document.getElementById('userEmailLabel').textContent = user.email;
-            } else {
-                document.getElementById('authBtn').textContent = "ACCEDI";
-            }
-        }
+        let shownIds = new Set();
 
         async function call(path, params = {}) {
             const url = new URL(`https://api.themoviedb.org/3${path}`);
@@ -125,14 +115,11 @@
         }
 
         function createRow(title, items) {
-            // Filtro duplicati: mostra solo item con ID mai visti in questa sessione
             const uniqueItems = items.filter(item => {
                 const id = item.id || item.item_id;
                 if(shownIds.has(id)) return false;
-                shownIds.add(id);
-                return true;
+                shownIds.add(id); return true;
             });
-
             if(uniqueItems.length === 0) return;
 
             const container = document.getElementById('sections');
@@ -157,7 +144,7 @@
         }
 
         async function showCategory(cat) {
-            shownIds.clear(); // Resetta i duplicati a ogni cambio pagina
+            shownIds.clear();
             document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
             if(cat === 'all') document.getElementById('homeLink').classList.add('active');
             if(cat === 'tv') document.getElementById('tvLink').classList.add('active');
@@ -171,7 +158,7 @@
             if(cat === 'all') {
                 const trending = await call("/trending/all/week");
                 initHero(trending.results[0]);
-                shownIds.add(trending.results[0].id); // L'hero è il primo ID "visto"
+                shownIds.add(trending.results[0].id);
 
                 if(watchHistory.length > 0) createRow("Continua a guardare", watchHistory);
                 
@@ -210,7 +197,7 @@
             
             container.innerHTML = `
                 <div class="max-w-4xl mx-auto p-12 bg-white/5 rounded-2xl border border-white/5 flex flex-col md:flex-row items-center gap-10 mb-12">
-                    <div class="w-24 h-24 bg-red-600 rounded-full flex items-center justify-center text-5xl font-black shadow-lg">${user.email[0].toUpperCase()}</div>
+                    <div class="w-24 h-24 bg-red-600 rounded-full flex items-center justify-center text-5xl font-black">${user.email[0].toUpperCase()}</div>
                     <div class="text-center md:text-left">
                         <h2 class="text-4xl font-black mb-2 italic uppercase">${user.user_metadata.full_name || 'Utente'}</h2>
                         <p class="text-white/40 text-lg">${user.email}</p>
@@ -229,13 +216,17 @@
             document.getElementById('infoBgImg').src = IMG + (cur.backdrop_path || cur.poster_path);
             
             const tv = document.getElementById('tvSelectors');
-            if(cur.seasons) {
+            if(cur.type === 'tv') {
                 tv.classList.remove('hidden');
                 const sSel = document.getElementById('seasonSelect');
+                const eSel = document.getElementById('episodeSelect');
+                
                 sSel.innerHTML = cur.seasons.filter(s => s.season_number > 0).map(s => `<option value="${s.season_number}">Stagione ${s.season_number}</option>`).join('');
+                
                 sSel.onchange = async () => {
+                    eSel.innerHTML = '<option value="">Caricamento...</option>';
                     const sd = await call(`/tv/${cur.id}/season/${sSel.value}`);
-                    document.getElementById('episodeSelect').innerHTML = sd.episodes.map(e => `<option value="${e.episode_number}">Episodio ${e.episode_number}</option>`).join('');
+                    eSel.innerHTML = sd.episodes.map(e => `<option value="${e.episode_number}">Episodio ${e.episode_number}</option>`).join('');
                 };
                 await sSel.onchange();
             } else tv.classList.add('hidden');
@@ -245,21 +236,19 @@
         }
 
         function play() {
-            const s = cur.type === 'tv' ? document.getElementById('seasonSelect').value : null;
-            const e = cur.type === 'tv' ? document.getElementById('episodeSelect').value : null;
-            
-            // API VixSrc esatta dalla documentazione
             let url = `https://vixsrc.to/${cur.type}/${cur.id}`;
-            if(cur.type === 'tv') url += `/${s}/${e}`;
-            
-            // Parametri personalizzati
+            if(cur.type === 'tv') {
+                const s = document.getElementById('seasonSelect').value;
+                const e = document.getElementById('episodeSelect').value;
+                if(!s || !e) return alert("Attendi il caricamento degli episodi...");
+                url += `/${s}/${e}`;
+            }
             url += `?primaryColor=B20710&secondaryColor=170000&autoplay=true&lang=it`;
 
             document.getElementById('playerFrame').src = url;
             document.getElementById('playerModal').classList.replace('hidden', 'flex');
 
-            // Salvataggio storia
-            const entry = { id: cur.id, type: cur.type, poster_path: cur.poster_path, title: cur.title || cur.name, s, e };
+            const entry = { id: cur.id, type: cur.type, poster_path: cur.poster_path, title: cur.title || cur.name };
             watchHistory = watchHistory.filter(x => x.id !== cur.id);
             watchHistory.unshift(entry);
             localStorage.setItem('vixstream_history', JSON.stringify(watchHistory.slice(0, 15)));
@@ -275,8 +264,7 @@
                     body: JSON.stringify({ item_id: cur.id, media_type: cur.type, poster_path: cur.poster_path })
                 });
                 myFavorites = await r.json();
-                alert("Aggiornato nella tua lista!");
-            } catch(e) { console.error(e); }
+            } catch(e) {}
         }
 
         function closeModals() {
@@ -295,10 +283,9 @@
 
         function handleAuth() { if(!netlifyIdentity.currentUser()) netlifyIdentity.open(); }
         window.addEventListener('scroll', () => document.getElementById('mainHeader').classList.toggle('scrolled', window.scrollY > 50));
-        netlifyIdentity.on('init', updateAuthUI);
-        netlifyIdentity.on('login', () => { updateAuthUI(); showCategory('all'); netlifyIdentity.close(); });
-        netlifyIdentity.on('logout', () => { location.reload(); });
-        netlifyIdentity.init();
+        netlifyIdentity.on('init', user => { if(user) document.getElementById('authBtn').textContent = user.email.split('@')[0].toUpperCase(); });
+        netlifyIdentity.on('login', () => location.reload());
+        netlifyIdentity.on('logout', () => location.reload());
         showCategory('all');
     </script>
 </body>
