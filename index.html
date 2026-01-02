@@ -72,11 +72,11 @@
         }
 
         /* =========================================
-           PROFILE DROPDOWN SYSTEM (FIX: PONTE PER IL MOUSE)
+           PROFILE DROPDOWN SYSTEM
            ========================================= */
         .profile-container { 
             position: relative; 
-            padding: 20px 0; /* Crea il ponte per non far sparire il menu */
+            padding: 20px 0; 
         }
         
         .profile-dropdown { 
@@ -215,7 +215,7 @@
         }
 
         /* =========================================
-           INFO MODAL (FIX TASTI & X)
+           INFO MODAL
            ========================================= */
         .modal-overlay { 
             position: fixed; 
@@ -253,7 +253,6 @@
             object-fit: cover; 
         }
 
-        /* TASTI STILE PREMIUM */
         .btn-main {
             background: #e50914;
             color: white;
@@ -326,6 +325,9 @@
             height: 100%; 
         }
 
+        /* =========================================
+           BOOT SHIELD (ANIMAZIONE LAMPEGGIANTE)
+           ========================================= */
         #boot-shield { 
             position: fixed; 
             inset: 0; 
@@ -336,19 +338,44 @@
             align-items: center; 
             justify-content: center; 
         }
+
+        @keyframes vpulse { 
+            0% { opacity: 0.4; transform: scale(0.95); filter: drop-shadow(0 0 0px #e50914); } 
+            50% { opacity: 1; transform: scale(1.05); filter: drop-shadow(0 0 20px #e50914); } 
+            100% { opacity: 0.4; transform: scale(0.95); filter: drop-shadow(0 0 0px #e50914); } 
+        }
         
         .loader-logo { 
-            font-size: 4rem; 
+            font-size: 4.5rem; 
             font-weight: 900; 
             color: #e50914; 
             font-style: italic; 
-            animation: pulse 1.5s infinite; 
-            letter-spacing: -3px;
+            animation: vpulse 1.2s infinite ease-in-out; 
+            letter-spacing: -4px;
         }
-        
-        @keyframes pulse { 
-            0%, 100% { opacity: 1; transform: scale(1); } 
-            50% { opacity: 0.5; transform: scale(0.95); } 
+
+        .loading-bar-container {
+            width: 220px;
+            height: 4px;
+            background: rgba(255,255,255,0.05);
+            margin-top: 25px;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .loading-bar-progress {
+            width: 40%;
+            height: 100%;
+            background: #e50914;
+            position: absolute;
+            animation: loadingMove 1.8s infinite ease-in-out;
+            box-shadow: 0 0 10px #e50914;
+        }
+
+        @keyframes loadingMove {
+            0% { left: -40%; }
+            100% { left: 100%; }
         }
     </style>
 </head>
@@ -356,7 +383,12 @@
 
     <div id="boot-shield">
         <div class="loader-logo">VIXSTREAM</div>
-        <div class="mt-4 text-[10px] font-black tracking-[0.6em] text-white/30 uppercase">Inizializzazione Cinema</div>
+        <div class="loading-bar-container">
+            <div class="loading-bar-progress"></div>
+        </div>
+        <div class="mt-6 text-[10px] font-black tracking-[0.6em] text-white/30 uppercase animate-pulse">
+            Inizializzazione Cinema Premium
+        </div>
     </div>
 
     <header id="mainHeader">
@@ -487,7 +519,7 @@
                     renderHero(popular.results[0]);
                     renderRow("Titoli del Momento", popular.results);
                 }
-            } catch (e) { console.error("Errore caricamento:", e); }
+            } catch (e) { console.error("Errore:", e); }
         }
 
         function renderRow(title, items) {
@@ -611,13 +643,16 @@
         window.onscroll = () => { document.getElementById('mainHeader').classList.toggle('scrolled', window.scrollY > 60); };
 
         netlifyIdentity.on('init', user => {
-            document.getElementById('boot-shield').style.display = 'none';
-            if(user) {
-                const userName = user.user_metadata.full_name || user.email.split('@')[0];
-                document.getElementById('authBtn').innerText = userName.toUpperCase();
-                document.getElementById('userDisplay').innerText = "Premium: " + userName.toUpperCase();
-            }
-            loadContent('all').then(() => { document.getElementById('main-content').classList.remove('opacity-0'); });
+            // Piccolo ritardo per mostrare l'effetto caricamento premium
+            setTimeout(() => {
+                document.getElementById('boot-shield').style.display = 'none';
+                if(user) {
+                    const userName = user.user_metadata.full_name || user.email.split('@')[0];
+                    document.getElementById('authBtn').innerText = userName.toUpperCase();
+                    document.getElementById('userDisplay').innerText = "Premium: " + userName.toUpperCase();
+                }
+                loadContent('all').then(() => { document.getElementById('main-content').classList.remove('opacity-0'); });
+            }, 1500);
         });
 
         netlifyIdentity.on('login', () => location.reload());
