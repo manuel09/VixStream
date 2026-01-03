@@ -11,7 +11,7 @@
 
     <style>
         /* =========================================
-           CORE SYSTEM & RESET
+            CORE SYSTEM & RESET
            ========================================= */
         body { 
             background-color: #141414; 
@@ -27,7 +27,7 @@
         .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 
         /* =========================================
-           HEADER & NAVIGATION
+            HEADER & NAVIGATION
            ========================================= */
         header { 
             background: linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, transparent 100%); 
@@ -72,7 +72,46 @@
         }
 
         /* =========================================
-           PROFILE DROPDOWN SYSTEM
+            SEARCH SYSTEM
+           ========================================= */
+        .search-container {
+            display: flex;
+            align-items: center;
+            background: rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 5px 15px;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            width: 40px;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .search-container.active {
+            width: 250px;
+            background: rgba(0,0,0,0.9);
+            border-color: #e50914;
+        }
+
+        #searchInput {
+            background: transparent;
+            border: none;
+            outline: none;
+            color: white;
+            font-size: 13px;
+            font-weight: 500;
+            width: 0;
+            margin-left: 0;
+            transition: all 0.3s ease;
+        }
+
+        .search-container.active #searchInput {
+            width: 100%;
+            margin-left: 10px;
+        }
+
+        /* =========================================
+            PROFILE DROPDOWN SYSTEM
            ========================================= */
         .profile-container { 
             position: relative; 
@@ -121,7 +160,7 @@
         }
 
         /* =========================================
-           CAROUSEL & ROWS
+            CAROUSEL & ROWS
            ========================================= */
         .row-container { 
             margin-bottom: 4rem; 
@@ -215,7 +254,7 @@
         }
 
         /* =========================================
-           INFO MODAL
+            INFO MODAL
            ========================================= */
         .modal-overlay { 
             position: fixed; 
@@ -282,7 +321,7 @@
         .btn-secondary:hover { background: rgba(255,255,255,0.2); }
 
         /* =========================================
-           PREMIUM PLAYER
+            PREMIUM PLAYER
            ========================================= */
         #playerModal { 
             position: fixed; 
@@ -326,7 +365,7 @@
         }
 
         /* =========================================
-           BOOT SHIELD - STABILIZZATO
+            BOOT SHIELD - STABILIZZATO
            ========================================= */
         #boot-shield { 
             position: fixed; 
@@ -403,13 +442,22 @@
                 </nav>
             </div>
             
-            <div class="profile-container">
-                <button id="authBtn" onclick="if(!netlifyIdentity.currentUser()) netlifyIdentity.open()" class="bg-red-600 text-white text-[11px] px-8 py-3 rounded-full font-black uppercase tracking-widest shadow-xl hover:bg-red-700 transition">Accedi</button>
-                <div id="profileMenu" class="profile-dropdown">
-                    <div id="userDisplay" class="px-6 py-6 text-[10px] font-black text-white/30 border-b border-white/5 bg-white/5 uppercase tracking-widest italic">Ospite</div>
-                    <button onclick="showFullProfile()" class="dropdown-item">👤 Profilo Utente</button>
-                    <button onclick="loadContent('favorites')" class="dropdown-item">❤️ La mia Lista</button>
-                    <button onclick="netlifyIdentity.logout()" class="dropdown-item text-red-500 font-bold">🚪 Esci Account</button>
+            <div class="flex items-center gap-6">
+                <div id="searchWrapper" class="search-container" onclick="this.classList.add('active'); document.getElementById('searchInput').focus();">
+                    <span class="text-white text-lg">🔍</span>
+                    <input type="text" id="searchInput" placeholder="Cerca film o serie..." 
+                        oninput="handleSearch(this.value)" 
+                        onblur="if(this.value=='') document.getElementById('searchWrapper').classList.remove('active')">
+                </div>
+
+                <div class="profile-container">
+                    <button id="authBtn" onclick="if(!netlifyIdentity.currentUser()) netlifyIdentity.open()" class="bg-red-600 text-white text-[11px] px-8 py-3 rounded-full font-black uppercase tracking-widest shadow-xl hover:bg-red-700 transition">Accedi</button>
+                    <div id="profileMenu" class="profile-dropdown">
+                        <div id="userDisplay" class="px-6 py-6 text-[10px] font-black text-white/30 border-b border-white/5 bg-white/5 uppercase tracking-widest italic">Ospite</div>
+                        <button onclick="showFullProfile()" class="dropdown-item">👤 Profilo Utente</button>
+                        <button onclick="loadContent('favorites')" class="dropdown-item">❤️ La mia Lista</button>
+                        <button onclick="netlifyIdentity.logout()" class="dropdown-item text-red-500 font-bold">🚪 Esci Account</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -471,6 +519,7 @@
         let alreadyShownIds = new Set();
         let idleTimer;
         let isAppStarted = false; 
+        let searchTimeout;
 
         async function callTMDB(path, extraParams = {}) {
             const url = new URL(BASE_URL + path);
@@ -481,11 +530,44 @@
             return response.json();
         }
 
+        async function handleSearch(query) {
+            clearTimeout(searchTimeout);
+            if (query.length < 3) {
+                if (query.length === 0) loadContent('all');
+                return;
+            }
+
+            searchTimeout = setTimeout(async () => {
+                const data = await callTMDB('/search/multi', { query: query });
+                renderSearchResults(data.results, query);
+            }, 500);
+        }
+
+        function renderSearchResults(results, query) {
+            const container = document.getElementById('sections');
+            const heroSection = document.getElementById('hero');
+            
+            heroSection.classList.add('hidden');
+            container.style.marginTop = "120px";
+            container.innerHTML = '';
+
+            const filteredResults = results.filter(item => item.poster_path && (item.media_type === 'movie' || item.media_type === 'tv'));
+
+            if (filteredResults.length === 0) {
+                container.innerHTML = `<div class="text-center py-20 text-gray-500 uppercase tracking-widest font-black">Nessun risultato trovato per: ${query}</div>`;
+                return;
+            }
+
+            alreadyShownIds.clear();
+            renderRow(`Risultati per: ${query}`, filteredResults);
+        }
+
         async function loadContent(category) {
             alreadyShownIds.clear();
             const container = document.getElementById('sections');
             const heroSection = document.getElementById('hero');
             container.innerHTML = '';
+            container.style.marginTop = category === 'all' ? "-6rem" : "150px";
             
             document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
             const activeNav = document.getElementById('nav-' + category);
@@ -501,7 +583,6 @@
                 } 
                 else if(category === 'favorites') {
                     heroSection.classList.add('hidden');
-                    container.style.marginTop = "150px";
                     const user = netlifyIdentity.currentUser();
                     if(user) {
                         const res = await fetch('/.netlify/functions/manage-favorites', { 
@@ -655,9 +736,6 @@
             }
         }
 
-        // =========================================
-        // AVVIO CONTROLLATO (NO LOOP)
-        // =========================================
         async function startApp(user) {
             if(isAppStarted) return;
             isAppStarted = true;
@@ -672,25 +750,15 @@
             if(success) terminateLoading();
         }
 
-        // Netlify Logic
-        netlifyIdentity.on('init', user => {
-            startApp(user);
-        });
-
+        netlifyIdentity.on('init', user => { startApp(user); });
         netlifyIdentity.on('login', user => {
-            // Ricarica solo se l'app non era già partita correttamente
             if(!isAppStarted) location.reload();
             else startApp(user);
         });
-
         netlifyIdentity.on('logout', () => location.reload());
-
-        // Inizializzazione
         netlifyIdentity.init();
-        
-        // Fail-safe per il caricamento
         setTimeout(() => { if(!isAppStarted) startApp(netlifyIdentity.currentUser()); }, 3000);
 
     </script>
 </body>
-</html>
+</html>vvvvvvvvvvvvvvvvvvvvvvv
