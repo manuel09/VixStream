@@ -688,24 +688,79 @@
         }
 
         function launchPlayer() {
-            let streamUrl = `https://vixsrc.to/${currentItem.type}/${currentItem.id}`;
-            if(currentItem.type === 'tv') streamUrl += `/${document.getElementById('seasonSelect').value}/${document.getElementById('episodeSelect').value}`;
-            document.getElementById('playerFrame').src = streamUrl;
-            document.getElementById('playerModal').style.display = 'block';
+    let streamUrl = `https://vixsrc.to/${currentItem.type}/${currentItem.id}`;
 
-            document.addEventListener('mousemove', handleUiActivity);
-            handleUiActivity();
+    if(currentItem.type === 'tv') {
+        streamUrl += `/${document.getElementById('seasonSelect').value}/${document.getElementById('episodeSelect').value}`;
+    }
 
-            // Aggiorna Cronologia
-            watchHistory = watchHistory.filter(x => (x.id || x.item_id) !== currentItem.id);
-            watchHistory.unshift({
-                id: currentItem.id,
-                title: currentItem.title || currentItem.name,
-                poster_path: currentItem.poster_path,
-                media_type: currentItem.type
-            });
-            localStorage.setItem('vix_history_premium_v3', JSON.stringify(watchHistory.slice(0, 15)));
+    // AGGIUNTA: Parametri per autoplay e colori (come da documentazione)
+    // Usiamo '?' se non ci sono parametri o '&' se ne aggiungiamo altri
+    streamUrl += "?autoplay=true&primaryColor=e50914";
+
+    document.getElementById('playerFrame').src = streamUrl;
+    document.getElementById('playerModal').style.display = 'block';
+
+    document.addEventListener('mousemove', handleUiActivity);
+    handleUiActivity();
+
+    // Aggiorna Cronologia
+    watchHistory = watchHistory.filter(x => (x.id || x.item_id) !== currentItem.id);
+    watchHistory.unshift({
+        id: currentItem.id,
+        title: currentItem.title || currentItem.name,
+        poster_path: currentItem.poster_path,
+        media_type: currentItem.type
+    });
+    localStorage.setItem('vix_history_premium_v3', JSON.stringify(watchHistory.slice(0, 15)));
+}
+
+        // Ascolta i messaggi inviati dal player vixsrc
+window.addEventListener("message", (event) => {
+    // Verifichiamo che il messaggio arrivi dal player
+    if (event.data.type === "PLAYER_EVENT") {
+        const eventData = event.data.data;
+
+        // Se il video è finito e stiamo guardando una serie TV
+        if (eventData.event === "ended" && currentItem && currentItem.type === 'tv') {
+            console.log("Video terminato, cerco l'episodio successivo...");
+            playNextEpisode();
         }
+    }
+}, false);
+
+function playNextEpisode() {
+    const sSelect = document.getElementById('seasonSelect');
+    const eSelect = document.getElementById('episodeSelect');
+
+    let currentEp = parseInt(eSelect.value);
+    let nextEp = currentEp + 1;
+
+    // Controlla se esiste l'episodio successivo nel selettore
+    const nextEpOption = eSelect.querySelector(`option[value="${nextEp}"]`);
+
+    if (nextEpOption) {
+        // C'è un altro episodio in questa stagione
+        eSelect.value = nextEp;
+        launchPlayer();
+    } else {
+        // Prova a passare alla stagione successiva, episodio 1
+        let nextSeason = parseInt(sSelect.value) + 1;
+        const nextSeasonOption = sSelect.querySelector(`option[value="${nextSeason}"]`);
+
+        if (nextSeasonOption) {
+            sSelect.value = nextSeason;
+            // Dobbiamo aggiornare la lista episodi prima di lanciare il player
+            sSelect.onchange().then(() => {
+                eSelect.value = 1;
+                launchPlayer();
+            });
+        } else {
+            console.log("Serie terminata.");
+            closeModals();
+        }
+    }
+}
 
         function handleUiActivity() {
             const btn = document.getElementById('closePlayerBtn');
