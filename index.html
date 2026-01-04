@@ -716,48 +716,54 @@
     localStorage.setItem('vix_history_premium_v3', JSON.stringify(watchHistory.slice(0, 15)));
 }
 
-        // Ascolta i messaggi inviati dal player vixsrc
-window.addEventListener("message", (event) => {
-    // Verifichiamo che il messaggio arrivi dal player
-    if (event.data.type === "PLAYER_EVENT") {
-        const eventData = event.data.data;
+ window.addEventListener("message", (event) => {
+    let payload = event.data;
 
-        // Se il video è finito e stiamo guardando una serie TV
+    // Se il player invia una stringa, la trasformiamo in oggetto
+    if (typeof payload === 'string') {
+        try { payload = JSON.parse(payload); } catch (e) { return; }
+    }
+
+    if (payload && payload.type === "PLAYER_EVENT") {
+        const eventData = payload.data;
+
+        // Verifica se l'evento è 'ended'
         if (eventData.event === "ended" && currentItem && currentItem.type === 'tv') {
-            console.log("Video terminato, cerco l'episodio successivo...");
+            console.log("Evento ENDED intercettato con successo!");
             playNextEpisode();
         }
     }
 }, false);
 
-function playNextEpisode() {
+async function playNextEpisode() {
     const sSelect = document.getElementById('seasonSelect');
     const eSelect = document.getElementById('episodeSelect');
 
     let currentEp = parseInt(eSelect.value);
     let nextEp = currentEp + 1;
 
-    // Controlla se esiste l'episodio successivo nel selettore
+    // Controlla se esiste l'episodio successivo nella stagione attuale
     const nextEpOption = eSelect.querySelector(`option[value="${nextEp}"]`);
 
     if (nextEpOption) {
-        // C'è un altro episodio in questa stagione
+        // Se esiste, lo seleziona e fa ripartire il player
         eSelect.value = nextEp;
         launchPlayer();
     } else {
-        // Prova a passare alla stagione successiva, episodio 1
+        // Se la stagione è finita, prova a passare alla successiva
         let nextSeason = parseInt(sSelect.value) + 1;
         const nextSeasonOption = sSelect.querySelector(`option[value="${nextSeason}"]`);
 
         if (nextSeasonOption) {
             sSelect.value = nextSeason;
-            // Dobbiamo aggiornare la lista episodi prima di lanciare il player
-            sSelect.onchange().then(() => {
-                eSelect.value = 1;
-                launchPlayer();
-            });
+            // IMPORTANTE: attende che il caricamento degli episodi finisca
+            await sSelect.onchange();
+            // Seleziona il primo episodio della nuova stagione
+            eSelect.value = 1;
+            launchPlayer();
         } else {
-            console.log("Serie terminata.");
+            // Fine totale della serie
+            console.log("Fine della serie.");
             closeModals();
         }
     }
