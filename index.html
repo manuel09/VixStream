@@ -804,26 +804,39 @@ async function playNextEpisode() {
         }
 
         async function toggleFavorite() {
-            const user = netlifyIdentity.currentUser(); if(!user) return netlifyIdentity.open();
-            const btn = document.getElementById('favBtn');
-            btn.innerText = "Attendere...";
+    const user = netlifyIdentity.currentUser();
+    if(!user) return netlifyIdentity.open();
 
-            try {
-                const res = await fetch('/.netlify/functions/manage-favorites', {
-                    method: 'POST', headers: { Authorization: `Bearer ${user.token.access_token}` },
-                    body: JSON.stringify({ item_id: currentItem.id, media_type: currentItem.type, poster_path: currentItem.poster_path })
-                });
-                if(res.ok) {
-                    btn.innerText = "❤️ AGGIUNTO";
-                    setTimeout(() => btn.innerText = "❤️ Lista", 2000);
-                } else {
-                    btn.innerText = "❌ ERRORE";
-                    setTimeout(() => btn.innerText = "❤️ Lista", 2000);
-                }
-            } catch(e) {
-                btn.innerText = "❤️ Lista";
-            }
+    const btn = document.getElementById('favBtn');
+    btn.innerText = "Salvataggio...";
+
+    try {
+        const res = await fetch('/.netlify/functions/manage-favorites', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${user.token.access_token}`,
+                'Content-Type': 'application/json'
+            },
+            // AGGIUNTO: action: 'add' per comunicare correttamente col backend
+            body: JSON.stringify({
+                action: 'add',
+                item_id: currentItem.id,
+                media_type: currentItem.type,
+                poster_path: currentItem.poster_path
+            })
+        });
+
+        if(res.ok) {
+            btn.innerText = "❤️ AGGIUNTO";
+            setTimeout(() => btn.innerText = "❤️ Lista", 2000);
+        } else {
+            btn.innerText = "❌ ERRORE";
+            setTimeout(() => btn.innerText = "❤️ Lista", 2000);
         }
+    } catch(e) {
+        btn.innerText = "❤️ Lista";
+    }
+}
 
         function closeModals() {
             document.getElementById('infoModal').style.display = 'none';
