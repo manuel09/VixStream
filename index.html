@@ -473,7 +473,7 @@
                 <button id="heroPlay" class="btn-main">▶ Riproduci Ora</button>
             </div>
         </section>
-        <div id="sections" class="relative z-20 -mt-24 space-y-6"></div>
+        <div id="sections" class="relative z-20 space-y-6"></div>
     </main>
 
     <div id="infoModal" class="modal-overlay" onclick="if(event.target==this) closeModals()">
@@ -536,7 +536,6 @@
                 if (query.length === 0) loadContent('all');
                 return;
             }
-
             searchTimeout = setTimeout(async () => {
                 const data = await callTMDB('/search/multi', { query: query });
                 renderSearchResults(data.results, query);
@@ -545,19 +544,15 @@
 
         function renderSearchResults(results, query) {
             const container = document.getElementById('sections');
-            const heroSection = document.getElementById('hero');
-            
-            heroSection.classList.add('hidden');
+            document.getElementById('hero').classList.add('hidden');
             container.style.marginTop = "120px";
+            container.classList.remove('-mt-24');
             container.innerHTML = '';
-
             const filteredResults = results.filter(item => item.poster_path && (item.media_type === 'movie' || item.media_type === 'tv'));
-
             if (filteredResults.length === 0) {
-                container.innerHTML = `<div class="text-center py-20 text-gray-500 uppercase tracking-widest font-black">Nessun risultato trovato per: ${query}</div>`;
+                container.innerHTML = `<div class="text-center py-20 text-gray-500 uppercase tracking-widest font-black">Nessun risultato per: ${query}</div>`;
                 return;
             }
-
             alreadyShownIds.clear();
             renderRow(`Risultati per: ${query}`, filteredResults);
         }
@@ -567,8 +562,17 @@
             const container = document.getElementById('sections');
             const heroSection = document.getElementById('hero');
             container.innerHTML = '';
-            container.style.marginTop = category === 'all' ? "-6rem" : "150px";
             
+            // FIX SPAZIO: Rimuoviamo il margine negativo se non siamo in HOME
+            if(category === 'all') {
+                container.classList.add('-mt-24');
+                heroSection.classList.remove('hidden');
+            } else {
+                container.classList.remove('-mt-24');
+                container.style.marginTop = "120px";
+                heroSection.classList.add('hidden');
+            }
+
             document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
             const activeNav = document.getElementById('nav-' + category);
             if(activeNav) activeNav.classList.add('active');
@@ -582,14 +586,26 @@
                     renderRow("Serie TV suggerite", trending.results.filter(i => i.media_type === 'tv'));
                 } 
                 else if(category === 'favorites') {
-                    heroSection.classList.add('hidden');
                     const user = netlifyIdentity.currentUser();
-                    if(user) {
-                        const res = await fetch('/.netlify/functions/manage-favorites', { 
-                            headers: { Authorization: `Bearer ${user.token.access_token}` } 
-                        });
+                    if(!user) { netlifyIdentity.open(); return; }
+                    
+                    const res = await fetch('/.netlify/functions/manage-favorites', { 
+                        headers: { Authorization: `Bearer ${user.token.access_token}` } 
+                    });
+                    
+                    if(res.ok) {
                         const favs = await res.json();
-                        renderRow("La mia Lista Personale", favs.map(x => ({ id: x.item_id, media_type: x.media_type, poster_path: x.poster_path })));
+                        if(!favs || favs.length === 0) {
+                            container.innerHTML = `<div class="text-center py-20 text-white/20 uppercase font-black tracking-widest">La tua lista è vuota</div>`;
+                        } else {
+                            renderRow("La mia Lista Personale", favs.map(x => ({ 
+                                id: x.item_id, 
+                                media_type: x.media_type, 
+                                poster_path: x.poster_path 
+                            })));
+                        }
+                    } else {
+                        container.innerHTML = `<div class="text-center py-20 text-red-500 uppercase font-black tracking-widest">Errore nel caricamento lista</div>`;
                     }
                 } 
                 else {
@@ -599,7 +615,7 @@
                 }
                 return true;
             } catch (e) { 
-                console.error("Errore:", e); 
+                console.error("Errore caricamento:", e); 
                 return false; 
             }
         }
@@ -664,6 +680,7 @@
 
             document.getElementById('infoModal').style.display = 'flex';
             document.getElementById('playBtn').onclick = launchPlayer;
+            document.getElementById('favBtn').innerText = "❤️ Lista";
         }
 
         function launchPlayer() {
@@ -675,8 +692,14 @@
             document.addEventListener('mousemove', handleUiActivity);
             handleUiActivity();
 
-            watchHistory = watchHistory.filter(x => x.id !== currentItem.id);
-            watchHistory.unshift(currentItem);
+            // Aggiorna Cronologia
+            watchHistory = watchHistory.filter(x => (x.id || x.item_id) !== currentItem.id);
+            watchHistory.unshift({
+                id: currentItem.id,
+                title: currentItem.title || currentItem.name,
+                poster_path: currentItem.poster_path,
+                media_type: currentItem.type
+            });
             localStorage.setItem('vix_history_premium_v3', JSON.stringify(watchHistory.slice(0, 15)));
         }
 
@@ -696,23 +719,44 @@
             const user = netlifyIdentity.currentUser(); if(!user) return;
             document.getElementById('hero').classList.add('hidden');
             const sections = document.getElementById('sections');
-            sections.style.marginTop = "150px";
+            sections.style.marginTop = "120px";
+            sections.classList.remove('-mt-24');
             const name = (user.user_metadata.full_name || user.email.split('@')[0]).toUpperCase();
-            sections.innerHTML = `<div class="max-w-2xl mx-auto p-20 bg-white/5 rounded-[60px] text-center border border-white/5 backdrop-blur-3xl shadow-2xl">
-                <div class="w-28 h-28 bg-red-600 rounded-full flex items-center justify-center text-6xl font-black mx-auto mb-10 shadow-2xl">${name[0]}</div>
-                <h2 class="text-5xl font-black italic tracking-tighter">${name}</h2>
-                <button onclick="window.location.reload()" class="mt-14 text-white/20 font-black text-[10px] uppercase hover:text-white transition tracking-[0.5em]">Indietro alla Home</button>
+            
+            let historyHtml = watchHistory.length > 0 
+                ? `<div class="mt-10 text-left w-full"><h3 class="text-xs font-black text-white/40 mb-4 uppercase tracking-[0.3em]">Cosa hai visto</h3><div class="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">${watchHistory.map(h => `<img src="https://image.tmdb.org/t/p/w200${h.poster_path}" class="w-24 rounded-lg opacity-60 hover:opacity-100 transition cursor-pointer" onclick='openDetails(${h.id}, "${h.media_type}")'>`).join('')}</div></div>`
+                : `<p class="mt-6 text-white/20 text-[10px] uppercase font-bold">Nessun contenuto visto di recente</p>`;
+
+            sections.innerHTML = `<div class="max-w-3xl mx-auto p-12 bg-white/5 rounded-[40px] text-center border border-white/5 backdrop-blur-3xl shadow-2xl">
+                <div class="w-24 h-24 bg-red-600 rounded-full flex items-center justify-center text-4xl font-black mx-auto mb-6 shadow-2xl">${name[0]}</div>
+                <h2 class="text-3xl font-black italic tracking-tighter">${name}</h2>
+                <p class="text-xs text-white/40 mt-1">${user.email}</p>
+                <p class="text-[10px] text-red-500 font-bold uppercase tracking-widest mt-4">Membro Premium VixStream</p>
+                ${historyHtml}
+                <button onclick="window.location.reload()" class="mt-10 text-white/40 font-black text-[9px] uppercase hover:text-white transition tracking-[0.4em] block mx-auto">Torna alla Home</button>
             </div>`;
         }
 
         async function toggleFavorite() {
             const user = netlifyIdentity.currentUser(); if(!user) return netlifyIdentity.open();
-            const btn = document.getElementById('favBtn'); btn.innerText = "Attendere...";
-            const res = await fetch('/.netlify/functions/manage-favorites', {
-                method: 'POST', headers: { Authorization: `Bearer ${user.token.access_token}` },
-                body: JSON.stringify({ item_id: currentItem.id, media_type: currentItem.type, poster_path: currentItem.poster_path })
-            });
-            if(res.ok) { btn.innerText = "❤️ IN LISTA"; setTimeout(() => btn.innerText = "❤️ LISTA", 2000); }
+            const btn = document.getElementById('favBtn'); 
+            btn.innerText = "Attendere...";
+            
+            try {
+                const res = await fetch('/.netlify/functions/manage-favorites', {
+                    method: 'POST', headers: { Authorization: `Bearer ${user.token.access_token}` },
+                    body: JSON.stringify({ item_id: currentItem.id, media_type: currentItem.type, poster_path: currentItem.poster_path })
+                });
+                if(res.ok) { 
+                    btn.innerText = "❤️ AGGIUNTO"; 
+                    setTimeout(() => btn.innerText = "❤️ Lista", 2000); 
+                } else {
+                    btn.innerText = "❌ ERRORE";
+                    setTimeout(() => btn.innerText = "❤️ Lista", 2000);
+                }
+            } catch(e) {
+                btn.innerText = "❤️ Lista";
+            }
         }
 
         function closeModals() {
@@ -739,13 +783,11 @@
         async function startApp(user) {
             if(isAppStarted) return;
             isAppStarted = true;
-
             if(user) {
                 const userName = user.user_metadata.full_name || user.email.split('@')[0];
                 document.getElementById('authBtn').innerText = userName.toUpperCase();
                 document.getElementById('userDisplay').innerText = "Premium: " + userName.toUpperCase();
             }
-            
             const success = await loadContent('all');
             if(success) terminateLoading();
         }
@@ -758,7 +800,6 @@
         netlifyIdentity.on('logout', () => location.reload());
         netlifyIdentity.init();
         setTimeout(() => { if(!isAppStarted) startApp(netlifyIdentity.currentUser()); }, 3000);
-
     </script>
 </body>
 </html>
