@@ -871,14 +871,54 @@ async function playNextEpisode() {
             if(success) terminateLoading();
         }
 
-        netlifyIdentity.on('init', user => { startApp(user); });
-        netlifyIdentity.on('login', user => {
-            if(!isAppStarted) location.reload();
-            else startApp(user);
+        // Funzione per aggiornare l'interfaccia con i dati utente
+        function updateUserUI(user) {
+            if (user) {
+                const userName = user.user_metadata.full_name || user.email.split('@')[0];
+                const authBtn = document.getElementById('authBtn');
+                const userDisplay = document.getElementById('userDisplay');
+
+                if(authBtn) authBtn.innerText = userName.toUpperCase();
+                if(userDisplay) userDisplay.innerText = "Premium: " + userName.toUpperCase();
+            }
+        }
+
+        netlifyIdentity.on('init', user => {
+            if(user) updateUserUI(user);
+            startApp(user);
         });
-        netlifyIdentity.on('logout', () => location.reload());
+
+        netlifyIdentity.on('login', user => {
+            console.log("Login rilevato");
+            updateUserUI(user);
+            netlifyIdentity.close(); // Chiude il popup subito dopo il login
+
+            // Invece di reload, aggiorniamo i contenuti se siamo già nell'app
+            if(!isAppStarted) {
+                location.reload();
+            } else {
+                startApp(user);
+                // Opzionale: ricarica i preferiti ora che siamo loggati
+                loadContent('all');
+            }
+        });
+
+        netlifyIdentity.on('logout', () => {
+            netlifyIdentity.close();
+            location.reload();
+        });
+
+        // Inizializzazione
         netlifyIdentity.init();
-        setTimeout(() => { if(!isAppStarted) startApp(netlifyIdentity.currentUser()); }, 3000);
+
+        // Backup per caricamento lento
+        setTimeout(() => {
+            const user = netlifyIdentity.currentUser();
+            if(!isAppStarted) {
+                if(user) updateUserUI(user);
+                startApp(user);
+            }
+        }, 3000);
     </script>
 </body>
 </html>
