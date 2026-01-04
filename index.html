@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>VixStream Premium - Official</title>
     <link rel="icon" type="image/png" href="https://upload.wikimedia.org/wikipedia/commons/0/08/Netflix_2015_logo.svg">
-    
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script type="text/javascript" src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 
@@ -13,12 +13,12 @@
         /* =========================================
             CORE SYSTEM & RESET
            ========================================= */
-        body { 
-            background-color: #141414; 
-            color: #fff; 
-            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; 
-            margin: 0; 
-            overflow-x: hidden; 
+        body {
+            background-color: #141414;
+            color: #fff;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            margin: 0;
+            overflow-x: hidden;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
         }
@@ -29,38 +29,38 @@
         /* =========================================
             HEADER & NAVIGATION
            ========================================= */
-        header { 
-            background: linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, transparent 100%); 
-            transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1); 
-            z-index: 1000; 
-            height: 75px; 
-            position: fixed; 
-            top: 0; 
-            width: 100%; 
-            display: flex; 
-            align-items: center; 
-        }
-        
-        header.scrolled { 
-            background-color: #141414 !important; 
-            box-shadow: 0 4px 30px rgba(0,0,0,0.8); 
+        header {
+            background: linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, transparent 100%);
+            transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
+            height: 75px;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            display: flex;
+            align-items: center;
         }
 
-        .nav-link { 
-            cursor: pointer; 
-            color: rgba(255,255,255,0.7); 
-            font-weight: 700; 
-            font-size: 13px; 
-            transition: all 0.3s ease; 
-            text-transform: uppercase; 
+        header.scrolled {
+            background-color: #141414 !important;
+            box-shadow: 0 4px 30px rgba(0,0,0,0.8);
+        }
+
+        .nav-link {
+            cursor: pointer;
+            color: rgba(255,255,255,0.7);
+            font-weight: 700;
+            font-size: 13px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
             letter-spacing: 0.8px;
             position: relative;
         }
-        
-        .nav-link:hover, .nav-link.active { 
-            color: #ffffff; 
+
+        .nav-link:hover, .nav-link.active {
+            color: #ffffff;
         }
-        
+
         .nav-link.active::after {
             content: '';
             position: absolute;
@@ -113,35 +113,35 @@
         /* =========================================
             PROFILE DROPDOWN SYSTEM
            ========================================= */
-        .profile-container { 
-            position: relative; 
-            padding: 20px 0; 
+        .profile-container {
+            position: relative;
+            padding: 20px 0;
         }
-        
-        .profile-dropdown { 
-            display: none; 
-            position: absolute; 
-            top: 70px; 
-            right: 0; 
-            background: #181818; 
-            border: 1px solid rgba(255,255,255,0.1); 
-            min-width: 230px; 
-            border-radius: 8px; 
-            box-shadow: 0 20px 50px rgba(0,0,0,0.9); 
+
+        .profile-dropdown {
+            display: none;
+            position: absolute;
+            top: 70px;
+            right: 0;
+            background: #181818;
+            border: 1px solid rgba(255,255,255,0.1);
+            min-width: 230px;
+            border-radius: 8px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.9);
             overflow: hidden;
             z-index: 1100;
         }
-        
-        .profile-container:hover .profile-dropdown { 
-            display: block; 
+
+        .profile-container:hover .profile-dropdown {
+            display: block;
             animation: slideDown 0.3s ease;
         }
-        
+
         @keyframes slideDown {
             from { opacity: 0; transform: translateY(-10px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        
+
         .dropdown-item {
             width: 100%;
             text-align: left;
@@ -153,143 +153,143 @@
             border-bottom: 1px solid rgba(255,255,255,0.05);
             color: rgba(255,255,255,0.6);
         }
-        
-        .dropdown-item:hover { 
-            background: rgba(255,255,255,0.1); 
+
+        .dropdown-item:hover {
+            background: rgba(255,255,255,0.1);
             color: white;
         }
 
         /* =========================================
             CAROUSEL & ROWS
            ========================================= */
-        .row-container { 
-            margin-bottom: 4rem; 
-            position: relative; 
-            padding: 0 4%; 
+        .row-container {
+            margin-bottom: 4rem;
+            position: relative;
+            padding: 0 4%;
         }
-        
-        .row-title { 
-            font-size: 17px; 
-            font-weight: 900; 
-            color: #ffffff; 
-            margin-bottom: 25px; 
+
+        .row-title {
+            font-size: 17px;
+            font-weight: 900;
+            color: #ffffff;
+            margin-bottom: 25px;
             margin-top: 20px;
-            text-transform: uppercase; 
+            text-transform: uppercase;
             letter-spacing: 1.5px;
             display: block;
             text-shadow: 0 2px 4px rgba(0,0,0,0.8);
         }
 
-        .carousel-wrapper { 
-            position: relative; 
-            display: flex; 
-            align-items: center; 
+        .carousel-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
         }
-        
-        .carousel-track { 
-            display: flex; 
-            overflow-x: auto; 
-            scroll-behavior: smooth; 
-            gap: 16px; 
-            padding: 15px 0; 
-            width: 100%; 
+
+        .carousel-track {
+            display: flex;
+            overflow-x: auto;
+            scroll-behavior: smooth;
+            gap: 16px;
+            padding: 15px 0;
+            width: 100%;
         }
-        
-        .nav-arrow { 
-            position: absolute; 
-            top: 50%; 
+
+        .nav-arrow {
+            position: absolute;
+            top: 50%;
             transform: translateY(-50%);
-            width: 50px; 
-            height: 50px; 
-            background: rgba(0,0,0,0.85); 
-            color: white; 
-            border: 1px solid rgba(255,255,255,0.2); 
+            width: 50px;
+            height: 50px;
+            background: rgba(0,0,0,0.85);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.2);
             border-radius: 50%;
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            cursor: pointer; 
-            z-index: 50; 
-            opacity: 0; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 50;
+            opacity: 0;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             backdrop-filter: blur(10px);
         }
-        
+
         .carousel-wrapper:hover .nav-arrow { opacity: 1; }
-        .nav-arrow:hover { 
-            background: #e50914; 
-            border-color: #e50914; 
+        .nav-arrow:hover {
+            background: #e50914;
+            border-color: #e50914;
             transform: translateY(-50%) scale(1.1);
         }
-        
-        .arrow-left { left: -25px; } 
+
+        .arrow-left { left: -25px; }
         .arrow-right { right: -25px; }
 
-        .card { 
-            min-width: 145px; 
-            width: 145px; 
-            aspect-ratio: 2/3; 
-            flex-shrink: 0; 
-            border-radius: 8px; 
-            overflow: hidden; 
+        .card {
+            min-width: 145px;
+            width: 145px;
+            aspect-ratio: 2/3;
+            flex-shrink: 0;
+            border-radius: 8px;
+            overflow: hidden;
             cursor: pointer;
-            transition: all 0.4s cubic-bezier(0.2, 1, 0.3, 1); 
-            background: #222; 
+            transition: all 0.4s cubic-bezier(0.2, 1, 0.3, 1);
+            background: #222;
         }
-        
-        @media (min-width: 768px) { 
-            .card { min-width: 190px; width: 190px; } 
+
+        @media (min-width: 768px) {
+            .card { min-width: 190px; width: 190px; }
         }
-        
-        .card:hover { 
-            transform: scale(1.08); 
-            z-index: 10; 
-            box-shadow: 0 15px 40px rgba(0,0,0,0.8); 
+
+        .card:hover {
+            transform: scale(1.08);
+            z-index: 10;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.8);
         }
-        
-        .card img { 
-            width: 100%; 
-            height: 100%; 
-            object-fit: cover; 
+
+        .card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
         /* =========================================
             INFO MODAL
            ========================================= */
-        .modal-overlay { 
-            position: fixed; 
-            inset: 0; 
-            background: rgba(0,0,0,0.95); 
-            z-index: 2000; 
-            display: none; 
-            align-items: center; 
-            justify-content: center; 
-            padding: 20px; 
-            backdrop-filter: blur(15px); 
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.95);
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            backdrop-filter: blur(15px);
         }
-        
-        .modal-box { 
-            background: #181818; 
-            width: 100%; 
-            max-width: 850px; 
-            border-radius: 16px; 
-            overflow-y: auto; 
-            max-height: 90vh; 
-            position: relative; 
-            border: 1px solid rgba(255,255,255,0.1); 
+
+        .modal-box {
+            background: #181818;
+            width: 100%;
+            max-width: 850px;
+            border-radius: 16px;
+            overflow-y: auto;
+            max-height: 90vh;
+            position: relative;
+            border: 1px solid rgba(255,255,255,0.1);
         }
-        
-        .modal-hero { 
-            position: relative; 
-            height: 35vh; 
-            min-height: 250px; 
-            width: 100%; 
+
+        .modal-hero {
+            position: relative;
+            height: 35vh;
+            min-height: 250px;
+            width: 100%;
         }
-        
-        .modal-hero img { 
-            width: 100%; 
-            height: 100%; 
-            object-fit: cover; 
+
+        .modal-hero img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
         .btn-main {
@@ -323,15 +323,15 @@
         /* =========================================
             PREMIUM PLAYER
            ========================================= */
-        #playerModal { 
-            position: fixed; 
-            inset: 0; 
-            background: #000; 
-            z-index: 5000; 
-            display: none; 
-            cursor: none; 
+        #playerModal {
+            position: fixed;
+            inset: 0;
+            background: #000;
+            z-index: 5000;
+            display: none;
+            cursor: none;
         }
-        
+
         #playerModal.active-ui { cursor: default; }
 
         #closePlayerBtn {
@@ -351,45 +351,45 @@
             transition: all 0.5s;
             pointer-events: none;
         }
-        
-        #closePlayerBtn.visible { 
-            opacity: 1; 
+
+        #closePlayerBtn.visible {
+            opacity: 1;
             pointer-events: auto;
             transform: translateY(0);
         }
 
-        #playerFrame { 
-            border: none; 
-            width: 100%; 
-            height: 100%; 
+        #playerFrame {
+            border: none;
+            width: 100%;
+            height: 100%;
         }
 
         /* =========================================
             BOOT SHIELD - STABILIZZATO
            ========================================= */
-        #boot-shield { 
-            position: fixed; 
-            inset: 0; 
-            background: #141414; 
-            z-index: 99999; 
-            display: flex; 
+        #boot-shield {
+            position: fixed;
+            inset: 0;
+            background: #141414;
+            z-index: 99999;
+            display: flex;
             flex-direction: column;
-            align-items: center; 
-            justify-content: center; 
+            align-items: center;
+            justify-content: center;
         }
 
-        @keyframes vpulse { 
-            0% { opacity: 0.4; filter: drop-shadow(0 0 0px #e50914); } 
-            50% { opacity: 1; filter: drop-shadow(0 0 15px #e50914); } 
-            100% { opacity: 0.4; filter: drop-shadow(0 0 0px #e50914); } 
+        @keyframes vpulse {
+            0% { opacity: 0.4; filter: drop-shadow(0 0 0px #e50914); }
+            50% { opacity: 1; filter: drop-shadow(0 0 15px #e50914); }
+            100% { opacity: 0.4; filter: drop-shadow(0 0 0px #e50914); }
         }
-        
-        .loader-logo { 
-            font-size: 4.5rem; 
-            font-weight: 900; 
-            color: #e50914; 
-            font-style: italic; 
-            animation: vpulse 2s infinite ease-in-out; 
+
+        .loader-logo {
+            font-size: 4.5rem;
+            font-weight: 900;
+            color: #e50914;
+            font-style: italic;
+            animation: vpulse 2s infinite ease-in-out;
             letter-spacing: -4px;
             transform: translateZ(0);
         }
@@ -441,12 +441,12 @@
                     <a onclick="loadContent('movie')" id="nav-movie" class="nav-link">Film</a>
                 </nav>
             </div>
-            
+
             <div class="flex items-center gap-6">
                 <div id="searchWrapper" class="search-container" onclick="this.classList.add('active'); document.getElementById('searchInput').focus();">
                     <span class="text-white text-lg">🔍</span>
-                    <input type="text" id="searchInput" placeholder="Cerca film o serie..." 
-                        oninput="handleSearch(this.value)" 
+                    <input type="text" id="searchInput" placeholder="Cerca film o serie..."
+                        oninput="handleSearch(this.value)"
                         onblur="if(this.value=='') document.getElementById('searchWrapper').classList.remove('active')">
                 </div>
 
@@ -518,7 +518,7 @@
         let watchHistory = JSON.parse(localStorage.getItem('vix_history_premium_v3')) || [];
         let alreadyShownIds = new Set();
         let idleTimer;
-        let isAppStarted = false; 
+        let isAppStarted = false;
         let searchTimeout;
 
         async function callTMDB(path, extraParams = {}) {
@@ -558,20 +558,24 @@
         }
 
         async function loadContent(category) {
-            alreadyShownIds.clear();
-            const container = document.getElementById('sections');
-            const heroSection = document.getElementById('hero');
-            container.innerHTML = '';
-            
-            // FIX SPAZIO: Rimuoviamo il margine negativo se non siamo in HOME
-            if(category === 'all') {
-                container.classList.add('-mt-24');
-                heroSection.classList.remove('hidden');
-            } else {
-                container.classList.remove('-mt-24');
-                container.style.marginTop = "120px";
-                heroSection.classList.add('hidden');
-            }
+    alreadyShownIds.clear();
+    const container = document.getElementById('sections');
+    const heroSection = document.getElementById('hero');
+    container.innerHTML = '';
+
+    // RESET TOTALE: Questo elimina il "buco" delle tue foto
+    container.style.marginTop = "0px";
+    container.classList.remove('-mt-24');
+
+    if(category === 'all') {
+        // HOME: Se c'è l'Hero (Avatar), i titoli salgono sopra la sfumatura
+        container.classList.add('-mt-24');
+        heroSection.classList.remove('hidden');
+    } else {
+        // ALTRE PAGINE: Margine fisso per non finire sotto la scritta VIXSTREAM
+        container.style.marginTop = "120px";
+        heroSection.classList.add('hidden');
+    }
 
             document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
             const activeNav = document.getElementById('nav-' + category);
@@ -584,39 +588,39 @@
                     if(watchHistory.length > 0) renderRow("Continua a guardare", watchHistory);
                     renderRow("I Più Popolari", trending.results.filter(i => i.media_type === 'movie'));
                     renderRow("Serie TV suggerite", trending.results.filter(i => i.media_type === 'tv'));
-                } 
+                }
                 else if(category === 'favorites') {
                     const user = netlifyIdentity.currentUser();
                     if(!user) { netlifyIdentity.open(); return; }
-                    
-                    const res = await fetch('/.netlify/functions/manage-favorites', { 
-                        headers: { Authorization: `Bearer ${user.token.access_token}` } 
+
+                    const res = await fetch('/.netlify/functions/manage-favorites', {
+                        headers: { Authorization: `Bearer ${user.token.access_token}` }
                     });
-                    
+
                     if(res.ok) {
                         const favs = await res.json();
                         if(!favs || favs.length === 0) {
                             container.innerHTML = `<div class="text-center py-20 text-white/20 uppercase font-black tracking-widest">La tua lista è vuota</div>`;
                         } else {
-                            renderRow("La mia Lista Personale", favs.map(x => ({ 
-                                id: x.item_id, 
-                                media_type: x.media_type, 
-                                poster_path: x.poster_path 
+                            renderRow("La mia Lista Personale", favs.map(x => ({
+                                id: x.item_id,
+                                media_type: x.media_type,
+                                poster_path: x.poster_path
                             })));
                         }
                     } else {
                         container.innerHTML = `<div class="text-center py-20 text-red-500 uppercase font-black tracking-widest">Errore nel caricamento lista</div>`;
                     }
-                } 
+                }
                 else {
                     const popular = await callTMDB(`/${category}/popular`);
                     renderHero(popular.results[0]);
                     renderRow("Titoli del Momento", popular.results);
                 }
                 return true;
-            } catch (e) { 
-                console.error("Errore caricamento:", e); 
-                return false; 
+            } catch (e) {
+                console.error("Errore caricamento:", e);
+                return false;
             }
         }
 
@@ -624,7 +628,7 @@
             const validItems = items.filter(item => {
                 const id = item.id || item.item_id;
                 if(alreadyShownIds.has(id)) return false;
-                alreadyShownIds.add(id); 
+                alreadyShownIds.add(id);
                 return true;
             });
             if(validItems.length === 0) return;
@@ -663,7 +667,7 @@
             document.getElementById('infoTitle').innerText = currentItem.title || currentItem.name;
             document.getElementById('infoOverview').innerText = currentItem.overview || "Trama non disponibile.";
             document.getElementById('infoBgImg').src = "https://image.tmdb.org/t/p/original" + (currentItem.backdrop_path || currentItem.poster_path);
-            
+
             const tvBox = document.getElementById('tvBox');
             if(type === 'tv') {
                 tvBox.classList.remove('hidden');
@@ -688,7 +692,7 @@
             if(currentItem.type === 'tv') streamUrl += `/${document.getElementById('seasonSelect').value}/${document.getElementById('episodeSelect').value}`;
             document.getElementById('playerFrame').src = streamUrl;
             document.getElementById('playerModal').style.display = 'block';
-            
+
             document.addEventListener('mousemove', handleUiActivity);
             handleUiActivity();
 
@@ -722,8 +726,8 @@
             sections.style.marginTop = "120px";
             sections.classList.remove('-mt-24');
             const name = (user.user_metadata.full_name || user.email.split('@')[0]).toUpperCase();
-            
-            let historyHtml = watchHistory.length > 0 
+
+            let historyHtml = watchHistory.length > 0
                 ? `<div class="mt-10 text-left w-full"><h3 class="text-xs font-black text-white/40 mb-4 uppercase tracking-[0.3em]">Cosa hai visto</h3><div class="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">${watchHistory.map(h => `<img src="https://image.tmdb.org/t/p/w200${h.poster_path}" class="w-24 rounded-lg opacity-60 hover:opacity-100 transition cursor-pointer" onclick='openDetails(${h.id}, "${h.media_type}")'>`).join('')}</div></div>`
                 : `<p class="mt-6 text-white/20 text-[10px] uppercase font-bold">Nessun contenuto visto di recente</p>`;
 
@@ -739,17 +743,17 @@
 
         async function toggleFavorite() {
             const user = netlifyIdentity.currentUser(); if(!user) return netlifyIdentity.open();
-            const btn = document.getElementById('favBtn'); 
+            const btn = document.getElementById('favBtn');
             btn.innerText = "Attendere...";
-            
+
             try {
                 const res = await fetch('/.netlify/functions/manage-favorites', {
                     method: 'POST', headers: { Authorization: `Bearer ${user.token.access_token}` },
                     body: JSON.stringify({ item_id: currentItem.id, media_type: currentItem.type, poster_path: currentItem.poster_path })
                 });
-                if(res.ok) { 
-                    btn.innerText = "❤️ AGGIUNTO"; 
-                    setTimeout(() => btn.innerText = "❤️ Lista", 2000); 
+                if(res.ok) {
+                    btn.innerText = "❤️ AGGIUNTO";
+                    setTimeout(() => btn.innerText = "❤️ Lista", 2000);
                 } else {
                     btn.innerText = "❌ ERRORE";
                     setTimeout(() => btn.innerText = "❤️ Lista", 2000);
