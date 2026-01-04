@@ -678,6 +678,7 @@
                 sSelect.onchange = async () => {
                     const sData = await callTMDB(`/tv/${currentItem.id}/season/${sSelect.value}`);
                     eSelect.innerHTML = sData.episodes.map(e => `<option value="${e.episode_number}">EPISODIO ${e.episode_number}</option>`).join('');
+                    return true;
                 };
                 await sSelect.onchange();
             } else { tvBox.classList.add('hidden'); }
