@@ -487,8 +487,9 @@
             <div class="p-10 md:p-14 grid md:grid-cols-3 gap-12">
                 <div class="md:col-span-2">
                     <p id="infoOverview" class="text-gray-300 text-base md:text-lg leading-relaxed mb-12 font-light italic"></p>
-                    <div class="flex gap-5">
-                        <button id="playBtn" class="btn-main">▶ Guarda Ora</button>
+                    <div class="flex flex-wrap gap-5">
+                        <button id="playBtn" class="btn-main" onclick="launchPlayer('vixsrc')">▶ Server 1</button>
+                        <button id="playBtnBackup" class="btn-secondary" onclick="launchPlayer('videasy')">▶ Server 2</button>
                         <button id="favBtn" onclick="toggleFavorite()" class="btn-secondary">❤️ Lista</button>
                     </div>
                 </div>
@@ -521,6 +522,18 @@
         let isAppStarted = false;
         let searchTimeout;
 
+        // LISTENER PER VIDEASY PROGRESS TRACKING
+        window.addEventListener("message", (event) => {
+            if (event.origin.includes("videasy.net")) {
+                try {
+                    const data = typeof event.data === "string" ? JSON.parse(event.data) : event.data;
+                    if (data && data.timestamp) {
+                        saveToHistory(data.season || 1, data.episode || 1, data.timestamp);
+                    }
+                } catch (e) {}
+            }
+        }, false);
+
         async function callTMDB(path, extraParams = {}) {
             const url = new URL(BASE_URL + path);
             url.searchParams.append("api_key", API_KEY);
@@ -546,7 +559,6 @@
             const container = document.getElementById('sections');
             document.getElementById('hero').classList.add('hidden');
             container.style.marginTop = "120px";
-            container.classList.remove('-mt-24');
             container.innerHTML = '';
             const filteredResults = results.filter(item => item.poster_path && (item.media_type === 'movie' || item.media_type === 'tv'));
             if (filteredResults.length === 0) {
@@ -558,24 +570,20 @@
         }
 
         async function loadContent(category) {
-    alreadyShownIds.clear();
-    const container = document.getElementById('sections');
-    const heroSection = document.getElementById('hero');
-    container.innerHTML = '';
+            alreadyShownIds.clear();
+            const container = document.getElementById('sections');
+            const heroSection = document.getElementById('hero');
+            container.innerHTML = '';
+            container.style.marginTop = "0px";
+            container.classList.remove('-mt-24');
 
-    // RESET TOTALE: Questo elimina il "buco" delle tue foto
-    container.style.marginTop = "0px";
-    container.classList.remove('-mt-24');
-
-    if(category === 'all') {
-        // HOME: Se c'è l'Hero (Avatar), i titoli salgono sopra la sfumatura
-        container.classList.add('-mt-24');
-        heroSection.classList.remove('hidden');
-    } else {
-        // ALTRE PAGINE: Margine fisso per non finire sotto la scritta VIXSTREAM
-        container.style.marginTop = "40px";
-        heroSection.classList.add('hidden');
-    }
+            if(category === 'all') {
+                container.classList.add('-mt-24');
+                heroSection.classList.remove('hidden');
+            } else {
+                container.style.marginTop = "40px";
+                heroSection.classList.add('hidden');
+            }
 
             document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
             const activeNav = document.getElementById('nav-' + category);
@@ -592,24 +600,18 @@
                 else if(category === 'favorites') {
                     const user = netlifyIdentity.currentUser();
                     if(!user) { netlifyIdentity.open(); return; }
-
                     const res = await fetch('/.netlify/functions/manage-favorites', {
                         headers: { Authorization: `Bearer ${user.token.access_token}` }
                     });
-
                     if(res.ok) {
                         const favs = await res.json();
                         if(!favs || favs.length === 0) {
                             container.innerHTML = `<div class="text-center py-20 text-white/20 uppercase font-black tracking-widest">La tua lista è vuota</div>`;
                         } else {
                             renderRow("La mia Lista Personale", favs.map(x => ({
-                                id: x.item_id,
-                                media_type: x.media_type,
-                                poster_path: x.poster_path
+                                id: x.item_id, media_type: x.media_type, poster_path: x.poster_path
                             })));
                         }
-                    } else {
-                        container.innerHTML = `<div class="text-center py-20 text-red-500 uppercase font-black tracking-widest">Errore nel caricamento lista</div>`;
                     }
                 }
                 else {
@@ -618,10 +620,7 @@
                     renderRow("Titoli del Momento", popular.results);
                 }
                 return true;
-            } catch (e) {
-                console.error("Errore caricamento:", e);
-                return false;
-            }
+            } catch (e) { return false; }
         }
 
         function renderRow(title, items) {
@@ -642,7 +641,7 @@
                     <div class="carousel-track scrollbar-hide">
                         ${validItems.map(item => `
                             <div class="card" onclick='openDetails(${item.id || item.item_id}, "${item.media_type || (item.title ? 'movie' : 'tv')}")'>
-                                <img src="https://image.tmdb.org/t/p/w500${item.poster_path}" alt="poster">
+                                <img src="https://image.tmdb.org/t/p/w500${item.poster_path}">
                             </div>
                         `).join('')}
                     </div>
@@ -662,127 +661,9 @@
         }
 
         async function openDetails(id, type) {
-    const details = await callTMDB(`/${type}/${id}`);
-    currentItem = {...details, type: type};
-
-    // Cerchiamo se questo titolo è già nella cronologia
-    const savedProgress = watchHistory.find(x => x.id === id);
-
-    document.getElementById('infoTitle').innerText = currentItem.title || currentItem.name;
-    document.getElementById('infoOverview').innerText = currentItem.overview || "Trama non disponibile.";
-    document.getElementById('infoBgImg').src = "https://image.tmdb.org/t/p/original" + (currentItem.backdrop_path || currentItem.poster_path);
-
-    const tvBox = document.getElementById('tvBox');
-    if(type === 'tv') {
-        tvBox.classList.remove('hidden');
-        const sSelect = document.getElementById('seasonSelect');
-        const eSelect = document.getElementById('episodeSelect');
-
-        const validSeasons = currentItem.seasons.filter(s => s.season_number > 0);
-        sSelect.innerHTML = validSeasons.map(s => `<option value="${s.season_number}">STAGIONE ${s.season_number}</option>`).join('');
-
-        // Se c'è un progresso salvato, impostiamo la stagione
-        if(savedProgress && savedProgress.last_season) {
-            sSelect.value = savedProgress.last_season;
-        }
-
-        sSelect.onchange = async () => {
-            const sData = await callTMDB(`/tv/${currentItem.id}/season/${sSelect.value}`);
-            eSelect.innerHTML = sData.episodes.map(e => `<option value="${e.episode_number}">EPISODIO ${e.episode_number}</option>`).join('');
-
-            // Se c'è un progresso salvato e siamo nella stagione giusta, impostiamo l'episodio
-            if(savedProgress && savedProgress.last_episode && sSelect.value == savedProgress.last_season) {
-                eSelect.value = savedProgress.last_episode;
-            }
-            return true;
-        };
-        await sSelect.onchange();
-    } else {
-        tvBox.classList.add('hidden');
-    }
-
-    document.getElementById('infoModal').style.display = 'flex';
-    document.getElementById('playBtn').onclick = launchPlayer;
-    document.getElementById('favBtn').innerText = "❤️ Lista";
-}
-
-        /* =========================================
-            PLAYER SYSTEM (FIXED CON SERVER 2)
-           ========================================= */
-        function launchPlayer(server = 'vixsrc') {
-            const sSelect = document.getElementById('seasonSelect');
-            const eSelect = document.getElementById('episodeSelect');
-
-            let season = sSelect ? sSelect.value : 1;
-            let episode = eSelect ? eSelect.value : 1;
-
-            // Recuperiamo i dati salvati per il progresso (se esistono)
-            const saved = watchHistory.find(x => (x.id || x.item_id) == currentItem.id);
-
-            let streamUrl = "";
-
-            if (server === 'vixsrc') {
-                // SERVER 1: VixSrc
-                streamUrl = `https://vixsrc.to/${currentItem.type}/${currentItem.id}`;
-                if(currentItem.type === 'tv') streamUrl += `/${season}/${episode}`;
-                streamUrl += "?autoplay=true&primaryColor=e50914";
-            } else {
-                // SERVER 2: Videasy (Premium Tracking)
-                streamUrl = `https://player.videasy.net/${currentItem.type}/${currentItem.id}`;
-                if(currentItem.type === 'tv') streamUrl += `/${season}/${episode}`;
-                // Parametri Videasy: overlay, autoplay, tasto "prossimo" e colore rosso
-                streamUrl += `?autoplayNextEpisode=true&nextEpisode=true&overlay=true&color=E50914`;
-
-                // Se abbiamo salvato il secondo esatto, Videasy riparte da lì
-                if(saved && saved.progress) {
-                    streamUrl += `&progress=${Math.floor(saved.progress)}`;
-                }
-            }
-
-            document.getElementById('playerFrame').src = streamUrl;
-            document.getElementById('playerModal').style.display = 'block';
-
-            // Eventi per nascondere la UI durante la visione
-            document.addEventListener('mousemove', handleUiActivity);
-            handleUiActivity();
-
-            // Salvataggio iniziale in cronologia
-            updateWatchHistory(season, episode, saved ? saved.progress : 0);
-        }
-
-        // ASCOLTATORE VIDEASY (Tracking del progresso in tempo reale)
-        window.addEventListener("message", function (event) {
-            if (event.origin.includes("videasy.net")) {
-                try {
-                    const data = typeof event.data === "string" ? JSON.parse(event.data) : event.data;
-                    if (data && data.id) {
-                        // Aggiorna la cronologia ogni volta che Videasy manda un progresso
-                        updateWatchHistory(data.season || 1, data.episode || 1, data.timestamp);
-                    }
-                } catch (e) { }
-            }
-        });
-
-        function updateWatchHistory(season, episode, progress = 0) {
-            watchHistory = watchHistory.filter(x => (x.id || x.item_id) !== currentItem.id);
-            watchHistory.unshift({
-                id: currentItem.id,
-                title: currentItem.title || currentItem.name,
-                poster_path: currentItem.poster_path,
-                media_type: currentItem.type,
-                last_season: season,
-                last_episode: episode,
-                progress: progress
-            });
-            localStorage.setItem('vix_history_premium_v3', JSON.stringify(watchHistory.slice(0, 15)));
-        }
-
-        async function openDetails(id, type) {
             const details = await callTMDB(`/${type}/${id}`);
             currentItem = {...details, type: type};
-
-            // Trova progresso per impostare i select
-            const saved = watchHistory.find(x => (x.id || x.item_id) == id);
+            const savedProgress = watchHistory.find(x => x.id === id);
 
             document.getElementById('infoTitle').innerText = currentItem.title || currentItem.name;
             document.getElementById('infoOverview').innerText = currentItem.overview || "Trama non disponibile.";
@@ -793,97 +674,135 @@
                 tvBox.classList.remove('hidden');
                 const sSelect = document.getElementById('seasonSelect');
                 const eSelect = document.getElementById('episodeSelect');
-
                 const validSeasons = currentItem.seasons.filter(s => s.season_number > 0);
                 sSelect.innerHTML = validSeasons.map(s => `<option value="${s.season_number}">STAGIONE ${s.season_number}</option>`).join('');
-
-                if(saved && saved.last_season) sSelect.value = saved.last_season;
-
+                if(savedProgress && savedProgress.last_season) sSelect.value = savedProgress.last_season;
                 sSelect.onchange = async () => {
                     const sData = await callTMDB(`/tv/${currentItem.id}/season/${sSelect.value}`);
                     eSelect.innerHTML = sData.episodes.map(e => `<option value="${e.episode_number}">EPISODIO ${e.episode_number}</option>`).join('');
-                    if(saved && saved.last_episode && sSelect.value == saved.last_season) {
-                        eSelect.value = saved.last_episode;
-                    }
+                    if(savedProgress && savedProgress.last_episode && sSelect.value == savedProgress.last_season) eSelect.value = savedProgress.last_episode;
                 };
                 await sSelect.onchange();
-            } else {
-                tvBox.classList.add('hidden');
-            }
+            } else { tvBox.classList.add('hidden'); }
 
             document.getElementById('infoModal').style.display = 'flex';
-
-            // Bottoni Server
-            document.getElementById('playBtn').onclick = () => launchPlayer('vixsrc');
-
-            // Verifica se hai già il bottone playBtnBackup nel HTML, altrimenti crealo o usa questo fix
-            const backupBtn = document.getElementById('playBtnBackup');
-            if(backupBtn) backupBtn.onclick = () => launchPlayer('videasy');
-
             document.getElementById('favBtn').innerText = "❤️ Lista";
         }
 
-        /* =========================================
-            NETLIFY IDENTITY & UI UPDATES
-           ========================================= */
-        // 1. Funzione per aggiornare il testo del pulsante
+        function launchPlayer(server = 'vixsrc') {
+            let season = document.getElementById('seasonSelect')?.value || 1;
+            let episode = document.getElementById('episodeSelect')?.value || 1;
+            const saved = watchHistory.find(x => x.id === currentItem.id);
+
+            let streamUrl = "";
+            if(server === 'vixsrc') {
+                streamUrl = `https://vixsrc.to/${currentItem.type}/${currentItem.id}/${season}/${episode}?autoplay=true&primaryColor=e50914`;
+            } else {
+                streamUrl = `https://player.videasy.net/${currentItem.type}/${currentItem.id}/${season}/${episode}?autoplayNextEpisode=true&nextEpisode=true&overlay=true&color=E50914`;
+                if(saved && saved.progress) streamUrl += `&progress=${Math.floor(saved.progress)}`;
+            }
+
+            document.getElementById('playerFrame').src = streamUrl;
+            document.getElementById('playerModal').style.display = 'block';
+            document.addEventListener('mousemove', handleUiActivity);
+            handleUiActivity();
+            saveToHistory(season, episode, saved ? saved.progress : 0);
+        }
+
+        function saveToHistory(s, e, p = 0) {
+            watchHistory = watchHistory.filter(x => (x.id || x.item_id) !== currentItem.id);
+            watchHistory.unshift({
+                id: currentItem.id, title: currentItem.title || currentItem.name,
+                poster_path: currentItem.poster_path, media_type: currentItem.type,
+                last_season: s, last_episode: e, progress: p
+            });
+            localStorage.setItem('vix_history_premium_v3', JSON.stringify(watchHistory.slice(0, 15)));
+        }
+
+        function handleUiActivity() {
+            const btn = document.getElementById('closePlayerBtn');
+            const player = document.getElementById('playerModal');
+            btn.classList.add('visible');
+            player.classList.add('active-ui');
+            clearTimeout(idleTimer);
+            idleTimer = setTimeout(() => {
+                btn.classList.remove('visible');
+                player.classList.remove('active-ui');
+            }, 3000);
+        }
+
+        function showFullProfile() {
+            const user = netlifyIdentity.currentUser(); if(!user) return;
+            document.getElementById('hero').classList.add('hidden');
+            const sections = document.getElementById('sections');
+            sections.style.marginTop = "120px";
+            const name = (user.user_metadata.full_name || user.email.split('@')[0]).toUpperCase();
+            sections.innerHTML = `<div class="max-w-3xl mx-auto p-12 bg-white/5 rounded-[40px] text-center border border-white/5 backdrop-blur-3xl shadow-2xl">
+                <div class="w-24 h-24 bg-red-600 rounded-full flex items-center justify-center text-4xl font-black mx-auto mb-6 shadow-2xl">${name[0]}</div>
+                <h2 class="text-3xl font-black italic tracking-tighter">${name}</h2>
+                <p class="text-xs text-white/40 mt-1">${user.email}</p>
+                <button onclick="window.location.reload()" class="mt-10 text-white/40 font-black text-[9px] uppercase tracking-[0.4em]">Torna alla Home</button>
+            </div>`;
+        }
+
+        async function toggleFavorite() {
+            const user = netlifyIdentity.currentUser();
+            if(!user) return netlifyIdentity.open();
+            const btn = document.getElementById('favBtn');
+            btn.innerText = "Salvataggio...";
+            const res = await fetch('/.netlify/functions/manage-favorites', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${user.token.access_token}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'add', item_id: currentItem.id, media_type: currentItem.type, poster_path: currentItem.poster_path })
+            });
+            if(res.ok) btn.innerText = "❤️ AGGIUNTO";
+            setTimeout(() => btn.innerText = "❤️ Lista", 2000);
+        }
+
+        function closeModals() {
+            document.getElementById('infoModal').style.display = 'none';
+            document.getElementById('playerModal').style.display = 'none';
+            document.getElementById('playerFrame').src = "";
+        }
+
+        window.onscroll = () => { document.getElementById('mainHeader').classList.toggle('scrolled', window.scrollY > 60); };
+
+        function terminateLoading() {
+            const shield = document.getElementById('boot-shield');
+            if(shield) {
+                shield.style.transition = "opacity 0.8s ease";
+                shield.style.opacity = "0";
+                setTimeout(() => {
+                    shield.style.display = "none";
+                    document.getElementById('main-content').classList.remove('opacity-0');
+                    document.getElementById('main-content').style.opacity = "1";
+                }, 800);
+            }
+        }
+
+        async function startApp(user) {
+            if(isAppStarted) return;
+            isAppStarted = true;
+            if(user) updateUserUI(user);
+            await loadContent('all');
+            terminateLoading();
+        }
+
         function updateUserUI(user) {
             if (user) {
                 const userName = user.user_metadata.full_name || user.email.split('@')[0];
-                const authBtn = document.getElementById('authBtn');
-                if(authBtn) authBtn.innerText = userName.toUpperCase();
-
-                const userDisplay = document.getElementById('userDisplay');
-                if(userDisplay) userDisplay.innerText = "Premium: " + userName.toUpperCase();
+                document.getElementById('authBtn').innerText = userName.toUpperCase();
+                document.getElementById('userDisplay').innerText = "Premium: " + userName.toUpperCase();
             }
         }
 
-        // Questa funzione serve a togliere la schermata di caricamento
-        function forceHideLoading() {
-            const loadingScreen = document.getElementById('loadingScreen') ||
-                                document.getElementById('loader') ||
-                                document.querySelector('[class*="loading"]');
-            if (loadingScreen) {
-                loadingScreen.style.opacity = '0';
-                setTimeout(() => {
-                    loadingScreen.style.display = 'none';
-                    document.body.style.overflow = 'auto';
-                }, 500);
-            }
-        }
-
-        netlifyIdentity.on('init', user => {
-            console.log("Sistema pronto");
-            if(user) updateUserUI(user);
-
-            // Nel tuo file la funzione si chiama loadContent
-            if (typeof loadContent === "function") {
-                loadContent('all');
-            }
-
-            // Sblocca lo schermo
-            setTimeout(forceHideLoading, 1000);
-        });
-
-        netlifyIdentity.on('login', user => {
-            updateUserUI(user);
-            netlifyIdentity.close();
-            if (typeof loadContent === "function") {
-                loadContent('all');
-            }
-            forceHideLoading();
-        });
-
-        netlifyIdentity.on('logout', () => {
-            netlifyIdentity.close();
-            location.reload();
-        });
-
-        // Inizializzazione Widget
+        netlifyIdentity.on('init', user => { if(user) updateUserUI(user); startApp(user); });
+        netlifyIdentity.on('login', user => { location.reload(); });
+        netlifyIdentity.on('logout', () => { location.reload(); });
         netlifyIdentity.init();
 
-        // FAILSAFE: Se dopo 3 secondi vedi ancora la scritta VixStream, entra forzatamente
-        setTimeout(forceHideLoading, 3000);
+        // FALLBACK DI SICUREZZA PER LO SBLOCCO
+        setTimeout(() => { if(!isAppStarted) startApp(netlifyIdentity.currentUser()); }, 3000);
     </script>
 </body>
 </html>
