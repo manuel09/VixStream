@@ -827,6 +827,7 @@
             NETLIFY IDENTITY & UI UPDATES
            ========================================= */
         // 1. Funzione per aggiornare il nome utente sul pulsante
+        // 1. Funzione per aggiornare l'interfaccia utente
         function updateUserUI(user) {
             if (user) {
                 const userName = user.user_metadata.full_name || user.email.split('@')[0];
@@ -838,17 +839,26 @@
             }
         }
 
-        // 2. Listener inizializzazione (SBLOCCA IL CARICAMENTO)
+        // 2. Listener inizializzazione
         netlifyIdentity.on('init', user => {
+            console.log("Identity pronto");
             if(user) updateUserUI(user);
 
-            // Avviamo il caricamento dei contenuti
-            showCategory('all');
+            // FIX: Usiamo loadContent invece di showCategory
+            if (typeof loadContent === "function") {
+                loadContent('all');
+            }
 
-            // FAILSAFE: Dopo 2 secondi forziamo la scomparsa della barra di caricamento
+            // Rimuoviamo la schermata di caricamento
             setTimeout(() => {
-                terminateLoading();
-            }, 2000);
+                if (typeof terminateLoading === "function") {
+                    terminateLoading();
+                } else {
+                    const ls = document.getElementById('loadingScreen');
+                    if(ls) ls.style.display = 'none';
+                    document.body.style.overflow = 'auto';
+                }
+            }, 1500);
         });
 
         // 3. Listener Login
@@ -856,10 +866,10 @@
             updateUserUI(user);
             setTimeout(() => netlifyIdentity.close(), 100);
 
-            // Se l'app non è ancora partita (isAppStarted è nel tuo codice?)
-            // Altrimenti semplicemente ricarichiamo i contenuti
-            showCategory('all');
-            terminateLoading();
+            if (typeof loadContent === "function") {
+                loadContent('all');
+            }
+            if (typeof terminateLoading === "function") terminateLoading();
         });
 
         netlifyIdentity.on('logout', () => {
@@ -867,15 +877,17 @@
             location.reload();
         });
 
-        // 4. Inizializzazione finale
+        // Inizializzazione widget
         netlifyIdentity.init();
 
-        // 5. Backup estremo se tutto si blocca
+        // 4. Backup d'emergenza (Se dopo 4 secondi sei ancora bloccato, entra comunque)
         setTimeout(() => {
-            const loadingScreen = document.getElementById('loadingScreen') || document.querySelector('[class*="loading"]');
-            if (loadingScreen) {
-                console.log("Sblocco forzato caricamento");
-                terminateLoading();
+            const ls = document.getElementById('loadingScreen');
+            if(ls && ls.style.display !== 'none') {
+                console.log("Sblocco d'emergenza eseguito");
+                if (typeof terminateLoading === "function") terminateLoading();
+                else ls.style.display = 'none';
+                document.body.style.overflow = 'auto';
             }
         }, 4000);
     </script>
