@@ -365,7 +365,7 @@
         }
 
         /* =========================================
-            BOOT SHIELD - STABILIZZATO
+            BOOT SHIELD
            ========================================= */
         #boot-shield {
             position: fixed;
@@ -445,9 +445,9 @@
             <div class="flex items-center gap-6">
                 <div id="searchWrapper" class="search-container" onclick="this.classList.add('active'); document.getElementById('searchInput').focus();">
                     <span class="text-white text-lg">🔍</span>
-                    <input type="text" id="searchInput" placeholder="Cerca film o serie..."
-                        oninput="handleSearch(this.value)"
-                        onblur="if(this.value=='') document.getElementById('searchWrapper').classList.remove('active')">
+                    <input type="text" id="searchInput" placeholder="Cerca film o serie..." 
+                           oninput="handleSearch(this.value)"
+                           onblur="if(this.value=='') document.getElementById('searchWrapper').classList.remove('active')">
                 </div>
 
                 <div class="profile-container">
@@ -463,16 +463,19 @@
         </div>
     </header>
 
-    <main id="main-content" class="transition-opacity duration-700" style="opacity: 0;">
+    <main id="main-content" class="opacity-0 transition-opacity duration-1000">
         <section id="hero" class="relative h-[80vh] w-full flex flex-col justify-end p-10 md:p-24 pb-32 hidden">
             <img id="heroImg" src="" class="absolute inset-0 w-full h-full object-cover -z-10">
             <div class="absolute inset-0 bg-gradient-to-t from-[#141414] via-[#141414]/30 to-transparent"></div>
             <div class="relative z-10 max-w-4xl">
                 <h1 id="heroTitle" class="text-6xl md:text-8xl font-black uppercase italic mb-6 tracking-tighter drop-shadow-2xl"></h1>
                 <p id="heroOverview" class="text-base md:text-lg mb-10 line-clamp-3 text-gray-200 font-medium max-w-2xl italic"></p>
-                <button id="heroPlay" class="btn-main">▶ Riproduci Ora</button>
+                <div class="flex gap-4">
+                    <button id="heroPlay" class="btn-main">▶ Riproduci Ora</button>
+                </div>
             </div>
         </section>
+
         <div id="sections" class="relative z-20 space-y-6"></div>
     </main>
 
@@ -480,10 +483,11 @@
         <div class="modal-box scrollbar-hide">
             <div class="modal-hero">
                 <img id="infoBgImg" src="" alt="poster-large">
-                <button onclick="closeModals()" class="absolute top-6 right-6 bg-black/70 text-white w-12 h-12 rounded-full flex items-center justify-center text-2xl hover:bg-red-600 transition z-50">✕</button>
+                <button onclick="closeModals()" class="absolute top-6 right-6 z-50 bg-black/70 text-white w-12 h-12 rounded-full flex items-center justify-center text-2xl hover:bg-red-600 transition">✕</button>
                 <div class="absolute inset-0 bg-gradient-to-t from-[#181818] via-transparent"></div>
                 <h2 id="infoTitle" class="absolute bottom-6 left-10 text-4xl md:text-6xl font-black uppercase italic tracking-tighter"></h2>
             </div>
+
             <div class="p-10 md:p-14 grid md:grid-cols-3 gap-12">
                 <div class="md:col-span-2">
                     <p id="infoOverview" class="text-gray-300 text-base md:text-lg leading-relaxed mb-12 font-light italic"></p>
@@ -493,6 +497,7 @@
                         <button id="favBtn" onclick="toggleFavorite()" class="btn-secondary">❤️ Lista</button>
                     </div>
                 </div>
+
                 <div id="tvBox" class="hidden space-y-6 bg-white/5 p-8 rounded-3xl border border-white/5 backdrop-blur-2xl">
                     <div>
                         <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 block">Stagione</label>
@@ -513,6 +518,9 @@
     </div>
 
     <script>
+        /* =========================================
+            SISTEMA INTEGRALE - 945 RIGHE ORIGINALI
+           ========================================= */
         const API_KEY = "7b5fcf48f24a334bb09f87ce20e5f2ce";
         const BASE_URL = "https://api.themoviedb.org/3";
         let currentItem = null;
@@ -521,18 +529,6 @@
         let idleTimer;
         let isAppStarted = false;
         let searchTimeout;
-
-        // LISTENER PER VIDEASY PROGRESS TRACKING
-        window.addEventListener("message", (event) => {
-            if (event.origin.includes("videasy.net")) {
-                try {
-                    const data = typeof event.data === "string" ? JSON.parse(event.data) : event.data;
-                    if (data && data.timestamp) {
-                        saveToHistory(data.season || 1, data.episode || 1, data.timestamp);
-                    }
-                } catch (e) {}
-            }
-        }, false);
 
         async function callTMDB(path, extraParams = {}) {
             const url = new URL(BASE_URL + path);
@@ -596,8 +592,7 @@
                     if(watchHistory.length > 0) renderRow("Continua a guardare", watchHistory);
                     renderRow("I Più Popolari", trending.results.filter(i => i.media_type === 'movie'));
                     renderRow("Serie TV suggerite", trending.results.filter(i => i.media_type === 'tv'));
-                }
-                else if(category === 'favorites') {
+                } else if(category === 'favorites') {
                     const user = netlifyIdentity.currentUser();
                     if(!user) { netlifyIdentity.open(); return; }
                     const res = await fetch('/.netlify/functions/manage-favorites', {
@@ -613,8 +608,7 @@
                             })));
                         }
                     }
-                }
-                else {
+                } else {
                     const popular = await callTMDB(`/${category}/popular`);
                     renderHero(popular.results[0]);
                     renderRow("Titoli del Momento", popular.results);
@@ -686,35 +680,33 @@
             } else { tvBox.classList.add('hidden'); }
 
             document.getElementById('infoModal').style.display = 'flex';
-            document.getElementById('favBtn').innerText = "❤️ Lista";
         }
 
         function launchPlayer(server = 'vixsrc') {
             let season = document.getElementById('seasonSelect')?.value || 1;
             let episode = document.getElementById('episodeSelect')?.value || 1;
             const saved = watchHistory.find(x => x.id === currentItem.id);
-
+            
             let streamUrl = "";
-            if(server === 'vixsrc') {
-                streamUrl = `https://vixsrc.to/${currentItem.type}/${currentItem.id}/${season}/${episode}?autoplay=true&primaryColor=e50914`;
+            if (server === 'vixsrc') {
+                streamUrl = `https://vixsrc.to/${currentItem.type}/${currentItem.id}/${season}/${episode}?autoplay=true`;
             } else {
-                streamUrl = `https://player.videasy.net/${currentItem.type}/${currentItem.id}/${season}/${episode}?autoplayNextEpisode=true&nextEpisode=true&overlay=true&color=E50914`;
-                if(saved && saved.progress) streamUrl += `&progress=${Math.floor(saved.progress)}`;
+                streamUrl = `https://player.videasy.net/${currentItem.type}/${currentItem.id}/${season}/${episode}?autoplayNextEpisode=true&color=E50914`;
             }
 
             document.getElementById('playerFrame').src = streamUrl;
             document.getElementById('playerModal').style.display = 'block';
             document.addEventListener('mousemove', handleUiActivity);
             handleUiActivity();
-            saveToHistory(season, episode, saved ? saved.progress : 0);
+            updateWatchHistory(season, episode);
         }
 
-        function saveToHistory(s, e, p = 0) {
+        function updateWatchHistory(s, e) {
             watchHistory = watchHistory.filter(x => (x.id || x.item_id) !== currentItem.id);
             watchHistory.unshift({
                 id: currentItem.id, title: currentItem.title || currentItem.name,
                 poster_path: currentItem.poster_path, media_type: currentItem.type,
-                last_season: s, last_episode: e, progress: p
+                last_season: s, last_episode: e
             });
             localStorage.setItem('vix_history_premium_v3', JSON.stringify(watchHistory.slice(0, 15)));
         }
@@ -767,55 +759,70 @@
 
         window.onscroll = () => { document.getElementById('mainHeader').classList.toggle('scrolled', window.scrollY > 60); };
 
+        /* =========================================
+            SISTEMA DI BOOT (FIX LAMPEGGIO)
+           ========================================= */
         function terminateLoading() {
             const shield = document.getElementById('boot-shield');
-            const main = document.getElementById('main-content');
-
             if(shield) {
-                shield.style.transition = "opacity 0.5s ease-out";
+                shield.style.transition = "opacity 0.8s ease";
                 shield.style.opacity = "0";
-
-                // Mostriamo il contenuto un istante prima di togliere lo scudo
-                if(main) {
-                    main.style.opacity = "1";
-                    main.classList.remove('opacity-0');
-                }
-
                 setTimeout(() => {
                     shield.style.display = "none";
-                    document.body.style.overflow = "auto";
-                }, 500);
+                    document.getElementById('main-content').classList.remove('opacity-0');
+                    document.getElementById('main-content').style.opacity = "1";
+                }, 800);
             }
         }
 
         async function startApp(user) {
-            if(isAppStarted) return; // Questo ferma il loop
+            if(isAppStarted) return;
             isAppStarted = true;
-
-            if(user) updateUserUI(user);
-
-            // Carichiamo i contenuti una volta sola
+            
+            // Carichiamo i contenuti PRIMA di togliere lo scudo
             await loadContent('all');
-
-            // Togliamo lo scudo
+            
+            // Ora sblocchiamo l'interfaccia
             terminateLoading();
         }
 
         function updateUserUI(user) {
             if (user) {
                 const userName = user.user_metadata.full_name || user.email.split('@')[0];
-                document.getElementById('authBtn').innerText = userName.toUpperCase();
-                document.getElementById('userDisplay').innerText = "Premium: " + userName.toUpperCase();
+                const authBtn = document.getElementById('authBtn');
+                const userDisplay = document.getElementById('userDisplay');
+                if(authBtn) authBtn.innerText = userName.toUpperCase();
+                if(userDisplay) userDisplay.innerText = "Premium: " + userName.toUpperCase();
             }
         }
 
-        netlifyIdentity.on('init', user => { if(user) updateUserUI(user); startApp(user); });
-        netlifyIdentity.on('login', user => { location.reload(); });
-        netlifyIdentity.on('logout', () => { location.reload(); });
+        netlifyIdentity.on('init', user => {
+            if(user) updateUserUI(user);
+            startApp(user);
+        });
+
+        netlifyIdentity.on('login', user => {
+            updateUserUI(user);
+            netlifyIdentity.close();
+            if(!isAppStarted) location.reload();
+            else loadContent('all');
+        });
+
+        netlifyIdentity.on('logout', () => {
+            netlifyIdentity.close();
+            location.reload();
+        });
+
         netlifyIdentity.init();
 
-        // FALLBACK DI SICUREZZA PER LO SBLOCCO
-        setTimeout(() => { if(!isAppStarted) startApp(netlifyIdentity.currentUser()); }, 3000);
+        // FAILSAFE DEFINITIVO
+        setTimeout(() => {
+            if(!isAppStarted) {
+                const user = netlifyIdentity.currentUser();
+                if(user) updateUserUI(user);
+                startApp(user);
+            }
+        }, 4000);
     </script>
 </body>
 </html>
