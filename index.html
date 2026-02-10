@@ -828,76 +828,62 @@
            ========================================= */
         // 1. Funzione per aggiornare il testo del pulsante
         function updateUserUI(user) {
-            console.log("Aggiorno UI utente...");
             if (user) {
                 const userName = user.user_metadata.full_name || user.email.split('@')[0];
                 const authBtn = document.getElementById('authBtn');
                 if(authBtn) authBtn.innerText = userName.toUpperCase();
+
+                const userDisplay = document.getElementById('userDisplay');
+                if(userDisplay) userDisplay.innerText = "Premium: " + userName.toUpperCase();
             }
         }
 
-        // 2. Listener principale di avvio
+        // Questa funzione serve a togliere la schermata di caricamento
+        function forceHideLoading() {
+            const loadingScreen = document.getElementById('loadingScreen') ||
+                                document.getElementById('loader') ||
+                                document.querySelector('[class*="loading"]');
+            if (loadingScreen) {
+                loadingScreen.style.opacity = '0';
+                setTimeout(() => {
+                    loadingScreen.style.display = 'none';
+                    document.body.style.overflow = 'auto';
+                }, 500);
+            }
+        }
+
         netlifyIdentity.on('init', user => {
-            console.log("Identity pronto - Inizio sequenza avvio");
+            console.log("Sistema pronto");
             if(user) updateUserUI(user);
 
-            // Proviamo ad avviare i contenuti
-            try {
-                if (typeof showCategory === "function") {
-                    console.log("Chiamo showCategory('all')...");
-                    showCategory('all');
-                } else {
-                    console.error("ERRORE: La funzione showCategory non esiste!");
-                }
-            } catch (err) {
-                console.error("Errore durante l'esecuzione di showCategory:", err);
+            // Nel tuo file la funzione si chiama loadContent
+            if (typeof loadContent === "function") {
+                loadContent('all');
             }
 
-            // FORZIAMO la chiusura della schermata di caricamento
-            console.log("Tentativo chiusura schermata caricamento...");
-            setTimeout(() => {
-                if (typeof terminateLoading === "function") {
-                    terminateLoading();
-                    console.log("terminateLoading eseguita con successo");
-                } else {
-                    console.log("terminateLoading non trovata, uso metodo manuale");
-                    const ls = document.getElementById('loadingScreen') || document.querySelector('[style*="z-index: 9999"]');
-                    if(ls) ls.style.display = 'none';
-                    document.body.style.overflow = 'auto';
-                }
-            }, 1000);
+            // Sblocca lo schermo
+            setTimeout(forceHideLoading, 1000);
         });
 
         netlifyIdentity.on('login', user => {
-            console.log("Login effettuato");
             updateUserUI(user);
             netlifyIdentity.close();
-            showCategory('all');
-            if(typeof terminateLoading === "function") terminateLoading();
+            if (typeof loadContent === "function") {
+                loadContent('all');
+            }
+            forceHideLoading();
         });
 
         netlifyIdentity.on('logout', () => {
-            console.log("Logout");
+            netlifyIdentity.close();
             location.reload();
         });
 
-        // INIZIALIZZAZIONE
-        console.log("Inizializzo Identity Widget...");
+        // Inizializzazione Widget
         netlifyIdentity.init();
 
-        // 3. FAILSAFE DEFINITIVO (Se dopo 3 secondi è ancora tutto nero, apri!)
-        setTimeout(() => {
-            const ls = document.getElementById('loadingScreen') || document.querySelector('div[style*="fixed"]');
-            if (ls && (ls.style.display !== 'none')) {
-                console.warn("Failsafe attivato: forzo l'apertura del sito");
-                if (typeof terminateLoading === "function") terminateLoading();
-                else {
-                    ls.style.opacity = '0';
-                    setTimeout(() => ls.style.display = 'none', 500);
-                }
-                document.body.style.overflow = 'auto';
-            }
-        }, 3000);
+        // FAILSAFE: Se dopo 3 secondi vedi ancora la scritta VixStream, entra forzatamente
+        setTimeout(forceHideLoading, 3000);
     </script>
 </body>
 </html>
