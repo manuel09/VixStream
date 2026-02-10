@@ -826,70 +826,78 @@
         /* =========================================
             NETLIFY IDENTITY & UI UPDATES
            ========================================= */
-        // 1. Funzione per aggiornare il nome utente sul pulsante
-        // 1. Funzione per aggiornare l'interfaccia utente
+        // 1. Funzione per aggiornare il testo del pulsante
         function updateUserUI(user) {
+            console.log("Aggiorno UI utente...");
             if (user) {
                 const userName = user.user_metadata.full_name || user.email.split('@')[0];
                 const authBtn = document.getElementById('authBtn');
                 if(authBtn) authBtn.innerText = userName.toUpperCase();
-
-                const userDisplay = document.getElementById('userDisplay');
-                if(userDisplay) userDisplay.innerText = "Premium: " + userName.toUpperCase();
             }
         }
 
-        // 2. Listener inizializzazione
+        // 2. Listener principale di avvio
         netlifyIdentity.on('init', user => {
-            console.log("Identity pronto");
+            console.log("Identity pronto - Inizio sequenza avvio");
             if(user) updateUserUI(user);
 
-            // FIX: Usiamo loadContent invece di showCategory
-            if (typeof loadContent === "function") {
-                loadContent('all');
+            // Proviamo ad avviare i contenuti
+            try {
+                if (typeof showCategory === "function") {
+                    console.log("Chiamo showCategory('all')...");
+                    showCategory('all');
+                } else {
+                    console.error("ERRORE: La funzione showCategory non esiste!");
+                }
+            } catch (err) {
+                console.error("Errore durante l'esecuzione di showCategory:", err);
             }
 
-            // Rimuoviamo la schermata di caricamento
+            // FORZIAMO la chiusura della schermata di caricamento
+            console.log("Tentativo chiusura schermata caricamento...");
             setTimeout(() => {
                 if (typeof terminateLoading === "function") {
                     terminateLoading();
+                    console.log("terminateLoading eseguita con successo");
                 } else {
-                    const ls = document.getElementById('loadingScreen');
+                    console.log("terminateLoading non trovata, uso metodo manuale");
+                    const ls = document.getElementById('loadingScreen') || document.querySelector('[style*="z-index: 9999"]');
                     if(ls) ls.style.display = 'none';
                     document.body.style.overflow = 'auto';
                 }
-            }, 1500);
+            }, 1000);
         });
 
-        // 3. Listener Login
         netlifyIdentity.on('login', user => {
+            console.log("Login effettuato");
             updateUserUI(user);
-            setTimeout(() => netlifyIdentity.close(), 100);
-
-            if (typeof loadContent === "function") {
-                loadContent('all');
-            }
-            if (typeof terminateLoading === "function") terminateLoading();
+            netlifyIdentity.close();
+            showCategory('all');
+            if(typeof terminateLoading === "function") terminateLoading();
         });
 
         netlifyIdentity.on('logout', () => {
-            netlifyIdentity.close();
+            console.log("Logout");
             location.reload();
         });
 
-        // Inizializzazione widget
+        // INIZIALIZZAZIONE
+        console.log("Inizializzo Identity Widget...");
         netlifyIdentity.init();
 
-        // 4. Backup d'emergenza (Se dopo 4 secondi sei ancora bloccato, entra comunque)
+        // 3. FAILSAFE DEFINITIVO (Se dopo 3 secondi è ancora tutto nero, apri!)
         setTimeout(() => {
-            const ls = document.getElementById('loadingScreen');
-            if(ls && ls.style.display !== 'none') {
-                console.log("Sblocco d'emergenza eseguito");
+            const ls = document.getElementById('loadingScreen') || document.querySelector('div[style*="fixed"]');
+            if (ls && (ls.style.display !== 'none')) {
+                console.warn("Failsafe attivato: forzo l'apertura del sito");
                 if (typeof terminateLoading === "function") terminateLoading();
-                else ls.style.display = 'none';
+                else {
+                    ls.style.opacity = '0';
+                    setTimeout(() => ls.style.display = 'none', 500);
+                }
                 document.body.style.overflow = 'auto';
             }
-        }, 4000);
+        }, 3000);
     </script>
 </body>
 </html>
