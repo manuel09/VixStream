@@ -662,41 +662,59 @@
         }
 
         async function openDetails(id, type) {
-            const details = await callTMDB(`/${type}/${id}`);
-            currentItem = {...details, type: type};
-            document.getElementById('infoTitle').innerText = currentItem.title || currentItem.name;
-            document.getElementById('infoOverview').innerText = currentItem.overview || "Trama non disponibile.";
-            document.getElementById('infoBgImg').src = "https://image.tmdb.org/t/p/original" + (currentItem.backdrop_path || currentItem.poster_path);
+    const details = await callTMDB(`/${type}/${id}`);
+    currentItem = {...details, type: type};
 
-            const tvBox = document.getElementById('tvBox');
-            if(type === 'tv') {
-                tvBox.classList.remove('hidden');
-                const sSelect = document.getElementById('seasonSelect');
-                const eSelect = document.getElementById('episodeSelect');
-                const validSeasons = currentItem.seasons.filter(s => s.season_number > 0);
-                sSelect.innerHTML = validSeasons.map(s => `<option value="${s.season_number}">STAGIONE ${s.season_number}</option>`).join('');
-                sSelect.onchange = async () => {
-                    const sData = await callTMDB(`/tv/${currentItem.id}/season/${sSelect.value}`);
-                    eSelect.innerHTML = sData.episodes.map(e => `<option value="${e.episode_number}">EPISODIO ${e.episode_number}</option>`).join('');
-                    return true;
-                };
-                await sSelect.onchange();
-            } else { tvBox.classList.add('hidden'); }
+    // Cerchiamo se questo titolo è già nella cronologia
+    const savedProgress = watchHistory.find(x => x.id === id);
 
-            document.getElementById('infoModal').style.display = 'flex';
-            document.getElementById('playBtn').onclick = launchPlayer;
-            document.getElementById('favBtn').innerText = "❤️ Lista";
+    document.getElementById('infoTitle').innerText = currentItem.title || currentItem.name;
+    document.getElementById('infoOverview').innerText = currentItem.overview || "Trama non disponibile.";
+    document.getElementById('infoBgImg').src = "https://image.tmdb.org/t/p/original" + (currentItem.backdrop_path || currentItem.poster_path);
+
+    const tvBox = document.getElementById('tvBox');
+    if(type === 'tv') {
+        tvBox.classList.remove('hidden');
+        const sSelect = document.getElementById('seasonSelect');
+        const eSelect = document.getElementById('episodeSelect');
+
+        const validSeasons = currentItem.seasons.filter(s => s.season_number > 0);
+        sSelect.innerHTML = validSeasons.map(s => `<option value="${s.season_number}">STAGIONE ${s.season_number}</option>`).join('');
+
+        // Se c'è un progresso salvato, impostiamo la stagione
+        if(savedProgress && savedProgress.last_season) {
+            sSelect.value = savedProgress.last_season;
         }
 
-        function launchPlayer() {
-    let streamUrl = `https://vixsrc.to/${currentItem.type}/${currentItem.id}`;
+        sSelect.onchange = async () => {
+            const sData = await callTMDB(`/tv/${currentItem.id}/season/${sSelect.value}`);
+            eSelect.innerHTML = sData.episodes.map(e => `<option value="${e.episode_number}">EPISODIO ${e.episode_number}</option>`).join('');
 
-    if(currentItem.type === 'tv') {
-        streamUrl += `/${document.getElementById('seasonSelect').value}/${document.getElementById('episodeSelect').value}`;
+            // Se c'è un progresso salvato e siamo nella stagione giusta, impostiamo l'episodio
+            if(savedProgress && savedProgress.last_episode && sSelect.value == savedProgress.last_season) {
+                eSelect.value = savedProgress.last_episode;
+            }
+            return true;
+        };
+        await sSelect.onchange();
+    } else {
+        tvBox.classList.add('hidden');
     }
 
-    // AGGIUNTA: Parametri per autoplay e colori (come da documentazione)
-    // Usiamo '?' se non ci sono parametri o '&' se ne aggiungiamo altri
+    document.getElementById('infoModal').style.display = 'flex';
+    document.getElementById('playBtn').onclick = launchPlayer;
+    document.getElementById('favBtn').innerText = "❤️ Lista";
+}
+
+        function launchPlayer() {
+    // Recuperiamo stagione ed episodio dai menu a tendina (se esistono)
+    let season = document.getElementById('seasonSelect')?.value || 1;
+    let episode = document.getElementById('episodeSelect')?.value || 1;
+
+    let streamUrl = `https://vixsrc.to/${currentItem.type}/${currentItem.id}`;
+    if(currentItem.type === 'tv') {
+        streamUrl += `/${season}/${episode}`;
+    }
     streamUrl += "?autoplay=true&primaryColor=e50914";
 
     document.getElementById('playerFrame').src = streamUrl;
@@ -705,13 +723,16 @@
     document.addEventListener('mousemove', handleUiActivity);
     handleUiActivity();
 
-    // Aggiorna Cronologia
+    // SALVATAGGIO CRONOLOGIA AVANZATO
     watchHistory = watchHistory.filter(x => (x.id || x.item_id) !== currentItem.id);
     watchHistory.unshift({
         id: currentItem.id,
         title: currentItem.title || currentItem.name,
         poster_path: currentItem.poster_path,
-        media_type: currentItem.type
+        media_type: currentItem.type,
+        // AGGIUNTO: salviamo la posizione esatta
+        last_season: season,
+        last_episode: episode
     });
     localStorage.setItem('vix_history_premium_v3', JSON.stringify(watchHistory.slice(0, 15)));
 }
