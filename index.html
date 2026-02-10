@@ -826,24 +826,40 @@
         /* =========================================
             NETLIFY IDENTITY & UI UPDATES
            ========================================= */
+        // 1. Funzione per aggiornare il nome utente sul pulsante
         function updateUserUI(user) {
             if (user) {
                 const userName = user.user_metadata.full_name || user.email.split('@')[0];
                 const authBtn = document.getElementById('authBtn');
                 if(authBtn) authBtn.innerText = userName.toUpperCase();
+
+                const userDisplay = document.getElementById('userDisplay');
+                if(userDisplay) userDisplay.innerText = "Premium: " + userName.toUpperCase();
             }
         }
 
+        // 2. Listener inizializzazione (SBLOCCA IL CARICAMENTO)
         netlifyIdentity.on('init', user => {
             if(user) updateUserUI(user);
-            startApp(user);
+
+            // Avviamo il caricamento dei contenuti
+            showCategory('all');
+
+            // FAILSAFE: Dopo 2 secondi forziamo la scomparsa della barra di caricamento
+            setTimeout(() => {
+                terminateLoading();
+            }, 2000);
         });
 
+        // 3. Listener Login
         netlifyIdentity.on('login', user => {
             updateUserUI(user);
             setTimeout(() => netlifyIdentity.close(), 100);
-            if(!isAppStarted) startApp(user);
-            else loadContent('all');
+
+            // Se l'app non è ancora partita (isAppStarted è nel tuo codice?)
+            // Altrimenti semplicemente ricarichiamo i contenuti
+            showCategory('all');
+            terminateLoading();
         });
 
         netlifyIdentity.on('logout', () => {
@@ -851,16 +867,17 @@
             location.reload();
         });
 
+        // 4. Inizializzazione finale
         netlifyIdentity.init();
 
-        // Backup per caricamento lento
+        // 5. Backup estremo se tutto si blocca
         setTimeout(() => {
-            const user = netlifyIdentity.currentUser();
-            if(!isAppStarted) {
-                if(user) updateUserUI(user);
-                startApp(user);
+            const loadingScreen = document.getElementById('loadingScreen') || document.querySelector('[class*="loading"]');
+            if (loadingScreen) {
+                console.log("Sblocco forzato caricamento");
+                terminateLoading();
             }
-        }, 3000);
+        }, 4000);
     </script>
 </body>
 </html>
