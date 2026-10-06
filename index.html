@@ -763,6 +763,21 @@ const Identity = {
     const u = this.user();
     return u?.token?.access_token || null;
   },
+  /* restituisce un JWT valido: gotrue lo rinnova da solo se scaduto, così le
+     richieste a /.netlify/functions non falliscono con una sessione vecchia */
+  async jwt() {
+    const u = this.user();
+    if (!u) return null;
+    if (typeof u.jwt === 'function') {
+      try {
+        const t = await u.jwt();
+        return t?.access_token || t || this.token();
+      } catch (e) {
+        console.warn('JWT non rinnovabile:', e && e.message);
+      }
+    }
+    return this.token();
+  },
   open() {
     const w = widget();
     if (!w?.open) return toast('Accesso non disponibile');
@@ -803,7 +818,9 @@ const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&l
 const yearOf = i => ((i.release_date || i.first_air_date || '')).slice(0, 4);
 const typeOf = i => i.media_type || (i.title ? 'movie' : 'tv');
 const titleOf = i => i.title || i.name || 'Senza titolo';
-const idOf = i => i.id || i.item_id;
+/* per le righe salvate in DB ha priorità item_id: la colonna "id" di una tabella
+   preesistente è il progressivo di riga, non l'id TMDB */
+const idOf = i => (i?.item_id != null ? i.item_id : i?.id);
 
 /* I film su vixsrc vanno senza stagione/episodio (/movie/ID): con /movie/ID/1/1
    il sito risponde 404. Le serie invece usano /tv/ID/Stagione/Episodio. */
@@ -979,8 +996,8 @@ async function loadFavorites() {
   setView('plain');
   $('rows').innerHTML = '<div class="panel"><p style="margin:0">Caricamento…</p></div>';
 
-  const res = await fetch('/.netlify/functions/manage-favorites', {
-    headers: { Authorization: `Bearer ${Identity.token()}` }
+  const res = await fetch(FAV_URL, {
+    headers: { Authorization: `Bearer ${await Identity.jwt()}` }
   });
   if (!res.ok) {
     const data = await res.json().catch(() => null);
@@ -989,7 +1006,10 @@ async function loadFavorites() {
     return;
   }
   const favs = await res.json();
-  console.log('FAVDB', favs);
+  /* teniamo in sincronia anche la cache usata dal pulsante "Lista" */
+  favsCache.ids = new Set((Array.isArray(favs) ? favs : []).map(favIdOf).filter(Boolean));
+  favsCache.loaded = true;
+  saveFavMirror();
   if (!favs || !favs.length) {
     renderEmpty('La tua lista è vuota', 'Aggiungi film e serie dalla pagina di dettaglio e li ritroverai qui.');
     return;
@@ -1131,7 +1151,7 @@ function renderHero(item) {
 async function openDetails(id, type) {
   currentItem = { id, type };
   trailerKey = null;
-  $('favLabel').textContent = 'Aggiungi alla Lista';
+  refreshFavLabel();
   $('castBox').classList.add('is-hidden');
   $('factsBox').innerHTML = '';
   $('infoOverview').textContent = 'Caricamento…';
@@ -1320,36 +1340,131 @@ document.addEventListener('keydown', e => {
 /* ============================================
    FAVORITES
    ============================================ */
+/* lista preferiti: la cache è l'unica fonte di verità per il pulsante.
+   `loaded` significa "letta con successo dal server": se la lettura fallisce
+   resta false e viene ritentata, così non si afferma mai a torto che un titolo
+   NON è in lista (altrimenti diventa impossibile rimuoverlo). */
+const favsCache = { loaded: false, ids: new Set() };
+const FAV_URL = '/.netlify/functions/manage-favorites';
+const FAV_MIRROR = 'vix_favs_mirror_v1';
+const favIdOf = row => String(row?.item_id ?? row?.id ?? '');
+const isFavCached = id => favsCache.ids.has(String(id));
+
+/* specchio in localStorage: serve solo se la lettura dal server fallisce.
+   Le due azioni del server sono entrambe idempotenti (upsert / delete), quindi
+   anche uno stato indovinato male si riallinea al primo click: quello che non
+   deve mai capitare è restare bloccati su "Aggiungi alla Lista". */
+function saveFavMirror() {
+  const email = Identity.user()?.email || '';
+  try {
+    localStorage.setItem(FAV_MIRROR, JSON.stringify({ email, ids: [...favsCache.ids] }));
+  } catch (e) {}
+}
+function applyFavMirror() {
+  if (favsCache.ids.size) return; // lo stato già in memoria è più recente
+  try {
+    const raw = JSON.parse(localStorage.getItem(FAV_MIRROR) || 'null');
+    const email = Identity.user()?.email || '';
+    if (!raw || !Array.isArray(raw.ids) || !email || raw.email !== email) return;
+    favsCache.ids = new Set(raw.ids.map(String).filter(Boolean));
+  } catch (e) {}
+}
+
+function setFavLabel(isFav) {
+  const label = $('favLabel');
+  if (!label) return;
+  label.dataset.mode = isFav ? 'remove' : 'add';
+  label.textContent = isFav ? 'Rimuovi dalla Lista' : 'Aggiungi alla Lista';
+}
+
+async function ensureFavs(force = false) {
+  const user = Identity.user();
+  if (!user) { favsCache.loaded = false; favsCache.ids.clear(); return false; }
+  if (favsCache.loaded && !force) return true;
+  try {
+    const res = await fetch(FAV_URL, {
+      headers: { Authorization: `Bearer ${await Identity.jwt()}` }
+    });
+    if (!res.ok) {
+      console.warn('Lista non leggibile (HTTP ' + res.status + ')');
+      applyFavMirror();
+      return false;
+    }
+    const rows = await res.json();
+    if (!Array.isArray(rows)) {
+      console.warn('Lista con formato inatteso:', rows);
+      applyFavMirror();
+      return false;
+    }
+    favsCache.ids = new Set(rows.map(favIdOf).filter(Boolean));
+    favsCache.loaded = true;
+    saveFavMirror();
+    return true;
+  } catch (e) {
+    console.error('Errore elenco preferiti:', e);
+    applyFavMirror();
+    return false;
+  }
+}
+
+/* il refresh è asincrono: senza questi controlli una risposta in ritardo
+   riscriverebbe l'etichetta di un altro titolo (o di una scheda chiusa) */
+let favLabelSeq = 0;
+async function refreshFavLabel() {
+  const seq = ++favLabelSeq;
+  const key = currentItem ? String(currentItem.id) : null;
+  if (!key) return;
+  if (!Identity.user()) { setFavLabel(false); return; }
+
+  await ensureFavs();
+  if (seq !== favLabelSeq) return;
+  if (!currentItem || String(currentItem.id) !== key) return;
+  setFavLabel(isFavCached(currentItem.id));
+}
+
 async function toggleFavorite() {
   const user = Identity.user();
   if (!user) return Identity.open();
-
+  const item = currentItem;
+  if (!item) return;
   const label = $('favLabel');
-  label.textContent = 'Salvataggio…';
+  const id = String(item.id);
+
+  /* l'azione si decide sullo stato conosciuto (server o specchio), mai sul
+     testo del pulsante: un'etichetta in ritardo non deve bloccare la rimozione */
+  await ensureFavs();
+  const isFav = isFavCached(id);
+  const action = isFav ? 'remove' : 'add';
+  if (currentItem === item) label.textContent = isFav ? 'Rimozione…' : 'Salvataggio…';
+
   try {
-    const res = await fetch('/.netlify/functions/manage-favorites', {
+    const res = await fetch(FAV_URL, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${Identity.token()}`,
+        Authorization: `Bearer ${await Identity.jwt()}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        action: 'add',
-        item_id: currentItem.id,
-        media_type: currentItem.type,
-        poster_path: currentItem.poster_path,
-        title: currentItem.title || currentItem.name
+        action,
+        item_id: item.id,
+        media_type: item.type,
+        poster_path: item.poster_path,
+        title: item.title || item.name
       })
     });
     const data = await res.json().catch(() => null);
-    label.textContent = res.ok ? 'Aggiunto alla Lista' : (data?.error || 'Salvataggio non riuscito');
-    if (res.ok) toast('Aggiunto alla tua Lista');
-    else console.error('Errore preferiti:', data || res.status);
+    if (!res.ok) throw new Error(data?.error || '');
+
+    if (isFav) favsCache.ids.delete(id);
+    else favsCache.ids.add(id);
+    saveFavMirror();
+    if (currentItem === item) setFavLabel(!isFav);
+    toast(isFav ? 'Rimosso dalla tua Lista' : 'Aggiunto alla tua Lista');
   } catch (e) {
-    label.textContent = 'Salvataggio non riuscito';
     console.error('Errore preferiti:', e);
+    if (currentItem === item) setFavLabel(isFav);
+    toast(e.message || (isFav ? 'Rimozione non riuscita' : 'Salvataggio non riuscito'));
   }
-  setTimeout(() => { label.textContent = 'Aggiungi alla Lista'; }, 2400);
 }
 
 /* ============================================

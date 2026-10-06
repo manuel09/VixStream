@@ -27,7 +27,9 @@ function ensureSchema() {
 const json = (statusCode, body) => ({
   statusCode,
   body: JSON.stringify(body),
-  headers: { 'Content-Type': 'application/json' }
+  // nessuna cache: una risposta "vuota" presa dalla cache farebbe credere
+  // all'interfaccia che la lista sia davvero vuota
+  headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }
 });
 
 exports.handler = async (event, context) => {
@@ -35,11 +37,15 @@ exports.handler = async (event, context) => {
 
   try {
     if (event.httpMethod === 'GET') {
-      if (!user) return json(200, []);
+      // 401 e non 200: un elenco vuoto "finto" indurrebbe l'interfaccia a
+      // pensare che il titolo mostrato non sia salvato
+      if (!user) return json(401, { error: 'Effettua il login' });
 
       await ensureSchema();
+      // item_id castato a text: se la colonna è INTEGER il front-end confronta
+      // stringhe con numeri e il pulsante resta sempre su "Aggiungi"
       const favs = await sql`
-        SELECT user_email, item_id, media_type, poster_path, created_at, title
+        SELECT item_id::text AS item_id, media_type, poster_path, title, created_at
         FROM favorites
         WHERE user_email = ${user.email}
         ORDER BY created_at DESC`;
