@@ -695,7 +695,7 @@ h1,h2,h3,p{margin:0}
     <div class="sheet__body">
       <div>
         <div class="sheet__acts">
-          <button class="btn btn--play" onclick="launchPlayer('vixsrc')">
+          <button class="btn btn--play" onclick="launchPlayer()">
             <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
             Riproduci
           </button>
@@ -713,7 +713,6 @@ h1,h2,h3,p{margin:0}
           <span>Server</span>
           <div class="seg">
             <button id="playBtn" class="on" onclick="launchPlayer('vixsrc')">Server 1</button>
-            <button id="playBtnBackup" onclick="launchPlayer('videasy')">Server 2</button>
           </div>
         </div>
 
@@ -742,7 +741,7 @@ h1,h2,h3,p{margin:0}
      ============================================ -->
 <div id="playerModal">
   <button id="closePlayerBtn" onclick="closeModals()">Chiudi ✕</button>
-  <iframe id="playerFrame" allowfullscreen allow="autoplay" allow="encrypted-media" referrerpolicy="strict-origin-when-cross-origin" title="Player"></iframe>
+  <iframe id="playerFrame" allowfullscreen allow="autoplay; fullscreen; encrypted-media; picture-in-picture" referrerpolicy="no-referrer" webkitallowfullscreen title="Player"></iframe>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -804,6 +803,16 @@ const yearOf = i => ((i.release_date || i.first_air_date || '')).slice(0, 4);
 const typeOf = i => i.media_type || (i.title ? 'movie' : 'tv');
 const titleOf = i => i.title || i.name || 'Senza titolo';
 const idOf = i => i.id || i.item_id;
+
+/* vixsrc.to blocca con 403 qualunque richiesta che porti come Referer un dominio
+   *.netlify.app, quindi l'iframe va aperta con referrerpolicy="no-referrer".
+   Attenzione: i film vanno senza stagione/episodio (/movie/ID), le serie con (/tv/ID/S/E). */
+const SERVERS = {
+  vixsrc: (type, id, season, episode) => type === 'tv'
+    ? `https://vixsrc.to/tv/${id}/${season}/${episode}?autoplay=true`
+    : `https://vixsrc.to/movie/${id}?autoplay=true`
+};
+const DEFAULT_SERVER = 'vixsrc';
 
 /* ============================================
    API
@@ -1199,18 +1208,18 @@ async function setupSeasons(show) {
 /* ============================================
    PLAYER
    ============================================ */
-function launchPlayer(server = 'vixsrc') {
+function launchPlayer(server) {
   if (!currentItem) return;
   const season = $('seasonSelect')?.value || 1;
   const episode = $('episodeSelect')?.value || 1;
   const { id, type } = currentItem;
 
-  const src = server === 'vixsrc'
-    ? `https://vixsrc.to/${type}/${id}/${season}/${episode}?autoplay=true`
-    : `https://player.videasy.net/${type}/${id}/${season}/${episode}?autoplayNextEpisode=true`;
+  const picked = server || DEFAULT_SERVER;
+  const src = SERVERS[picked](type, id, season, episode);
 
   document.querySelectorAll('.seg button').forEach(b => b.classList.remove('on'));
-  (server === 'vixsrc' ? $('playBtn') : $('playBtnBackup')).classList.add('on');
+  const btn = $('playBtn');
+  if (btn) btn.classList.add('on');
 
   openPlayer(src);
   saveHistory(season, episode);
@@ -1232,6 +1241,8 @@ function openPlayer(src) {
   $('playerModal').style.display = 'block';
   if (!playerArmed) {
     document.addEventListener('mousemove', handleUiActivity);
+    document.addEventListener('touchstart', handleUiActivity, { passive: true });
+    document.addEventListener('keydown', handleUiActivity);
     playerArmed = true;
   }
   handleUiActivity();
