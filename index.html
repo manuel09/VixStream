@@ -989,6 +989,7 @@ async function loadFavorites() {
     return;
   }
   const favs = await res.json();
+  console.log('FAVDB', favs);
   if (!favs || !favs.length) {
     renderEmpty('La tua lista è vuota', 'Aggiungi film e serie dalla pagina di dettaglio e li ritroverai qui.');
     return;
