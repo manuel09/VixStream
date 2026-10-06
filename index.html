@@ -997,12 +997,30 @@ async function loadFavorites() {
   renderRow('La mia Lista', await hydrate(favs.slice(0, 24)));
 }
 
-/* il DB salvive solo id/tipo/poster: recuperiamo titoli e metadati da TMDB */
+/* il DB salva solo id/tipo/poster: recuperiamo titoli e metadati da TMDB.
+   Attenzione: gli id TMDB NON sono univoci tra film e serie (stesso numero =
+   due titoli diversi). Se il poster del titolo trovato non coincide con quello
+   salvato, il tipo è sbagliato: proviamo l'altro (/movie <-> /tv). */
+async function detailFor(x) {
+  const first = (x.media_type || typeOf(x)) === 'movie' ? 'movie' : 'tv';
+  const other = first === 'movie' ? 'tv' : 'movie';
+  let d = await one(`/${first}/${idOf(x)}`);
+  if (d && x.poster_path && d.poster_path && d.poster_path !== x.poster_path) {
+    const d2 = await one(`/${other}/${idOf(x)}`);
+    if (d2 && d2.poster_path === x.poster_path) { x.media_type = other; return d2; }
+  }
+  if (!d) {
+    d = await one(`/${other}/${idOf(x)}`);
+    if (d) x.media_type = other;
+  }
+  return d;
+}
+
 async function hydrate(items) {
   const need = items.filter(i => !i.title && !i.name);
   for (let i = 0; i < need.length; i += 6) {
     const batch = need.slice(i, i + 6);
-    const got = await Promise.all(batch.map(x => one(`/${x.media_type || typeOf(x)}/${idOf(x)}`)));
+    const got = await Promise.all(batch.map(detailFor));
     batch.forEach((x, k) => { if (got[k]) Object.assign(x, got[k], { media_type: got[k].media_type || x.media_type }); });
   }
   return items.filter(i => i.title || i.name);
@@ -1318,7 +1336,8 @@ async function toggleFavorite() {
         action: 'add',
         item_id: currentItem.id,
         media_type: currentItem.type,
-        poster_path: currentItem.poster_path
+        poster_path: currentItem.poster_path,
+        title: currentItem.title || currentItem.name
       })
     });
     const data = await res.json().catch(() => null);
