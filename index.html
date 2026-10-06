@@ -75,7 +75,7 @@ h1,h2,h3,p{margin:0}
 /* ============================================
    LOGO
    ============================================ */
-.logo{display:block;height:clamp(26px,2.6vw,34px);width:auto;flex:0 0 auto;cursor:pointer;
+.logo{display:block;height:clamp(26px,2.6vw,34px);width:auto;aspect-ratio:210/74;flex:0 0 auto;cursor:pointer;
   transition:transform .25s var(--ease)}
 .logo:hover{transform:scale(1.04)}
 .logo-mark{fill:#f4f7fb}
@@ -97,9 +97,9 @@ h1,h2,h3,p{margin:0}
   box-shadow:0 10px 30px rgba(0,0,0,.5);
   backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
 }
-.hdr__in{width:100%;display:flex;align-items:center;gap:clamp(10px,1.6vw,24px);padding:0 var(--pad) 0 clamp(8px,1.8vw,26px)}
+.hdr__in{width:100%;display:flex;align-items:center;gap:clamp(10px,1.6vw,24px);padding:0 var(--pad) 0 clamp(4px,0.9vw,14px)}
 
-.hdr__left{display:flex;align-items:center;gap:clamp(10px,2vw,30px);min-width:0}
+.hdr__left{display:flex;align-items:center;gap:clamp(8px,1.4vw,20px);min-width:0}
 .hdr__right{display:flex;align-items:center;gap:clamp(8px,1.2vw,14px);margin-left:auto}
 
 .burger{
@@ -853,6 +853,7 @@ function handleSearch(q) {
     return;
   }
   searchTimer = setTimeout(async () => {
+    $('rows').innerHTML = '';
     const data = await tmdb('/search/multi', { query: q, include_adult: false }).catch(() => null);
     seen = new Map();
     $('hero').classList.add('is-hidden');
