@@ -97,7 +97,7 @@ h1,h2,h3,p{margin:0}
   box-shadow:0 10px 30px rgba(0,0,0,.5);
   backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
 }
-.hdr__in{width:100%;display:flex;align-items:center;gap:clamp(10px,1.6vw,24px);padding:0 var(--pad)}
+.hdr__in{width:100%;display:flex;align-items:center;gap:clamp(10px,1.6vw,24px);padding:0 var(--pad) 0 clamp(8px,1.8vw,26px)}
 
 .hdr__left{display:flex;align-items:center;gap:clamp(10px,2vw,30px);min-width:0}
 .hdr__right{display:flex;align-items:center;gap:clamp(8px,1.2vw,14px);margin-left:auto}
@@ -982,7 +982,9 @@ async function loadFavorites() {
     headers: { Authorization: `Bearer ${Identity.token()}` }
   });
   if (!res.ok) {
-    renderEmpty('Lista non disponibile', 'Non siamo riusciti a caricare la tua lista. Riprova più tardi.');
+    const data = await res.json().catch(() => null);
+    console.error('Errore lista:', data || res.status);
+    renderEmpty('Lista non disponibile', data?.error || 'Non siamo riusciti a caricare la tua lista. Riprova più tardi.');
     return;
   }
   const favs = await res.json();
@@ -1304,21 +1306,28 @@ async function toggleFavorite() {
 
   const label = $('favLabel');
   label.textContent = 'Salvataggio…';
-  const res = await fetch('/.netlify/functions/manage-favorites', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${Identity.token()}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      action: 'add',
-      item_id: currentItem.id,
-      media_type: currentItem.type,
-      poster_path: currentItem.poster_path
-    })
-  });
-  label.textContent = res.ok ? 'Aggiunto alla Lista' : 'Salvataggio non riuscito';
-  if (res.ok) toast('Aggiunto alla tua Lista');
+  try {
+    const res = await fetch('/.netlify/functions/manage-favorites', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${Identity.token()}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        action: 'add',
+        item_id: currentItem.id,
+        media_type: currentItem.type,
+        poster_path: currentItem.poster_path
+      })
+    });
+    const data = await res.json().catch(() => null);
+    label.textContent = res.ok ? 'Aggiunto alla Lista' : (data?.error || 'Salvataggio non riuscito');
+    if (res.ok) toast('Aggiunto alla tua Lista');
+    else console.error('Errore preferiti:', data || res.status);
+  } catch (e) {
+    label.textContent = 'Salvataggio non riuscito';
+    console.error('Errore preferiti:', e);
+  }
   setTimeout(() => { label.textContent = 'Aggiungi alla Lista'; }, 2400);
 }
 
@@ -1479,6 +1488,13 @@ function updateUserUI(user) {
   $('userMail').textContent = user.email;
   $('drawerFoot').textContent = name;
 }
+
+/* pulsante "Accedi" in header */
+$('authBtn').addEventListener('click', e => {
+  e.stopPropagation();
+  $('acct').classList.remove('open');
+  Identity.open();
+});
 
 /* ============================================
    BOOT
