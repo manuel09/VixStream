@@ -741,7 +741,7 @@ h1,h2,h3,p{margin:0}
      ============================================ -->
 <div id="playerModal">
   <button id="closePlayerBtn" onclick="closeModals()">Chiudi ✕</button>
-  <iframe id="playerFrame" allowfullscreen allow="autoplay; fullscreen; encrypted-media; picture-in-picture" referrerpolicy="origin" webkitallowfullscreen title="Player"></iframe>
+  <iframe id="playerFrame" allowfullscreen allow="autoplay" allow="encrypted-media" referrerpolicy="strict-origin-when-cross-origin" title="Player"></iframe>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -804,12 +804,8 @@ const typeOf = i => i.media_type || (i.title ? 'movie' : 'tv');
 const titleOf = i => i.title || i.name || 'Senza titolo';
 const idOf = i => i.id || i.item_id;
 
-/* vixsrc.to pretende document.referrer non vuoto (nella sua iframe il check è
-   `window.self!==window.top && !document.referrer`), quindi "no-referrer" lo blocca.
-   Con "origin" passa l'origine e basta. Nota: vixsrc.to risponde 403 a qualunque
-   Referer che finisca con *.netlify.app, quindi il dominio .netlify.app va bene solo
-   finché non serve traffico reale — meglio usare un dominio proprio.
-   Attenzione: i film vanno senza stagione/episodio (/movie/ID), le serie con (/tv/ID/S/E). */
+/* I film su vixsrc vanno senza stagione/episodio (/movie/ID): con /movie/ID/1/1
+   il sito risponde 404. Le serie invece usano /tv/ID/Stagione/Episodio. */
 const SERVERS = {
   vixsrc: (type, id, season, episode) => type === 'tv'
     ? `https://vixsrc.to/tv/${id}/${season}/${episode}?autoplay=true`
