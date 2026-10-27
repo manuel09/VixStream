@@ -316,6 +316,7 @@ h1,h2,h3,p{margin:0}
 .track{position:relative}
 .track__in{
   display:flex;gap:14px;overflow-x:auto;scroll-behavior:smooth;scroll-snap-type:x proximity;
+  scroll-padding:0 var(--pad);
   padding:6px var(--pad) 8px;
 }
 
@@ -339,7 +340,7 @@ h1,h2,h3,p{margin:0}
    ============================================ */
 .card{
   position:relative;flex:0 0 auto;width:clamp(132px,15vw,168px);cursor:pointer;
-  scroll-snap-align:start;outline:none;
+  scroll-snap-align:start;outline:none;color:inherit;text-decoration:none;
 }
 .card:focus-visible .card__art{box-shadow:0 0 0 2px var(--blue),0 0 0 5px rgba(0,168,225,.3)}
 .card__art{
@@ -386,6 +387,124 @@ h1,h2,h3,p{margin:0}
   color:transparent;-webkit-text-stroke:2px rgba(255,255,255,.4);
 }
 .card--rank .card__art{z-index:1}
+
+/* ============================================
+   TITLE PAGE (pagina dedicata, nuova scheda)
+   ============================================ */
+.title-page{position:relative}
+.title-hero{
+  position:relative;display:flex;align-items:flex-end;overflow:hidden;
+  min-height:min(70vh,620px);
+  padding:calc(var(--hdr) + 40px) var(--pad) clamp(30px,5vw,56px);
+}
+.title-hero__bg{position:absolute;inset:0}
+.title-hero__bg img{width:100%;height:100%;object-fit:cover;object-position:center 22%}
+.title-hero__bg::after{
+  content:'';position:absolute;inset:0;
+  background:
+    linear-gradient(90deg,rgba(10,16,29,.97) 0%,rgba(10,16,29,.78) 40%,rgba(10,16,29,.3) 72%,rgba(10,16,29,.08) 100%),
+    linear-gradient(0deg,var(--deep) 1%,rgba(10,16,29,.55) 30%,rgba(10,16,29,.12) 100%);
+}
+.title-hero__in{position:relative;z-index:2;width:100%;max-width:820px}
+.title-kicker{
+  font-size:11px;font-weight:700;letter-spacing:.24em;text-transform:uppercase;
+  color:var(--blue);margin-bottom:12px;
+}
+.title-hero h1{
+  font-size:clamp(32px,5.4vw,62px);line-height:1.04;font-weight:900;letter-spacing:-.03em;
+  text-shadow:0 6px 30px rgba(0,0,0,.65);margin-bottom:14px;
+}
+.title-hero .sheet__meta{margin-top:0;margin-bottom:22px}
+.title-hero .sheet__acts{margin-bottom:0}
+.title-body{
+  position:relative;z-index:3;display:grid;gap:clamp(24px,3.5vw,44px);
+  width:100%;margin:0;
+  padding:clamp(24px,4vw,44px) var(--pad) clamp(60px,7vw,96px);
+}
+@media(min-width:900px){.title-body{grid-template-columns:minmax(0,1fr) 300px}}
+.title-main{min-width:0}
+.title-main .sheet__desc{max-width:900px}
+.title-page .cast{flex-wrap:wrap;overflow:visible;gap:14px 18px;padding-bottom:0}
+.title-main .sheet__server{margin-top:28px}
+.title-side{display:flex;flex-direction:column;gap:24px}
+.title-poster{
+  width:100%;aspect-ratio:2/3;object-fit:cover;border-radius:12px;background:var(--card);
+  border:1px solid var(--line);box-shadow:0 18px 44px rgba(0,0,0,.55);
+}
+@media(max-width:899px){
+  .title-side{flex-direction:row;align-items:flex-start;gap:20px}
+  .title-poster{width:min(150px,38vw);flex:0 0 auto}
+  .title-side .facts{flex:1}
+}
+
+/* stagioni / episodi */
+.carousel{position:relative}
+.car-track{
+  display:flex;gap:14px;overflow-x:auto;scroll-behavior:smooth;
+  padding:4px 2px 10px;scroll-snap-type:x proximity;
+}
+.car-arrow{
+  display:none;position:absolute;top:calc(50% - 24px);transform:translateY(-50%);z-index:5;
+  width:38px;height:38px;place-items:center;cursor:pointer;
+  background:rgba(10,16,29,.92);border:1px solid var(--line-2);border-radius:50%;
+  color:#fff;font-size:22px;line-height:1;opacity:0;
+  transition:opacity .2s,background .2s,color .2s;
+}
+.car-arrow--l{left:-9px}
+.car-arrow--r{right:-9px}
+@media(hover:hover) and (pointer:fine){
+  .car-arrow{display:grid}
+  .carousel:hover .car-arrow{opacity:1}
+}
+.car-arrow:hover{background:var(--blue);border-color:var(--blue);color:var(--ink)}
+
+.season-card{
+  flex:0 0 auto;width:clamp(92px,10vw,124px);padding:0;background:none;border:0;
+  color:var(--txt);text-align:left;cursor:pointer;scroll-snap-align:start;
+}
+.season-card__art{
+  position:relative;aspect-ratio:2/3;border-radius:8px;overflow:hidden;background:var(--card);
+  box-shadow:0 2px 12px rgba(0,0,0,.42);transition:box-shadow .25s,transform .3s var(--ease);
+}
+.season-card:hover .season-card__art{transform:translateY(-3px);box-shadow:0 0 0 2px var(--blue),0 12px 26px rgba(0,0,0,.55)}
+.season-card.on .season-card__art{box-shadow:0 0 0 2px var(--blue),0 0 0 5px rgba(0,168,225,.22)}
+.season-card__art img{width:100%;height:100%;object-fit:cover}
+.season-card__label{
+  margin-top:7px;font-size:12.5px;font-weight:600;color:#e8eef7;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.season-card.on .season-card__label{color:var(--blue)}
+.season-card__sub{margin-top:2px;font-size:11px;color:var(--dim-2)}
+
+.ep-card{
+  flex:0 0 auto;width:clamp(210px,22vw,270px);padding:0;background:none;border:0;
+  color:inherit;text-align:left;cursor:pointer;scroll-snap-align:start;
+}
+.ep-card__art{
+  position:relative;aspect-ratio:16/9;border-radius:8px;overflow:hidden;background:var(--card);
+  box-shadow:0 2px 12px rgba(0,0,0,.45);transition:box-shadow .25s,transform .3s var(--ease);
+}
+.ep-card:hover .ep-card__art{transform:translateY(-3px);box-shadow:0 0 0 2px var(--blue),0 14px 30px rgba(0,0,0,.55)}
+.ep-card__art img{width:100%;height:100%;object-fit:cover;transition:transform .5s var(--ease)}
+.ep-card:hover .ep-card__art img{transform:scale(1.06)}
+.ep-card__play{
+  position:absolute;inset:0;display:grid;place-items:center;opacity:0;
+  background:linear-gradient(0deg,rgba(6,10,18,.68),rgba(6,10,18,.14));
+  transition:opacity .22s;
+}
+.ep-card__art:hover .ep-card__play,.ep-card:focus-visible .ep-card__play{opacity:1}
+.ep-card__play span{
+  width:48px;height:48px;border-radius:50%;display:grid;place-items:center;
+  background:rgba(0,0,0,.6);border:1px solid rgba(255,255,255,.35);
+}
+.ep-card__body{padding-top:9px}
+.ep-card__t{font-size:13.5px;font-weight:700;color:#e8eef7;line-height:1.35}
+.ep-card__n{color:var(--blue);font-weight:800;margin-right:5px}
+.ep-card__d{
+  margin-top:5px;font-size:12px;line-height:1.5;color:var(--dim);
+  display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;
+}
+.ep-empty{padding:12px 2px;margin:0;font-size:13.5px;color:var(--dim)}
 
 /* ============================================
    PANELS / EMPTY STATE
@@ -706,7 +825,7 @@ h1,h2,h3,p{margin:0}
           </button>
           <button class="btn btn--ghost" id="favBtn" onclick="toggleFavorite()">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20.5S3.8 15.6 3.8 10.4A4.6 4.6 0 0 1 12 7.6a4.6 4.6 0 0 1 8.2 2.8c0 5.2-8.2 10.1-8.2 10.1Z"/></svg>
-            <span id="favLabel">Aggiungi alla Lista</span>
+            <span id="favLabel" data-fav-label>Aggiungi alla Lista</span>
           </button>
         </div>
 
@@ -812,6 +931,10 @@ let searchTimer = null;
 let booted = false;
 let rowSeq = 0;
 let playerArmed = false;
+let pageSeason = 1;
+let pageEpisode = 1;
+let seasonSeq = 0;
+const seasonCache = new Map();
 
 const $ = id => document.getElementById(id);
 const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
@@ -917,6 +1040,10 @@ function renderEmpty(title, text, withLogin) {
    ============================================ */
 async function loadContent(category) {
   setNav(category);
+  const u = new URL(location.href);
+  if (u.searchParams.has('id') || u.searchParams.has('type')) {
+    history.replaceState(null, '', u.pathname + u.hash);
+  }
   $('rows').innerHTML = '<div class="panel"><p style="margin:0">Caricamento…</p></div>';
   $('searchWrapper').classList.remove('on');
   $('searchInput').value = '';
@@ -1091,9 +1218,9 @@ function cardHTML(i, opts) {
   const label = opts.wide ? (type === 'tv' && i.last_season ? `S${i.last_season} · E${i.last_episode}` : titleOf(i)) : null;
 
   return `
-  <article class="card ${opts.wide ? 'card--wide' : ''} ${opts.ranked ? 'card--rank' : ''}"
-           data-open data-id="${id}" data-type="${type}" tabindex="0" role="button"
-           aria-label="${esc(titleOf(i))}">
+  <a class="card ${opts.wide ? 'card--wide' : ''} ${opts.ranked ? 'card--rank' : ''}"
+     href="?id=${encodeURIComponent(id)}&amp;type=${encodeURIComponent(type)}"
+     aria-label="${esc(titleOf(i))}">
     ${opts.ranked ? `<span class="num" aria-hidden="true">${String(opts.rank).padStart(2, '0')}</span>` : ''}
     <div class="card__art">
       <img loading="lazy" decoding="async" src="${IMG}${opts.wide ? 'w500' : 'w342'}${art}"
@@ -1108,7 +1235,7 @@ function cardHTML(i, opts) {
       <div class="card__t">${esc(titleOf(i))}</div>
       <div class="card__s">${esc(label || [type === 'tv' ? 'Serie TV' : 'Film', yearOf(i), score].filter(Boolean).join(' · '))}</div>
     </div>
-  </article>`;
+  </a>`;
 }
 
 /* ============================================
@@ -1248,6 +1375,277 @@ async function setupSeasons(show) {
 }
 
 /* ============================================
+   SEASON / EPISODE CAROUSELS (pagina titolo)
+   ============================================ */
+function bindCarousel(track, prev, next, single = false) {
+  const step = () => {
+    if (single) {
+      const card = track.firstElementChild;
+      if (card) return Math.round(card.getBoundingClientRect().width + 14);
+    }
+    return Math.round(track.clientWidth * 0.85);
+  };
+  prev.onclick = () => track.scrollBy({ left: -step(), behavior: 'smooth' });
+  next.onclick = () => track.scrollBy({ left: step(), behavior: 'smooth' });
+}
+
+async function seasonData(showId, season) {
+  const key = `${showId}-${season}`;
+  if (seasonCache.has(key)) return seasonCache.get(key);
+  const data = await tmdb(`/tv/${showId}/season/${season}`).catch(() => null);
+  seasonCache.set(key, data);
+  return data;
+}
+
+function episodeCard(e, show) {
+  const img = e.still_path || show.backdrop_path || show.poster_path;
+  const name = e.name || `Episodio ${e.episode_number}`;
+  const overview = (e.overview || '').trim();
+  return `
+    <button class="ep-card" data-ep="${e.episode_number}" aria-label="Riproduci ${esc(name)}">
+      <div class="ep-card__art">
+        ${img ? `<img loading="lazy" src="${IMG}w500${img}" alt="${esc(name)}">` : ''}
+        <span class="ep-card__play" aria-hidden="true">
+          <span><svg width="20" height="20" viewBox="0 0 24 24" fill="#fff"><path d="M8 5v14l11-7z"/></svg></span>
+        </span>
+      </div>
+      <div class="ep-card__body">
+        <div class="ep-card__t"><span class="ep-card__n">${e.episode_number}.</span>${esc(name)}</div>
+        ${overview ? `<p class="ep-card__d">${esc(overview)}</p>` : ''}
+      </div>
+    </button>`;
+}
+
+function playEpisode(show, season, episode) {
+  pageSeason = season;
+  pageEpisode = episode;
+  openPlayer(SERVERS[DEFAULT_SERVER]('tv', show.id, season, episode));
+  saveHistory(season, episode);
+}
+
+async function selectSeason(show, num) {
+  const seq = ++seasonSeq;
+  pageSeason = num;
+  document.querySelectorAll('#tpSeasons .season-card').forEach(btn => {
+    const on = Number(btn.dataset.season) === num;
+    btn.classList.toggle('on', on);
+    btn.setAttribute('aria-pressed', String(on));
+  });
+
+  const wrap = $('tpEpisodesWrap');
+  const track = $('tpEpisodes');
+  wrap.classList.remove('is-hidden');
+  $('tpEpisodesLabel').textContent = `Stagione ${num} · Episodi`;
+  track.innerHTML = '<p class="ep-empty">Caricamento…</p>';
+
+  const data = await seasonData(show.id, num);
+  if (seq !== seasonSeq) return;
+  const eps = data?.episodes || [];
+  if (!eps.length) {
+    track.innerHTML = '<p class="ep-empty">Nessun episodio disponibile.</p>';
+    return;
+  }
+
+  const saved = watchHistory.find(x => idOf(x) === show.id);
+  const savedEp = Number(saved?.last_season) === num ? Number(saved?.last_episode) : 0;
+  const pick = eps.find(e => Number(e.episode_number) === savedEp) || eps[0];
+  pageEpisode = Number(pick.episode_number);
+
+  track.innerHTML = eps.map(e => episodeCard(e, show)).join('');
+  track.querySelectorAll('.ep-card').forEach(card => {
+    card.addEventListener('click', () => playEpisode(show, num, Number(card.dataset.ep)));
+  });
+
+  const target = track.querySelector(`[data-ep="${pageEpisode}"]`);
+  if (target && pageEpisode !== Number(eps[0].episode_number)) {
+    track.scrollLeft = target.offsetLeft - track.offsetLeft;
+  }
+}
+
+async function setupSeasonCarousel(show) {
+  const box = $('tpTvBox');
+  const track = $('tpSeasons');
+  const seasons = (show.seasons || []).filter(s => s.season_number > 0);
+  if (!seasons.length) {
+    box.classList.add('is-hidden');
+    return;
+  }
+  box.classList.remove('is-hidden');
+
+  const saved = watchHistory.find(x => idOf(x) === show.id);
+  const savedSeason = seasons.find(s => Number(s.season_number) === Number(saved?.last_season));
+  const active = savedSeason || seasons[0];
+  pageSeason = Number(active.season_number);
+  pageEpisode = savedSeason ? Number(saved?.last_episode) || 1 : 1;
+
+  track.innerHTML = seasons.map(s => {
+    const img = s.poster_path || show.poster_path || show.backdrop_path;
+    const on = Number(s.season_number) === pageSeason;
+    return `
+      <button class="season-card ${on ? 'on' : ''}" data-season="${s.season_number}"
+              aria-label="Stagione ${s.season_number}" aria-pressed="${on}">
+        <div class="season-card__art">
+          ${img ? `<img loading="lazy" src="${IMG}w342${img}" alt="${esc(s.name || 'Stagione ' + s.season_number)}">` : ''}
+        </div>
+        <div class="season-card__label">Stagione ${s.season_number}</div>
+        ${s.episode_count ? `<div class="season-card__sub">${s.episode_count} episodi</div>` : ''}
+      </button>`;
+  }).join('');
+
+  bindCarousel(track, $('tpSeasonsPrev'), $('tpSeasonsNext'));
+  bindCarousel($('tpEpisodes'), $('tpEpisodesPrev'), $('tpEpisodesNext'), true);
+  track.querySelectorAll('.season-card').forEach(btn => {
+    btn.addEventListener('click', () => selectSeason(show, Number(btn.dataset.season)));
+  });
+
+  await selectSeason(show, pageSeason);
+}
+
+/* ============================================
+   TITLE PAGE (route ?id=…&type=…)
+   ============================================ */
+function titleRoute() {
+  const p = new URLSearchParams(location.search);
+  const id = p.get('id');
+  const type = p.get('type');
+  if (!id || !['movie', 'tv'].includes(type)) return null;
+  return { id, type };
+}
+
+async function loadTitlePage(id, type) {
+  setNav(type);
+  const rows = $('rows');
+  $('hero').classList.add('is-hidden');
+  rows.className = 'rows';
+  rows.innerHTML = '<div class="panel"><p style="margin:0">Caricamento…</p></div>';
+  window.scrollTo({ top: 0 });
+  closeDrawer();
+
+  const data = await tmdb(`/${type}/${id}`).catch(() => null);
+  if (!data) {
+    rows.className = 'rows rows--plain';
+    renderEmpty('Contenuto non disponibile', 'Non siamo riusciti a caricare i dettagli di questo titolo.');
+    return;
+  }
+
+  currentItem = { ...data, type };
+  trailerKey = null;
+
+  const art = data.backdrop_path || data.poster_path;
+  const poster = data.poster_path || data.backdrop_path;
+  const runtime = type === 'tv' ? (data.episode_run_time || [])[0] : data.runtime;
+  const meta = [
+    data.vote_average ? `<span class="rate">★ ${Number(data.vote_average).toFixed(1)}</span>` : '',
+    yearOf(data),
+    runtime ? `${runtime} min` : '',
+    type === 'tv' ? `${(data.number_of_seasons || 0)} stagioni` : ''
+  ].filter(Boolean);
+
+  const facts = [
+    ['Genere', (data.genres || []).map(g => g.name).join(' · ') || '—'],
+    ['Anno', (data.release_date || data.first_air_date || '').slice(0, 4) || '—'],
+    runtime ? ['Durata', `${runtime} minuti`] : null,
+    ['Lingua', data.original_language ? data.original_language.toUpperCase() : '—'],
+    type === 'tv' ? ['Episodi', String(data.number_of_episodes || '—')] : ['Stato', data.status || '—']
+  ].filter(Boolean);
+
+  rows.innerHTML = `
+    <section class="title-page">
+      <div class="title-hero">
+        <div class="title-hero__bg">${art ? `<img src="${IMG}original${art}" alt="">` : ''}</div>
+        <div class="title-hero__in">
+          <div class="title-kicker">${type === 'tv' ? 'Serie TV' : 'Film'}</div>
+          <h1>${esc(titleOf(data))}</h1>
+          <div class="sheet__meta">${meta.map((b, k) => k ? `<span class="dot-sep"></span><span>${b}</span>` : b).join('')}</div>
+          <div class="sheet__acts">
+            <button class="btn btn--play" id="tpPlay">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+              Riproduci
+            </button>
+            <button class="btn btn--ghost" id="tpTrailer">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m10 8 6 4-6 4z"/><rect x="2.5" y="4.5" width="19" height="15" rx="3"/></svg>
+              Trailer
+            </button>
+            <button class="btn btn--ghost" onclick="toggleFavorite()">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20.5S3.8 15.6 3.8 10.4A4.6 4.6 0 0 1 12 7.6a4.6 4.6 0 0 1 8.2 2.8c0 5.2-8.2 10.1-8.2 10.1Z"/></svg>
+              <span id="tpFavLabel" data-fav-label>Aggiungi alla Lista</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="title-body">
+        <div class="title-main">
+          <p class="sheet__desc">${esc(data.overview || 'Trama non disponibile.')}</p>
+
+          <div class="sheet__server">
+            <span>Server</span>
+            <div class="seg"><button class="on">Server 1</button></div>
+          </div>
+
+          <div class="is-hidden" id="tpTvBox">
+            <div class="sel-label">Stagioni</div>
+            <div class="carousel">
+              <button class="car-arrow car-arrow--l" id="tpSeasonsPrev" aria-label="Stagioni precedenti">‹</button>
+              <div class="car-track scroll-hide" id="tpSeasons"></div>
+              <button class="car-arrow car-arrow--r" id="tpSeasonsNext" aria-label="Stagioni successive">›</button>
+            </div>
+
+            <div class="is-hidden" id="tpEpisodesWrap">
+              <div class="sel-label" id="tpEpisodesLabel">Episodi</div>
+              <div class="carousel">
+                <button class="car-arrow car-arrow--l" id="tpEpisodesPrev" aria-label="Episodi precedenti">‹</button>
+                <div class="car-track scroll-hide" id="tpEpisodes"></div>
+                <button class="car-arrow car-arrow--r" id="tpEpisodesNext" aria-label="Episodi successivi">›</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="is-hidden" id="tpCastBox">
+            <div class="sel-label">Interpreti</div>
+            <div class="cast" id="tpCast"></div>
+          </div>
+        </div>
+
+        <aside class="title-side">
+          ${poster ? `<img class="title-poster" src="${IMG}w500${poster}" alt="${esc(titleOf(data))}">` : ''}
+          <div class="facts">${facts.map(([k, v]) => `<div class="fact"><span>${esc(k)}</span><div>${esc(v)}</div></div>`).join('')}</div>
+        </aside>
+      </div>
+    </section>`;
+
+  $('tpPlay').onclick = () => {
+    openPlayer(SERVERS[DEFAULT_SERVER](type, id, pageSeason, pageEpisode));
+    saveHistory(pageSeason, pageEpisode);
+  };
+  $('tpTrailer').onclick = () => openTrailer();
+
+  refreshFavLabel();
+  if (type === 'tv') await setupSeasonCarousel(data);
+
+  const [credits, videos] = await Promise.all([
+    tmdb(`/${type}/${id}/credits`).catch(() => null),
+    tmdb(`/${type}/${id}/videos`).catch(() => null)
+  ]);
+
+  const trailer = (videos?.results || []).find(v => v.site === 'YouTube' && v.type === 'Trailer')
+               || (videos?.results || []).find(v => v.site === 'YouTube');
+  trailerKey = trailer ? trailer.key : null;
+
+  const cast = (credits?.cast || []).slice(0, 14);
+  if (cast.length) {
+    $('tpCast').innerHTML = cast.map(p => `
+      <figure>
+        ${p.profile_path
+          ? `<img loading="lazy" src="${IMG}w185${p.profile_path}" alt="${esc(p.name)}" onerror="this.style.visibility='hidden'">`
+          : '<img alt="" style="visibility:hidden">'}
+        <figcaption><b>${esc(p.name)}</b>${esc(p.character || '')}</figcaption>
+      </figure>`).join('');
+    $('tpCastBox').classList.remove('is-hidden');
+  }
+}
+
+/* ============================================
    PLAYER
    ============================================ */
 function launchPlayer(server) {
@@ -1326,8 +1724,12 @@ function closeModals() {
   $('playerModal').style.display = 'none';
   $('playerFrame').src = '';
   document.body.style.overflow = '';
-  currentItem = null;
-  trailerKey = null;
+  /* sulla pagina titolo il contenuto resta visibile: non azzerare lo stato,
+     altrimenti dopo la chiusura del player "Riproduci"/"Lista" smettono di funzionare */
+  if (!titleRoute()) {
+    currentItem = null;
+    trailerKey = null;
+  }
 }
 
 document.addEventListener('keydown', e => {
@@ -1370,11 +1772,19 @@ function applyFavMirror() {
   } catch (e) {}
 }
 
+function favLabelEls() {
+  return document.querySelectorAll('[data-fav-label]');
+}
+
 function setFavLabel(isFav) {
-  const label = $('favLabel');
-  if (!label) return;
-  label.dataset.mode = isFav ? 'remove' : 'add';
-  label.textContent = isFav ? 'Rimuovi dalla Lista' : 'Aggiungi alla Lista';
+  favLabelEls().forEach(label => {
+    label.dataset.mode = isFav ? 'remove' : 'add';
+    label.textContent = isFav ? 'Rimuovi dalla Lista' : 'Aggiungi alla Lista';
+  });
+}
+
+function setFavBusy(text) {
+  favLabelEls().forEach(label => { label.textContent = text; });
 }
 
 async function ensureFavs(force = false) {
@@ -1427,7 +1837,6 @@ async function toggleFavorite() {
   if (!user) return Identity.open();
   const item = currentItem;
   if (!item) return;
-  const label = $('favLabel');
   const id = String(item.id);
 
   /* l'azione si decide sullo stato conosciuto (server o specchio), mai sul
@@ -1435,7 +1844,7 @@ async function toggleFavorite() {
   await ensureFavs();
   const isFav = isFavCached(id);
   const action = isFav ? 'remove' : 'add';
-  if (currentItem === item) label.textContent = isFav ? 'Rimozione…' : 'Salvataggio…';
+  if (currentItem === item) setFavBusy(isFav ? 'Rimozione…' : 'Salvataggio…');
 
   try {
     const res = await fetch(FAV_URL, {
@@ -1522,16 +1931,6 @@ document.addEventListener('click', e => {
     loadContent(nav.dataset.nav);
     closeDrawer();
     return;
-  }
-  const card = e.target.closest('[data-open]');
-  if (card) openDetails(card.dataset.id, card.dataset.type);
-});
-
-document.addEventListener('keydown', e => {
-  const card = e.target.closest?.('[data-open]');
-  if (card && (e.key === 'Enter' || e.key === ' ')) {
-    e.preventDefault();
-    openDetails(card.dataset.id, card.dataset.type);
   }
 });
 
@@ -1639,7 +2038,15 @@ async function startApp() {
   if (booted) return;
   booted = true;
   syncLangUI();
-  await loadContent('all');
+  const route = titleRoute();
+  try {
+    if (route) await loadTitlePage(route.id, route.type);
+    else await loadContent('all');
+  } catch (e) {
+    console.error(e);
+    $('rows').className = 'rows rows--plain';
+    renderEmpty('Qualcosa è andato storto', 'Non siamo riusciti a caricare i contenuti. Riprova tra qualche istante.');
+  }
   $('boot').style.transition = 'opacity .6s ease';
   $('boot').style.opacity = '0';
   setTimeout(() => {
